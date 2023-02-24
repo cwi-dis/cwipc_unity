@@ -59,10 +59,23 @@ namespace Cwipc
         {
             Debug.Log($"{Name()}: Play({dirName})");
             dirName = _dirName;
+            StartCoroutine(startPlay());
+        }
+
+        private IEnumerator startPlay()
+        {
+            yield return null;
             pc_reader.dirName = dirName;
             pc_reader.loopCount = loopCount;
             pc_reader.gameObject.SetActive(true);
             pc_renderer.gameObject.SetActive(true);
+        }
+
+        private IEnumerator stopPlay()
+        {
+            yield return null;
+            finished.Invoke();
+            pc_reader.Stop();
         }
 
         // Update is called once per frame
@@ -80,8 +93,7 @@ namespace Cwipc
         public void RendererFinished()
         {
             Debug.Log($"{Name()}: Renderer finished");
-            finished.Invoke();
-            pc_reader.Stop();
+            StartCoroutine(stopPlay());
         }
     }
 }
