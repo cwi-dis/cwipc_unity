@@ -15,7 +15,9 @@ namespace Cwipc
         [Tooltip("If non-zero, voxelize each point cloud to this voxel size")]
         [SerializeField] private float voxelSize = 0;
         [Tooltip("Frame rate at which to read point clouds")]
-        [SerializeField] private float frameRate = 15;
+        public float frameRate = 15;
+        [Tooltip("How often the point cloud stream is looped (0 for infinite)")]
+        public int loopCount = 0;
         [Tooltip("Directory name (or file name) where point clouds and/or tileconfig.json or are stored.")]
         [SerializeField] private string _dirName;
         public string dirName
@@ -23,11 +25,16 @@ namespace Cwipc
             get => _dirName;
             set {
                 _dirName = value;
-                InitReader();
+                if (myQueue != null)
+                {
+                    // We have already started.
+                    InitReader();
+                }
             }
         }
         [Tooltip("Point size to use if a point cloud does not contain a pointsize")]
         [SerializeField] float defaultPointSize = 0;
+
         const float allocationFactor = 1.3f;
 
         public override long currentTimestamp
@@ -51,16 +58,17 @@ namespace Cwipc
         private void Start()
         {
             myQueue = new QueueThreadSafe($"{Name()}.queue");
-            InitReader();
+            if(dirName != null && dirName != "") InitReader();
         }
 
         private void InitReader()
         {
             if (reader != null)
             {
-                reader.StopWithoutClose();
+                Debug.LogError($"{Name()}: cannot restart with a new dirName");
+                return;
             }
-            reader = new AsyncPrerecordedReader(dirName, voxelSize, frameRate, myQueue);
+            reader = new AsyncPrerecordedReader(dirName, voxelSize, frameRate, myQueue, loopCount: loopCount);
         }
 
         private void OnDestroy()
@@ -149,5 +157,11 @@ namespace Cwipc
         {
             
         }
+
+        public override bool EndOfData()
+        {
+            return myQueue == null || (myQueue.IsClosed() && myQueue.Count() == 0);
+        }
+
     }
 }

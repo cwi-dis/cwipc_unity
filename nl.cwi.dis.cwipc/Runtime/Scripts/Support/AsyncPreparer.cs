@@ -50,5 +50,11 @@ namespace Cwipc
             if (InQueue == null) return 0;
             return InQueue.QueuedDuration();
         }
+
+        public bool EndOfData()
+        {
+            return InQueue == null || (InQueue.IsClosed() && InQueue.Count() == 0);
+        }
+
     }
 }

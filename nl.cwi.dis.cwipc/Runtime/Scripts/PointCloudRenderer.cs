@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 #if VRT_WITH_STATS
 using Statistics = Cwipc.Statistics;
 #endif
@@ -36,6 +37,12 @@ namespace Cwipc
         [SerializeField] protected bool pcMirrorX = true;
         [Tooltip("Mirror point Z axis because they use a right-hand coordinate system")]
         [SerializeField] protected bool pcMirrorZ = false;
+        [Tooltip("Event emitted when the first point cloud is displayed")]
+        public UnityEvent started;
+        [Tooltip("Event emitted when the last point cloud has been displayed")]
+        public UnityEvent finished;
+        private bool started_emitted = false;
+        private bool finished_emitted = false;
 
         [Header("Introspection (for debugging)")]
         [Tooltip("Renderer name (logging and statistics)")]
@@ -57,7 +64,7 @@ namespace Cwipc
         [SerializeField] float pointSizeMostRecentReception;
         [Tooltip("Renderer temporarily paused by a script")]
         [SerializeField] bool paused = false;
-
+        
         static int instanceCounter = 0;
         int instanceNumber = instanceCounter++;
 
@@ -136,6 +143,11 @@ namespace Cwipc
 
             if (fresh)
             {
+                if (!started_emitted)
+                {
+                    started_emitted = true;
+                    started.Invoke();
+                }
                 timestampMostRecentReception = now;
                 metadataMostRecentReception = preparer.currentMetadata;
                 if (dataIsMissing)
@@ -165,6 +177,11 @@ namespace Cwipc
             } 
             else
             {
+                if (!finished_emitted && preparer.EndOfData())
+                {
+                    finished_emitted = true;
+                    finished.Invoke();
+                }
                 if (now > timestampMostRecentReception + (int)(CwipcConfig.Instance.timeoutBeforeGhosting*1000) && !dataIsMissing)
                 {
 #if CWIPC_WITH_LOGGING

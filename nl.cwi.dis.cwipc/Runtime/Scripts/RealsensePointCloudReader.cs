@@ -33,5 +33,11 @@ namespace Cwipc
                 throw;
             }
         }
+
+        public override bool EndOfData()
+        {
+            return reader == null;
+        }
+
     }
 }

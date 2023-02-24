@@ -57,8 +57,10 @@ namespace Cwipc
 
         public void Play(string _dirName)
         {
+            Debug.Log($"{Name()}: Play({dirName})");
             dirName = _dirName;
             pc_reader.dirName = dirName;
+            pc_reader.loopCount = loopCount;
             pc_reader.gameObject.SetActive(true);
             pc_renderer.gameObject.SetActive(true);
         }
@@ -67,6 +69,18 @@ namespace Cwipc
         void Update()
         {
 
+        }
+
+        public void RendererStarted()
+        {
+            Debug.Log($"{Name()}: Renderer started");
+            started.Invoke();
+        }
+
+        public void RendererFinished()
+        {
+            Debug.Log($"{Name()}: Renderer finished");
+            finished.Invoke();
         }
     }
 }

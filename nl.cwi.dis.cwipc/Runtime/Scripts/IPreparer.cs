@@ -32,5 +32,11 @@ namespace Cwipc
         /// </summary>
         /// <returns>Input queue duration in milliseconds</returns>
         public Timedelta getQueueDuration();
+
+        /// <summary>
+        /// Returns true if no more data is available.
+        /// </summary>
+        /// <returns></returns>
+        public bool EndOfData();
     }
 }

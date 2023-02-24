@@ -25,5 +25,10 @@ namespace Cwipc
             else
                 throw new System.Exception($"{Name()}: cwipc_kinect could not be created"); // Should not happen, should throw exception
         }
+
+        public override bool EndOfData()
+        {
+            return reader == null;
+        }
     }
 }

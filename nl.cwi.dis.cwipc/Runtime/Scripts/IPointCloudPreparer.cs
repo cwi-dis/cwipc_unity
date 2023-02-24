@@ -53,6 +53,7 @@ namespace Cwipc
         abstract public int GetComputeBuffer(ref ComputeBuffer computeBuffer);
         abstract public float GetPointSize();
         abstract public Timedelta getQueueDuration();
+        abstract public bool EndOfData();
         abstract public Timestamp currentTimestamp { get; }
         abstract public FrameMetadata currentMetadata { get; }
         abstract public string Name();
