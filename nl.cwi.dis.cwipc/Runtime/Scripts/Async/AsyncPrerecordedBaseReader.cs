@@ -336,13 +336,15 @@ namespace Cwipc
                 Debug.Log($"{Name()}: xxxjack Update() called while already stopping");
                 return;
             }
-            if (curIndex >= filenames.Length)
+            if (curIndex > 0 && curIndex % filenames.Length == 0 && parent.remainingLoopCount > 0)
             {
                 parent.remainingLoopCount--;
+                Debug.Log($"{Name()}: end of loop, {parent.remainingLoopCount} more");
                 if (parent.remainingLoopCount == 0)
                 {
                     outQueue?.Close();
                     out2Queue?.Close();
+                    filenames = null;
                     return;
                 }
             }

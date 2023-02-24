@@ -81,6 +81,7 @@ namespace Cwipc
         {
             Debug.Log($"{Name()}: Renderer finished");
             finished.Invoke();
+            pc_reader.Stop();
         }
     }
 }

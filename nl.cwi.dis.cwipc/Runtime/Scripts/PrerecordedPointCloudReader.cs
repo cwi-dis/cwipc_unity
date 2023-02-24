@@ -61,6 +61,12 @@ namespace Cwipc
             if(dirName != null && dirName != "") InitReader();
         }
 
+        public void Stop()
+        {
+            reader?.Stop();
+            reader = null;
+        }
+
         private void InitReader()
         {
             if (reader != null)
@@ -73,6 +79,7 @@ namespace Cwipc
 
         private void OnDestroy()
         {
+            Stop();
             if (byteArray.IsCreated)
             {
                 byteArray.Dispose();
