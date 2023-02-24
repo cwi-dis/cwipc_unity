@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -10,13 +11,25 @@ namespace Cwipc
     /// </summary>
     public class PointCloudPlayback : MonoBehaviour
     {
+        [Tooltip("Point cloud reader (default: get from self or children)")]
         public PrerecordedPointCloudReader pc_reader;
+        [Tooltip("Point cloud renderer (default: get from self or children)")]
         public PointCloudRenderer pc_renderer;
+        [Tooltip("If true start playback on Start")]
         public bool playOnStart = false;
+        [Tooltip("If true attempt to preload point cloud files into operating system cache")]
         public bool preload = false;
+        [Tooltip("Number of times point cloud stream is looped (zero: forever)")]
         public int loopCount = 0;
+        [Tooltip("If nonzero: fade in point clouds for this many seconds")]
+        public float fadeIn = 0f;
+        [Tooltip("If nonzero: fade out point clouds (after natural duration) for this many seconds")]
+        public float fadeOut = 0f;
+        [Tooltip("Directory with point cloud files")]
         public string dirName = "";
+        [Tooltip("Invoked when playback starts")]
         public UnityEvent started;
+        [Tooltip("Invoked when playback finishes")]
         public UnityEvent finished;
 
         public string Name()
@@ -64,18 +77,61 @@ namespace Cwipc
 
         private IEnumerator startPlay()
         {
-            yield return null;
+            if (preload)
+            {
+                Debug.Log($"{Name()}: start preload");
+                Thread th = new Thread(preloadThread);
+                th.Start();
+                while (th.IsAlive)
+                {
+                    yield return null;
+                }
+                Debug.Log($"{Name()}: preload done");
+            }
+            else
+            {
+                yield return null;
+            }
             pc_reader.dirName = dirName;
             pc_reader.loopCount = loopCount;
             pc_reader.gameObject.SetActive(true);
             pc_renderer.gameObject.SetActive(true);
+            if (fadeIn > 0)
+            {
+                float elapsedTime = 0f;
+                while (elapsedTime < fadeIn)
+                {
+                    elapsedTime += Time.deltaTime;
+                    pc_renderer.pointSizeFactor = elapsedTime / fadeIn;
+                    yield return null;
+                }
+            }
+        }
+
+        private void preloadThread()
+        {
+            string[] filenames = System.IO.Directory.GetFileSystemEntries(dirName);
+            foreach(var filename in filenames)
+            {
+                byte[] dummy = System.IO.File.ReadAllBytes(filename);
+            }
         }
 
         private IEnumerator stopPlay()
         {
             yield return null;
-            finished.Invoke();
             pc_reader.Stop();
+            finished.Invoke(); // xxxjack or should this be done after the fade out?
+            if (fadeOut > 0)
+            {
+                float elapsedTime = 0f;
+                while (elapsedTime < fadeOut)
+                {
+                    elapsedTime += Time.deltaTime;
+                    pc_renderer.pointSizeFactor = (1 - elapsedTime / fadeOut);
+                    yield return null;
+                }
+            }
         }
 
         // Update is called once per frame

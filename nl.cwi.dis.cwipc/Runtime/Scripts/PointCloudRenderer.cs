@@ -32,7 +32,7 @@ namespace Cwipc
         [Tooltip("After how many seconds without data pointcloud becomes ghosted")]
         [SerializeField] protected int timeoutBeforeGhosting = 5; // seconds
         [Tooltip("Multiplication factor for pointSize for this renderer")]
-        [SerializeField] protected float pointSizeFactor = 1f;
+        public float pointSizeFactor = 1f;
         [Tooltip("Mirror point X axis because they use a right-hand coordinate system (usually true)")]
         [SerializeField] protected bool pcMirrorX = true;
         [Tooltip("Mirror point Z axis because they use a right-hand coordinate system")]
@@ -214,7 +214,7 @@ namespace Cwipc
         public void OnDestroy()
         {
             if (pointBuffer != null) { pointBuffer.Release(); pointBuffer = null; }
-            if (material != null) { material = null; }
+            material = null;
         }
 
 
