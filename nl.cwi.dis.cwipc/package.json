@@ -1,6 +1,6 @@
 {
 	"name" : "nl.cwi.dis.cwipc",
-	"version" : "0.10.0",
+	"version" : "0.11.0",
 	"displayName" : "CWI Point Cloud Support",
 	"description" : "The Cwipc Unity package allows capturing point clouds, loading them from disk, displaying them, and serializing and compressing them for transmission. At runtime it requires <https://github.com/cwi-dis/cwipc> to be installed.",
 	"documentationUrl" : "https://github.com/cwi-dis/cwipc_unity/blob/master/nl.cwi.dis.cwipc/README.md",

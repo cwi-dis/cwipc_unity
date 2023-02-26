@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.11.0] - 2023-02-26
+
+Added cwipc_playback prefab and PointCloudPlayback_script to allow more control over prerecorded playback.
+Rendering point clouds on Mac should be improved.
+
 ## [0.10.0] - 2022-12-28
 
 Upped minimum Unity version to 2021.3. Turns out we are dependent on something too modern for 2019.3
