@@ -147,8 +147,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a6fe31bfdd7a4ac1b59d583b230ec28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  reader_prefab: {fileID: 0}
-  renderer_prefab: {fileID: 0}
+  reader_prefab: {fileID: 2942035107735954229}
+  renderer_prefab: {fileID: 8907595580695556377}
   playOnStart: 0
   preload: 0
   loopCount: 0
@@ -185,3 +185,14 @@ MonoBehaviour:
   loopCount: 0
   _dirName: 
   defaultPointSize: 0
+--- !u!114 &8907595580695556377 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4770916539198233020, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
+  m_PrefabInstance: {fileID: 4155575252686006437}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ee0a2e5b3db3432996166faa4dfc160, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
