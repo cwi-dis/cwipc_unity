@@ -62,7 +62,7 @@ PrefabInstance:
     - target: {fileID: 4770916539198233020, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
       propertyPath: pointcloudSource
       value: 
-      objectReference: {fileID: 2942035107735954229}
+      objectReference: {fileID: 0}
     - target: {fileID: 4770916539198233020, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
       propertyPath: started.m_PersistentCalls.m_Calls.Array.size
       value: 1
@@ -119,6 +119,14 @@ PrefabInstance:
       propertyPath: finished.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 5653253474329525849, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8672829700311196926, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4089730585797677243, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
@@ -139,11 +147,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a6fe31bfdd7a4ac1b59d583b230ec28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pc_reader: {fileID: 2942035107735954229}
-  pc_renderer: {fileID: 8907595580695556377}
+  reader_prefab: {fileID: 0}
+  renderer_prefab: {fileID: 0}
   playOnStart: 0
   preload: 0
   loopCount: 0
+  fadeIn: 0
+  fadeOut: 0
   dirName: 
   started:
     m_PersistentCalls:
@@ -151,6 +161,8 @@ MonoBehaviour:
   finished:
     m_PersistentCalls:
       m_Calls: []
+  cur_reader: {fileID: 0}
+  cur_renderer: {fileID: 0}
 --- !u!1 &8637892789522634492 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5653253474329525849, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
@@ -173,14 +185,3 @@ MonoBehaviour:
   loopCount: 0
   _dirName: 
   defaultPointSize: 0
---- !u!114 &8907595580695556377 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4770916539198233020, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
-  m_PrefabInstance: {fileID: 4155575252686006437}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ee0a2e5b3db3432996166faa4dfc160, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

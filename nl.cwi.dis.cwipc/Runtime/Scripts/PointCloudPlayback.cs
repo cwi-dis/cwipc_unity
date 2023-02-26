@@ -11,10 +11,10 @@ namespace Cwipc
     /// </summary>
     public class PointCloudPlayback : MonoBehaviour
     {
-        [Tooltip("Point cloud reader (default: get from self or children)")]
-        public PrerecordedPointCloudReader pc_reader;
-        [Tooltip("Point cloud renderer (default: get from self or children)")]
-        public PointCloudRenderer pc_renderer;
+        [Tooltip("Point cloud reader prefab")]
+        public PrerecordedPointCloudReader reader_prefab;
+        [Tooltip("Point cloud renderer prefab")]
+        public PointCloudRenderer renderer_prefab;
         [Tooltip("If true start playback on Start")]
         public bool playOnStart = false;
         [Tooltip("If true attempt to preload point cloud files into operating system cache")]
@@ -31,33 +31,16 @@ namespace Cwipc
         public UnityEvent started;
         [Tooltip("Invoked when playback finishes")]
         public UnityEvent finished;
+        [Tooltip("(introspection) point cloud reader")]
+        public PrerecordedPointCloudReader cur_reader;
+        [Tooltip("(introspection) point cloud renderer")]
+        public PointCloudRenderer cur_renderer;
 
         public string Name()
         {
             return $"{GetType().Name}";
         }
 
-        private void Awake()
-        {
-            if (pc_reader == null)
-            {
-                pc_reader = GetComponentInChildren<PrerecordedPointCloudReader>();
-            }
-            if (pc_reader == null)
-            {
-                Debug.LogError($"{Name()}: no pc_reader found");
-            }
-            if (pc_renderer == null)
-            {
-                pc_renderer = GetComponentInChildren<PointCloudRenderer>();
-            }
-            if (pc_renderer == null)
-            {
-                Debug.LogError($"{Name()}: no pc_renderer found");
-            }
-            pc_reader.gameObject.SetActive(false);
-            pc_renderer.gameObject.SetActive(false);
-        }
 
         // Start is called before the first frame update
         void Start()
@@ -70,6 +53,14 @@ namespace Cwipc
 
         public void Play(string _dirName)
         {
+            if (cur_reader != null || cur_renderer != null)
+            {
+                Debug.LogError($"{Name()}: Play() called while playing");
+                return;
+            }
+            cur_reader = Instantiate(reader_prefab, transform);
+            cur_renderer = Instantiate(renderer_prefab, transform);
+            cur_renderer.pointcloudSource = cur_reader;
             Debug.Log($"{Name()}: Play({dirName})");
             dirName = _dirName;
             StartCoroutine(startPlay());
@@ -92,17 +83,17 @@ namespace Cwipc
             {
                 yield return null;
             }
-            pc_reader.dirName = dirName;
-            pc_reader.loopCount = loopCount;
-            pc_reader.gameObject.SetActive(true);
-            pc_renderer.gameObject.SetActive(true);
+            cur_reader.dirName = dirName;
+            cur_reader.loopCount = loopCount;
+            cur_reader.gameObject.SetActive(true);
+            cur_renderer.gameObject.SetActive(true);
             if (fadeIn > 0)
             {
                 float elapsedTime = 0f;
                 while (elapsedTime < fadeIn)
                 {
                     elapsedTime += Time.deltaTime;
-                    pc_renderer.pointSizeFactor = elapsedTime / fadeIn;
+                    cur_renderer.pointSizeFactor = elapsedTime / fadeIn;
                     yield return null;
                 }
             }
@@ -120,7 +111,7 @@ namespace Cwipc
         private IEnumerator stopPlay()
         {
             yield return null;
-            pc_reader.Stop();
+            cur_reader.Stop();
             finished.Invoke(); // xxxjack or should this be done after the fade out?
             if (fadeOut > 0)
             {
@@ -128,10 +119,14 @@ namespace Cwipc
                 while (elapsedTime < fadeOut)
                 {
                     elapsedTime += Time.deltaTime;
-                    pc_renderer.pointSizeFactor = (1 - elapsedTime / fadeOut);
+                    cur_renderer.pointSizeFactor = (1 - elapsedTime / fadeOut);
                     yield return null;
                 }
             }
+            Destroy(cur_reader.gameObject);
+            Destroy(cur_renderer.gameObject);
+            cur_reader = null;
+            cur_renderer = null;
         }
 
         // Update is called once per frame
@@ -150,6 +145,15 @@ namespace Cwipc
         {
             Debug.Log($"{Name()}: Renderer finished");
             StartCoroutine(stopPlay());
+        }
+
+        public void Stop()
+        {
+            if (cur_reader != null || cur_renderer != null)
+            {
+                Debug.Log($"{Name()}: Stop");
+                StartCoroutine(stopPlay());
+            }
         }
     }
 }
