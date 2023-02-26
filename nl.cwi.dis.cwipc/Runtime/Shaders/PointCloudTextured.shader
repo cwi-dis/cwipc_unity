@@ -136,14 +136,15 @@ Shader "cwipc/PointCloudTextured"{
 		Lighting Off
 		LOD 100
 		Cull Off
+		Blend SrcAlpha OneMinusSrcAlpha
 		Tags {
-			"Queue" = "AlphaTest" 
+			"Queue" = "Transparent" 
 			"IgnoreProjector" = "True" 
 			"RenderType" = "Transparent"
 		}
 
 		Pass {
-			// Pass two: normal sized points with no transparency
+			// Pass one: normal sized points with no transparency
 			Name "PointCloudBufferAsPoints"
 			Tags { 
 				"LightMode" = "ForwardBase" 
@@ -204,7 +205,6 @@ Shader "cwipc/PointCloudTextured"{
 			}
 			ENDCG
 		}
-/* Second pass does not improve quality. Need to investigate. xxxjack
 		Pass {
 			// Pass two: double-sized points with transparency
 			Tags { 
@@ -254,10 +254,7 @@ Shader "cwipc/PointCloudTextured"{
 				Varyings o;
 				o.position = UnityObjectToClipPos(pos);
 				o.color = col;
-                //
-                // xxxjack I think this computation is wrong. Undoutedly I can get the
-                // correct information from the various matrices but I don't know how.
-                //
+           
                 float pixelsPerMeter = _ScreenParams.y / o.position.w;
                 o.size = _PointSize * _PointSizeFactor * pixelsPerMeter * 3;
 //					UNITY_TRANSFER_FOG(o, o.position);
@@ -270,6 +267,5 @@ Shader "cwipc/PointCloudTextured"{
 			}
 			ENDCG
 		}
-*/
 	}
 }
