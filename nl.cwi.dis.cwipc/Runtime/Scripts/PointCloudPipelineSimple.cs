@@ -43,6 +43,8 @@ namespace Cwipc
         [SerializeField] protected string configFileName;
         [Tooltip("If non-zero: voxelize captured pointclouds to this cellsize")]
         [SerializeField] protected float voxelSize;
+        [Tooltip("Try to capture skeletons")]
+        [SerializeField] protected bool captureSkeletons = false;
 
         [Header("Source type: prerecorded")]
         [Tooltip("Path of directory with pointcloud files")]
@@ -166,6 +168,11 @@ namespace Cwipc
         /// </summary>
         void InitializeReader()
         {
+            if (sourceType != SourceType.Kinect && captureSkeletons)
+            {
+                Debug.LogWarning($"{name}: captureSkeleton only allowed for Kinect capturer");
+                captureSkeletons = false;
+            }
             switch(sourceType)
             {
                 case SourceType.Synthetic:
@@ -183,6 +190,11 @@ namespace Cwipc
                 case SourceType.TCP:
                     InitializeDecoder();
                     break;
+            }
+            if (captureSkeletons)
+            {
+                ISkeletonPointCloudReader skeletonReader = PCcapturer as ISkeletonPointCloudReader;
+                skeletonReader.SetWantSkeleton(true);
             }
         }
 
@@ -213,7 +225,15 @@ namespace Cwipc
         // Update is called once per frame
         void Update()
         {
-
+            if (captureSkeletons)
+            {
+                ISkeletonPointCloudReader skeletonReader = PCcapturer as ISkeletonPointCloudReader;
+                var hasSkeleton = skeletonReader.has_skeleton();
+                if (hasSkeleton)
+                {
+                    Debug.Log($"{name}: skeleton data captured");
+                }
+            }
         }
     }
 }
