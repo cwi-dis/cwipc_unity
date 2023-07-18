@@ -113,11 +113,7 @@ namespace Cwipc
                         NativeMemoryChunk mc = new NativeMemoryChunk(dataSize);
                         mc.metadata.timestamp = timestamp;
                         System.Runtime.InteropServices.Marshal.Copy(data, 0, mc.pointer, dataSize);
-                        bool ok = receiverInfo.outQueue.Enqueue(mc);
-#if VRT_WITH_STATS
-                        stats.statsUpdate(dataSize, receiveDuration, !ok);
-#endif
-                        
+                        bool ok = receiverInfo.outQueue.Enqueue(mc);                        
                     }
                 }
 #pragma warning disable CS0168

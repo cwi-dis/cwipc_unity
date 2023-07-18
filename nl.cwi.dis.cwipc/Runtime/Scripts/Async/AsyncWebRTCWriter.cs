@@ -58,9 +58,6 @@ namespace Cwipc
                 stats = new Stats(Name());
 #endif
                 Debug.Log($"{Name()}:  Should initialize stream or track");
-#if CWIPC_WITH_LOGGING
-                Debug.Log($"{Name()}: Start server on ({localEndpoint})");
-#endif
             }
 
             public string Name()
@@ -217,7 +214,7 @@ namespace Cwipc
                 int stream_number = i;
                 pusherThreads[i] = new WebRTCPushThread(this, descriptions[i]);
 #if VRT_WITH_STATS
-                Statistics.Output(base.Name(), $"pusher={pusherThreads[i].Name()}, stream={i}, port={descriptions[i].port}");
+                Statistics.Output(base.Name(), $"pusher={pusherThreads[i].Name()}, stream={i}");
 #endif
             }
             foreach (var t in pusherThreads)
