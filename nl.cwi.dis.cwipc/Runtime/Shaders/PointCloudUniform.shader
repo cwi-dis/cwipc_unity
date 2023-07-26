@@ -4,6 +4,7 @@ Shader "cwipc/PointCloudUniform"{
 		_Tint("Tint", Color) = (0.5, 0.5, 0.5, 1)
 		_PointSize("Point Size", Float) = 0.05
 		_PointSizeFactor("Point Size multiply", Float) = 1.0
+		_OverridePointSize("Override Point Size", Float) = 0.0
 	}
 	
 	SubShader {
@@ -48,6 +49,7 @@ Shader "cwipc/PointCloudUniform"{
 			float4x4	_Transform;
 			half		_PointSize;
 			half		_PointSizeFactor;
+			half		_OverridePointSize;
 		
 			StructuredBuffer<float4> _PointBuffer;
 
@@ -65,9 +67,15 @@ Shader "cwipc/PointCloudUniform"{
 				Varyings o;
 				o.position = UnityObjectToClipPos(pos);
 				o.color = col;
-                float pixelsPerMeter = _ScreenParams.y / o.position.w;
-                o.size = _PointSize * _PointSizeFactor * pixelsPerMeter;
-//					UNITY_TRANSFER_FOG(o, o.position);
+				if (_OverridePointSize == 0) {
+					float pixelsPerMeter = _ScreenParams.y / o.position.w;
+					o.size = _PointSize * _PointSizeFactor * pixelsPerMeter;
+				}
+				else 
+				{
+					o.size = _OverridePointSize;
+				}
+//				UNITY_TRANSFER_FOG(o, o.position);
 				return o;
 			}
 

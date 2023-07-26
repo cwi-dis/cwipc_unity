@@ -20,6 +20,7 @@ Shader "cwipc/PointCloudTextured"{
 		_PointSizeFactor("Point Size multiply", Float) = 1.0
 		_MainTex("Texture", 2D) = "white" {}
 		_Cutoff("Alpha cutoff", Range(0,1)) = 0.5
+		_OverridePointSize("Override Point Size", Float) = 0.0
 	}
 
 	//
@@ -115,6 +116,7 @@ Shader "cwipc/PointCloudTextured"{
 			half		_PointSizeFactor;
 			sampler2D	_MainTex;
 			fixed		_Cutoff;
+			half		_OverridePointSize;
 
 			// This structured buffer contains the actual pointcloud data, 16 bytes per point.
 			// The first 3 floats are indeed floats (x, y, z), the fourth 32 bit word is actually
@@ -170,6 +172,9 @@ Shader "cwipc/PointCloudTextured"{
 			void Geometry(point Varyings input[1], inout TriangleStream<Varyings> outStream) {
 				float4 origin = input[0].position;
 				float2 extent = abs(UNITY_MATRIX_P._11_22  * _PointSize * _PointSizeFactor);
+				if (_OverridePointSize != 0) {
+					extent = abs(UNITY_MATRIX_P._11_22 * _OverridePointSize);
+				}
 #if SHADER_API_GLCORE || SHADER_API_METAL
 				extent.x *= -1;
 #endif
@@ -268,6 +273,7 @@ Shader "cwipc/PointCloudTextured"{
 			half		_PointSizeFactor;
 			sampler2D	_MainTex;
 			fixed		_Cutoff;
+			half		_OverridePointSize;
 
 			StructuredBuffer<float4> _PointBuffer;
 
@@ -286,8 +292,15 @@ Shader "cwipc/PointCloudTextured"{
 				o.position = UnityObjectToClipPos(pos);
 				o.color = col;
                 float pixelsPerMeter = _ScreenParams.y / o.position.w;
-                o.size = _PointSize * _PointSizeFactor * pixelsPerMeter;
-//					UNITY_TRANSFER_FOG(o, o.position);
+				if (_OverridePointSize == 0) {
+					float pixelsPerMeter = _ScreenParams.y / o.position.w;
+					o.size = _PointSize * _PointSizeFactor * pixelsPerMeter;
+				}
+				else
+				{
+					o.size = _OverridePointSize;
+				}
+//				UNITY_TRANSFER_FOG(o, o.position);
 				return o;
 			}
 
