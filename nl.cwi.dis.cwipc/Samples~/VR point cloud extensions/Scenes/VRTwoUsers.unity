@@ -269,7 +269,15 @@ MonoBehaviour:
     m_Bits: 1
   m_DistanceCalculationMode: 1
   m_SelectMode: 1
+  m_FocusMode: 1
   m_CustomReticle: {fileID: 0}
+  m_AllowGazeInteraction: 0
+  m_AllowGazeSelect: 0
+  m_OverrideGazeTimeToSelect: 0
+  m_GazeTimeToSelect: 0.5
+  m_OverrideTimeToAutoDeselectGaze: 0
+  m_TimeToAutoDeselectGaze: 3
+  m_AllowGazeAssistance: 0
   m_FirstHoverEntered:
     m_PersistentCalls:
       m_Calls: []
@@ -294,6 +302,18 @@ MonoBehaviour:
   m_SelectExited:
     m_PersistentCalls:
       m_Calls: []
+  m_FirstFocusEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_LastFocusExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FocusEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FocusExited:
+    m_PersistentCalls:
+      m_Calls: []
   m_Activated:
     m_PersistentCalls:
       m_Calls: []
@@ -302,6 +322,7 @@ MonoBehaviour:
       m_Calls: []
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
+  m_StartingInteractionStrengthFilters: []
   m_OnFirstHoverEntered:
     m_PersistentCalls:
       m_Calls: []
@@ -428,6 +449,10 @@ PrefabInstance:
       propertyPath: sourceType
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 1911508270948310340, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
+      propertyPath: configFileName
+      value: cameraconfig.json
+      objectReference: {fileID: 0}
     - target: {fileID: 2942035106827000202, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
       propertyPath: m_Name
       value: cwipc_avatar_self_xr
@@ -546,12 +571,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 935f18f3a2f3d494dacd53fd7392796a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  singleMachineSession: 1
-  firstHost: vrtiny.local
-  secondHost: sap.local
+  singleMachineSession: 0
+  firstHost: 192.168.1.139
+  secondHost: 192.168.1.96
   selfPipeline: {fileID: 765728494}
   otherPipeline: {fileID: 2057174264}
-  useCompression: 0
+  useCompression: 1
   streamDescriptionReceived: 0
   otherInitialized: 0
   orchestrator: {fileID: 839301505}
