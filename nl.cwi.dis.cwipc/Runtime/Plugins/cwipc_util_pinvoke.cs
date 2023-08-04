@@ -1432,22 +1432,22 @@ namespace Cwipc
             {
                 delegate_cwipc_synthetic tmp = _API_cwipc_util_prober_standard_path.cwipc_synthetic;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"xxxjack loaded cwipc_synthetic from {_API_cwipc_util_prober_standard_path.myDllName} as {tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_util: loaded cwipc_synthetic from {_API_cwipc_util_prober_standard_path.myDllName} at 0x{tmp2:X}");
             }
             catch (System.DllNotFoundException)
             {
-                UnityEngine.Debug.Log($"xxxjack could not load cwipc_synthetic from {_API_cwipc_util_prober_standard_path.myDllName}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_util: could not load cwipc_synthetic from {_API_cwipc_util_prober_standard_path.myDllName}");
                 // Let's try and load from the silicon path.
                 try
                 {
                     delegate_cwipc_synthetic tmp = _API_cwipc_util_prober_silicon.cwipc_synthetic;
                     IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                    UnityEngine.Debug.Log($"xxxjack loaded cwipc_synthetic from {_API_cwipc_util_prober_silicon.myDllName} as {tmp2:X}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_util: loaded cwipc_synthetic from {_API_cwipc_util_prober_silicon.myDllName} at 0x{tmp2:X}");
                 }
                 catch (System.DllNotFoundException)
                 {
                     // Apparently we are not running on Silicon Mac.
-                    UnityEngine.Debug.Log($"xxxjack could not load cwipc_synthetic from {_API_cwipc_util_prober_silicon.myDllName}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_util: could not load cwipc_synthetic from {_API_cwipc_util_prober_silicon.myDllName}");
                 }
             }
             // We should now have loaded a working version of cwipc_util. On Mac, the dll name used in the "normal" _API_cwipc_util
@@ -1460,7 +1460,7 @@ namespace Cwipc
             {
                 delegate_cwipc_synthetic tmp = _API_cwipc_util.cwipc_synthetic;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"xxxjack loaded cwipc_synthetic from {_API_cwipc_util.myDllName} as {tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_util: loaded cwipc_synthetic from {_API_cwipc_util.myDllName} at 0x{tmp2:X}");
             }
             catch (System.TypeLoadException e)
             {
@@ -1486,22 +1486,22 @@ namespace Cwipc
             {
                 delegate_cwipc_realsense2 tmp = _API_cwipc_realsense2_prober_standard_path.cwipc_realsense2;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"xxxjack loaded cwipc_realsense2 from {_API_cwipc_realsense2_prober_standard_path.myDllName} as {tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: loaded cwipc_realsense2 from {_API_cwipc_realsense2_prober_standard_path.myDllName} at 0x{tmp2:X}");
             }
             catch (System.DllNotFoundException)
             {
-                UnityEngine.Debug.Log($"xxxjack could not load cwipc_realsense2 from {_API_cwipc_realsense2_prober_standard_path.myDllName}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: could not load cwipc_realsense2 from {_API_cwipc_realsense2_prober_standard_path.myDllName}");
                 // Let's try and load from the silicon path.
                 try
                 {
                     delegate_cwipc_realsense2 tmp = _API_cwipc_realsense2_prober_silicon.cwipc_realsense2;
                     IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                    UnityEngine.Debug.Log($"xxxjack loaded cwipc_realsense2 from {_API_cwipc_realsense2_prober_silicon.myDllName} as {tmp2:X}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: loaded cwipc_realsense2 from {_API_cwipc_realsense2_prober_silicon.myDllName} at 0x{tmp2:X}");
                 }
                 catch (System.DllNotFoundException)
                 {
                     // Apparently we are not running on Silicon Mac.
-                    UnityEngine.Debug.Log($"xxxjack could not load cwipc_realsense2 from {_API_cwipc_realsense2_prober_silicon.myDllName}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: could not load cwipc_realsense2 from {_API_cwipc_realsense2_prober_silicon.myDllName}");
                 }
             }
             // We should now have loaded a working version of cwipc_realsense2. On Mac, the dll name used in the "normal" _API_cwipc_realsense2
@@ -1514,7 +1514,7 @@ namespace Cwipc
             {
                 delegate_cwipc_realsense2 tmp = _API_cwipc_realsense2.cwipc_realsense2;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"xxxjack loaded cwipc_realsense2 from {_API_cwipc_realsense2.myDllName} as {tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: loaded cwipc_realsense2 from {_API_cwipc_realsense2.myDllName} at 0x{tmp2:X}");
             }
             catch (System.TypeLoadException e)
             {
@@ -1540,22 +1540,22 @@ namespace Cwipc
             {
                 delegate_cwipc_kinect tmp = _API_cwipc_kinect_prober_standard_path.cwipc_kinect;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"xxxjack loaded cwipc_kinect from {_API_cwipc_kinect_prober_standard_path.myDllName} as {tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: loaded cwipc_kinect from {_API_cwipc_kinect_prober_standard_path.myDllName} at 0x{tmp2:X}");
             }
             catch (System.DllNotFoundException)
             {
-                UnityEngine.Debug.Log($"xxxjack could not load cwipc_kinect from {_API_cwipc_kinect_prober_standard_path.myDllName}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: could not load cwipc_kinect from {_API_cwipc_kinect_prober_standard_path.myDllName}");
                 // Let's try and load from the silicon path.
                 try
                 {
                     delegate_cwipc_kinect tmp = _API_cwipc_kinect_prober_silicon.cwipc_kinect;
                     IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                    UnityEngine.Debug.Log($"xxxjack loaded cwipc_kinect from {_API_cwipc_kinect_prober_silicon.myDllName} as {tmp2:X}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: loaded cwipc_kinect from {_API_cwipc_kinect_prober_silicon.myDllName} at 0x{tmp2:X}");
                 }
                 catch (System.DllNotFoundException)
                 {
                     // Apparently we are not running on Silicon Mac.
-                    UnityEngine.Debug.Log($"xxxjack could not load cwipc_kinect from {_API_cwipc_kinect_prober_silicon.myDllName}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: could not load cwipc_kinect from {_API_cwipc_kinect_prober_silicon.myDllName}");
                 }
             }
             // We should now have loaded a working version of cwipc_kinect. On Mac, the dll name used in the "normal" _API_cwipc_kinect
@@ -1568,7 +1568,7 @@ namespace Cwipc
             {
                 delegate_cwipc_kinect tmp = _API_cwipc_kinect.cwipc_kinect;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"xxxjack loaded cwipc_kinect from {_API_cwipc_kinect.myDllName} as {tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: loaded cwipc_kinect from {_API_cwipc_kinect.myDllName} at 0x{tmp2:X}");
             }
             catch (System.TypeLoadException e)
             {
@@ -1594,22 +1594,22 @@ namespace Cwipc
             {
                 delegate_cwipc_new_decoder tmp = _API_cwipc_codec_prober_standard_path.cwipc_new_decoder;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"xxxjack loaded cwipc_new_decoder from {_API_cwipc_codec_prober_standard_path.myDllName} as {tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: loaded cwipc_new_decoder from {_API_cwipc_codec_prober_standard_path.myDllName} at 0x{tmp2:X}");
             }
             catch (System.DllNotFoundException)
             {
-                UnityEngine.Debug.Log($"xxxjack could not load cwipc_new_decoder from {_API_cwipc_codec_prober_standard_path.myDllName}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: could not load cwipc_new_decoder from {_API_cwipc_codec_prober_standard_path.myDllName}");
                 // Let's try and load from the silicon path.
                 try
                 {
                     delegate_cwipc_new_decoder tmp = _API_cwipc_codec_prober_silicon.cwipc_new_decoder;
                     IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                    UnityEngine.Debug.Log($"xxxjack loaded cwipc_new_decoder from {_API_cwipc_codec_prober_silicon.myDllName} as {tmp2:X}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: loaded cwipc_new_decoder from {_API_cwipc_codec_prober_silicon.myDllName} at 0x{tmp2:X}");
                 }
                 catch (System.DllNotFoundException)
                 {
                     // Apparently we are not running on Silicon Mac.
-                    UnityEngine.Debug.Log($"xxxjack could not load cwipc_new_decoder from {_API_cwipc_codec_prober_silicon.myDllName}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: could not load cwipc_new_decoder from {_API_cwipc_codec_prober_silicon.myDllName}");
                 }
             }
             // We should now have loaded a working version of cwipc_codec. On Mac, the dll name used in the "normal" _API_cwipc_codec
@@ -1622,7 +1622,7 @@ namespace Cwipc
             {
                 delegate_cwipc_new_decoder tmp = _API_cwipc_codec.cwipc_new_decoder;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"xxxjack loaded cwipc_new_decoder from {_API_cwipc_codec.myDllName} as {tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: loaded cwipc_new_decoder from {_API_cwipc_codec.myDllName} at 0x{tmp2:X}");
             }
             catch (System.TypeLoadException e)
             {
