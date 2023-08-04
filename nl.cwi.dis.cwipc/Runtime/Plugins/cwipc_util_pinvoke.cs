@@ -80,12 +80,18 @@ namespace Cwipc
             public byte cameraMask;
         };
 
+        
+
         /// <summary>
         /// Low level interface to cwipc_util native dynamic library. See C++ documentation for details.
         /// </summary>
         private class _API_cwipc_util
         {
-            const string myDllName = "cwipc_util";
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            public const string myDllName = "__Internal";
+#else
+            public const string myDllName = "cwipc_util";
+#endif        
             public const ulong CWIPC_API_VERSION = 0x20220126;
 
             [DllImport(myDllName)]
@@ -266,6 +272,78 @@ namespace Cwipc
             internal extern static void cwipc_encodergroup_feed(IntPtr enc, IntPtr pc);
 
         }
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+
+        //
+        // Gross hacks to load the correct dynamic library
+        //
+        private class _API_cwipc_util_prober_silicon
+        {
+            public const string myDllName = "/opt/homebrew/lib/libcwipc_util.dylib";
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_synthetic(int fps, int npoints, ref IntPtr errorMessage, ulong apiVersion);
+        }
+
+        private class _API_cwipc_util_prober_standard_path
+        {
+            public const string myDllName = "cwipc_util";
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_synthetic(int fps, int npoints, ref IntPtr errorMessage, ulong apiVersion);
+        }
+
+        private delegate IntPtr delegate_cwipc_synthetic(int fps, int npoints, ref IntPtr errorMessage, ulong apiVersion);
+#endif
+
+        private static void _load_cwipc_util()
+        {
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            // We first try to load the cwipc_util library fomr the standard DYLIB search path. This will
+            // work on Intel macs or under Rosetta (because /usr/local/lib is on the dylib search path.
+            // It will most likely not work for a Silicon Unity (because /opt/homebrew/lib is not on the search path).
+            try
+            {
+                delegate_cwipc_synthetic tmp = _API_cwipc_util_prober_standard_path.cwipc_synthetic;
+                IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
+                UnityEngine.Debug.Log($"xxxjack loaded cwipc_synthetic from {_API_cwipc_util_prober_standard_path.myDllName} as {tmp2:X}");
+            }
+            catch (System.DllNotFoundException)
+            {
+                UnityEngine.Debug.Log($"xxxjack could not load cwipc_synthetic from {_API_cwipc_util_prober_standard_path.myDllName}");
+                // Let's try and load from the silicon path.
+                try
+                {
+                    delegate_cwipc_synthetic tmp = _API_cwipc_util_prober_silicon.cwipc_synthetic;
+                    IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
+                    UnityEngine.Debug.Log($"xxxjack loaded cwipc_synthetic from {_API_cwipc_util_prober_silicon.myDllName} as {tmp2:X}");
+                }
+                catch (System.DllNotFoundException)
+                {
+                    // Apparently we are not running on Silicon Mac.
+                    UnityEngine.Debug.Log($"xxxjack could not load cwipc_synthetic from {_API_cwipc_util_prober_silicon.myDllName}");
+                }
+            }
+            // We should now have loaded a working version of cwipc_util. On Mac, the dll name used in the "normal" _API_cwipc_util
+            // is __Internal which causes DllImport to look for symbols that have already been loaded into this process.
+            //
+            // So we now continue with code that is used on all platforms.
+            
+#endif
+            try
+            {
+                delegate_cwipc_synthetic tmp = _API_cwipc_util.cwipc_synthetic;
+                IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
+                UnityEngine.Debug.Log($"xxxjack loaded cwipc_synthetic from {_API_cwipc_util.myDllName} as {tmp2:X}");
+            }
+            catch (System.DllNotFoundException e)
+            {
+                UnityEngine.Debug.LogError($"cwipc: cannot load cwipc_util DLL.");
+                UnityEngine.Debug.LogError($"cwipc: Exception: {e.ToString()}");
+                UnityEngine.Debug.LogError($"cwipc: see https://github.com/cwi-dis/cwipc for installation instructions.");
+                throw new Exception("cwipc: DLLs not installed correctly. See log.");
+            }
+        }
+
+
         public class cwipc_auxiliary_data
         {
             protected IntPtr _pointer;
@@ -811,19 +889,13 @@ namespace Cwipc
         /// <returns></returns>
         public static source synthetic(int fps = 0, int npoints = 0)
         {
+            _load_cwipc_util();
+
             IntPtr errorPtr = IntPtr.Zero;
             IntPtr rdr = IntPtr.Zero;
-            try
-            {
-                rdr = _API_cwipc_util.cwipc_synthetic(fps, npoints, ref errorPtr);
-            }
-            catch (System.DllNotFoundException e)
-            {
-                UnityEngine.Debug.LogError($"cwipc.synthetic: cannot load cwipc_util DLL.");
-                UnityEngine.Debug.LogError($"cwipc.synthetic: Exception: {e.ToString()}");
-                UnityEngine.Debug.LogError($"cwipc.synthetic: see https://github.com/cwi-dis/cwipc for installation instructions.");
-                throw new Exception("cwipc.synthetic: cwipc DLLs not installed correctly. See log.");
-            }
+            
+            rdr = _API_cwipc_util.cwipc_synthetic(fps, npoints, ref errorPtr);
+            
             if (rdr == IntPtr.Zero)
             {
                 if (errorPtr == IntPtr.Zero)
