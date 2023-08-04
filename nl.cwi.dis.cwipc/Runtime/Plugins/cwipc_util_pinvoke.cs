@@ -1456,6 +1456,7 @@ namespace Cwipc
             // So we now continue with code that is used on all platforms.
 
 #endif
+#if UNITY_EDITOR || UNITY_STANDALONE
             try
             {
                 delegate_cwipc_synthetic tmp = _API_cwipc_util.cwipc_synthetic;
@@ -1469,6 +1470,7 @@ namespace Cwipc
                 UnityEngine.Debug.LogError($"cwipc: see https://github.com/cwi-dis/cwipc for installation instructions.");
                 throw new Exception("cwipc: DLLs not installed correctly. See log.");
             }
+#endif
         }
 
         static bool cwipc_realsense2_load_attempted = false;
@@ -1510,6 +1512,7 @@ namespace Cwipc
             // So we now continue with code that is used on all platforms.
 
 #endif
+#if UNITY_EDITOR || UNITY_STANDALONE
             try
             {
                 delegate_cwipc_realsense2 tmp = _API_cwipc_realsense2.cwipc_realsense2;
@@ -1523,6 +1526,7 @@ namespace Cwipc
                 UnityEngine.Debug.LogError($"cwipc: see https://github.com/cwi-dis/cwipc for installation instructions.");
                 throw new Exception("cwipc: DLLs not installed correctly. See log.");
             }
+#endif
         }
 
         static bool cwipc_kinect_load_attempted = false;
@@ -1564,6 +1568,7 @@ namespace Cwipc
             // So we now continue with code that is used on all platforms.
 
 #endif
+#if UNITY_EDITOR || UNITY_STANDALONE
             try
             {
                 delegate_cwipc_kinect tmp = _API_cwipc_kinect.cwipc_kinect;
@@ -1577,6 +1582,7 @@ namespace Cwipc
                 UnityEngine.Debug.LogError($"cwipc: see https://github.com/cwi-dis/cwipc for installation instructions.");
                 throw new Exception("cwipc: DLLs not installed correctly. See log.");
             }
+#endif
         }
 
         static bool cwipc_codec_load_attempted = false;
@@ -1618,6 +1624,7 @@ namespace Cwipc
             // So we now continue with code that is used on all platforms.
 
 #endif
+#if UNITY_EDITOR || UNITY_STANDALONE
             try
             {
                 delegate_cwipc_new_decoder tmp = _API_cwipc_codec.cwipc_new_decoder;
@@ -1631,6 +1638,7 @@ namespace Cwipc
                 UnityEngine.Debug.LogError($"cwipc: see https://github.com/cwi-dis/cwipc for installation instructions.");
                 throw new Exception("cwipc: DLLs not installed correctly. See log.");
             }
+#endif
         }
     }
 }
