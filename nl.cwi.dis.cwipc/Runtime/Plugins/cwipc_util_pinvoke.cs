@@ -1362,10 +1362,6 @@ namespace Cwipc
             internal extern static IntPtr cwipc_synthetic(int fps, int npoints, ref IntPtr errorMessage, ulong apiVersion);
         }
 
-        private delegate IntPtr delegate_cwipc_synthetic(int fps, int npoints, ref IntPtr errorMessage, ulong apiVersion);
-
-        static bool cwipc_util_loaded = false;
-
         private class _API_cwipc_realsense2_prober_silicon
         {
             public const string myDllName = "/opt/homebrew/lib/libcwipc_realsense2.dylib";
@@ -1381,10 +1377,6 @@ namespace Cwipc
             [DllImport(myDllName)]
             internal extern static IntPtr cwipc_realsense2([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
         }
-
-        private delegate IntPtr delegate_cwipc_realsense2(string filename, ref IntPtr errorMessage, ulong apiVersion);
-
-        static bool cwipc_realsense2_loaded = false;
 
         private class _API_cwipc_kinect_prober_silicon
         {
@@ -1402,10 +1394,6 @@ namespace Cwipc
             internal extern static IntPtr cwipc_kinect([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
         }
 
-        private delegate IntPtr delegate_cwipc_kinect(string filename, ref IntPtr errorMessage, ulong apiVersion);
-
-        static bool cwipc_kinect_loaded = false;
-
         private class _API_cwipc_codec_prober_silicon
         {
             public const string myDllName = "/opt/homebrew/lib/libcwipc_codec.dylib";
@@ -1422,15 +1410,19 @@ namespace Cwipc
             internal extern static IntPtr cwipc_new_decoder(ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
         }
 
-        private delegate IntPtr delegate_cwipc_new_decoder(ref IntPtr errorMessage, ulong apiVersion);
-
         static bool cwipc_codec_loaded = false;
 #endif
+        private delegate IntPtr delegate_cwipc_synthetic(int fps, int npoints, ref IntPtr errorMessage, ulong apiVersion);
+        private delegate IntPtr delegate_cwipc_realsense2(string filename, ref IntPtr errorMessage, ulong apiVersion);
+        private delegate IntPtr delegate_cwipc_kinect(string filename, ref IntPtr errorMessage, ulong apiVersion);
+        private delegate IntPtr delegate_cwipc_new_decoder(ref IntPtr errorMessage, ulong apiVersion);
+
+        static bool cwipc_util_load_attempted = false;
 
         private static void _load_cwipc_util()
         {
-            if (cwipc_util_loaded) return;
-            cwipc_util_loaded = true;
+            if (cwipc_util_load_attempted) return;
+            cwipc_util_load_attempted = true;
 
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             // We first try to load the cwipc_util library fomr the standard DYLIB search path. This will
@@ -1479,10 +1471,12 @@ namespace Cwipc
             }
         }
 
+        static bool cwipc_realsense2_load_attempted = false;
+
         private static void _load_cwipc_realsense2()
         {
-            if (cwipc_realsense2_loaded) return;
-            cwipc_realsense2_loaded = true;
+            if (cwipc_realsense2_load_attempted) return;
+            cwipc_realsense2_load_attempted = true;
 
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             // We first try to load the cwipc_realsense2 library fomr the standard DYLIB search path. This will
@@ -1531,10 +1525,12 @@ namespace Cwipc
             }
         }
 
+        static bool cwipc_kinect_load_attempted = false;
+
         private static void _load_cwipc_kinect()
         {
-            if (cwipc_kinect_loaded) return;
-            cwipc_kinect_loaded = true;
+            if (cwipc_kinect_load_attempted) return;
+            cwipc_kinect_load_attempted = true;
 
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             // We first try to load the cwipc_kinect library fomr the standard DYLIB search path. This will
@@ -1583,10 +1579,12 @@ namespace Cwipc
             }
         }
 
+        static bool cwipc_codec_load_attempted = false;
+
         private static void _load_cwipc_codec()
         {
-            if (cwipc_codec_loaded) return;
-            cwipc_codec_loaded = true;
+            if (cwipc_codec_load_attempted) return;
+            cwipc_codec_load_attempted = true;
 
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             // We first try to load the cwipc_codec library fomr the standard DYLIB search path. This will
