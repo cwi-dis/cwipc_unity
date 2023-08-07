@@ -5,6 +5,8 @@ using System.Net.Sockets;
 using System.Text;
 using UnityEngine;
 using Cwipc;
+using System.Runtime.InteropServices;
+using AOT;
 #if VRT_WITH_STATS
 using Statistics = Cwipc.Statistics;
 #endif
@@ -13,7 +15,7 @@ namespace Cwipc
 {
     using Timestamp = System.Int64;
     using Timedelta = System.Int64;
-   
+
     /// <summary>
     /// Implementation of AsyncReader that connects to a TCP socket on a remote machine and receives
     /// frames from that socket using a very simple protocol:
@@ -28,6 +30,33 @@ namespace Cwipc
         // sequence of frames over
         protected class XxxjackPeerConnection { };
         protected class XxxjackTrackOrStream { };
+
+        [DllImport("ProxyPlugin")]
+        static extern void set_log_directory(string log_directory);
+        [DllImport("ProxyPlugin")]
+        static extern int connect_to_proxy(string ip, UInt32 port_send, UInt32 port_receive, UInt32 number_of_tiles);
+        [DllImport("ProxyPlugin")]
+        static extern int start_listening();
+        [DllImport("ProxyPlugin")]
+        static extern void clean_up();
+        [DllImport("ProxyPlugin")]
+        static extern int send_frame_data(byte[] data, uint size);
+        [DllImport("ProxyPlugin")]
+        static extern int send_tile_data(byte[] data, uint size, uint tile_number);
+        [DllImport("ProxyPlugin")]
+        static extern int send_control_data(byte[] data, uint size);
+        [DllImport("ProxyPlugin")]
+        static extern int next_frame();
+        [DllImport("ProxyPlugin")]
+        static extern int next_tile(uint tile_number);
+        [DllImport("ProxyPlugin")]
+        static extern int next_control_packet();
+        [DllImport("ProxyPlugin")]
+        static extern int set_frame_data(byte[] b);
+        [DllImport("ProxyPlugin")]
+        static extern int set_tile_data(byte[] b, uint tile_number);
+        [DllImport("ProxyPlugin")]
+        static extern int set_control_data(byte[] b);
 
         protected Uri url;
         protected class ReceiverInfo
@@ -66,7 +95,6 @@ namespace Cwipc
 #if VRT_WITH_STATS
                 stats = new Stats(Name());
 #endif
-                Debug.Log($"{Name()}: ready to receive");
             }
 
             public string Name()
@@ -81,9 +109,8 @@ namespace Cwipc
 
             public void Stop() {
                 stopping = true;
-                Debug.Log($"{Name()}: Should stop receiving");
-               
-
+                // [jvdhooft]
+                Debug.Log($"{Name()}: Thread stopping");
             }
 
             public void Join()
@@ -104,17 +131,32 @@ namespace Cwipc
                         {
                             return;
                         }
-                        Debug.Log($"{Name()}: should receive WebRTC data, delay one second in stead");
-                        Thread.Sleep(1000);
-                        int dataSize = 0;
-                        Timestamp timestamp = 0;
-                        byte[] data = new byte[dataSize];
-
-                        NativeMemoryChunk mc = new NativeMemoryChunk(dataSize);
-                        mc.metadata.timestamp = timestamp;
-                        System.Runtime.InteropServices.Marshal.Copy(data, 0, mc.pointer, dataSize);
-                        bool ok = receiverInfo.outQueue.Enqueue(mc);                        
+                        // int p_size = next_frame();
+                        int p_size = next_tile((uint)thread_index);
+                        if (p_size > 0)
+                        {
+                            Debug.Log($"{Name()}: WebRTC frame available");
+                            byte[] d = new byte[p_size];
+                            // set_frame_data(d);
+                            set_tile_data(d, (uint)thread_index);
+                            int fourccReceived = BitConverter.ToInt32(d, 0);
+                            if (fourccReceived != receiverInfo.fourcc)
+                            {
+                                Debug.LogError($"{Name()}: expected 4CC 0x{receiverInfo.fourcc:x} got 0x{fourccReceived:x}");
+                            }
+                            int dataSize = BitConverter.ToInt32(d, 4);
+                            Timestamp timestamp = BitConverter.ToInt64(d, 8);
+                            NativeMemoryChunk mc = new NativeMemoryChunk(dataSize);
+                            mc.metadata.timestamp = timestamp;
+                            System.Runtime.InteropServices.Marshal.Copy(d[16..], 0, mc.pointer, dataSize);
+                            bool ok = receiverInfo.outQueue.Enqueue(mc);
+                        } else
+                        {
+                            Thread.Sleep(1);
+                        }
                     }
+                    Debug.Log($"{Name()}: Cleaning up WebRTC");
+                    clean_up();
                 }
 #pragma warning disable CS0168
                 catch (System.Exception e)
@@ -226,6 +268,8 @@ namespace Cwipc
 
         protected override void Start()
         {
+            // [jvdhooft]
+            start_listening();
             base.Start();
             InitThreads();
         }
@@ -279,4 +323,3 @@ namespace Cwipc
         }
     }
 }
-

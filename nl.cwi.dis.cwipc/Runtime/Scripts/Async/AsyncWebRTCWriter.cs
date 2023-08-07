@@ -4,6 +4,9 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
+using System.Runtime.InteropServices;
+using System.Drawing;
+using System.Threading;
 #if VRT_WITH_STATS
 using Statistics = Cwipc.Statistics;
 #endif
@@ -28,6 +31,34 @@ namespace Cwipc
         // sequence of frames over
         protected class XxxjackPeerConnection { };
         protected class XxxjackTrackOrStream { };
+
+        [DllImport("ProxyPlugin")]
+        static extern void set_log_directory(string log_directory);
+        [DllImport("ProxyPlugin")]
+        static extern int connect_to_proxy(string ip, UInt32 port_send, UInt32 port_receive, UInt32 number_of_tiles);
+        [DllImport("ProxyPlugin")]
+        static extern int start_listening();
+        [DllImport("ProxyPlugin")]
+        static extern void clean_up();
+        [DllImport("ProxyPlugin")]
+        static extern int send_frame_data(byte[] data, uint size);
+        [DllImport("ProxyPlugin")]
+        static extern int send_tile_data(byte[] data, uint size, uint tile_number);
+        [DllImport("ProxyPlugin")]
+        static extern int send_control_data(byte[] data, uint size);
+        [DllImport("ProxyPlugin")]
+        static extern int next_frame();
+        [DllImport("ProxyPlugin")]
+        static extern int next_tile(uint tile_number);
+        [DllImport("ProxyPlugin")]
+        static extern int next_control_packet();
+        [DllImport("ProxyPlugin")]
+        static extern int set_frame_data(byte[] b);
+        [DllImport("ProxyPlugin")]
+        static extern int set_tile_data(byte[] b, uint tile_number);
+        [DllImport("ProxyPlugin")]
+        static extern int set_control_data(byte[] b);
+
         protected struct WebRTCStreamDescription
         {
             public int index;
@@ -47,17 +78,18 @@ namespace Cwipc
             AsyncWebRTCWriter parent;
             WebRTCStreamDescription description;
             System.Threading.Thread myThread;
+            int tile_number;
           
-            public WebRTCPushThread(AsyncWebRTCWriter _parent, WebRTCStreamDescription _description)
+            public WebRTCPushThread(AsyncWebRTCWriter _parent, WebRTCStreamDescription _description, int _tile_number)
             {
                 parent = _parent;
                 description = _description;
                 myThread = new System.Threading.Thread(run);
                 myThread.Name = Name();
+                tile_number = _tile_number;
 #if VRT_WITH_STATS
                 stats = new Stats(Name());
 #endif
-                Debug.Log($"{Name()}:  Should initialize stream or track");
             }
 
             public string Name()
@@ -72,7 +104,9 @@ namespace Cwipc
 
             public void Stop()
             {
-               Debug.Log($"{Name()}:  should close stream or track");
+                // [jvdhooft]
+                Debug.Log($"{Name()}: Should close stream or track");
+                // clean_up();
             }
 
             public void Join()
@@ -88,12 +122,12 @@ namespace Cwipc
                     QueueThreadSafe queue = description.inQueue;
                     while (!queue.IsClosed())
                     {
-                        
                         NativeMemoryChunk mc = (NativeMemoryChunk)queue.Dequeue();
-                        if (mc == null) continue; // Probably closing...
+                        if (mc == null) continue;
 #if VRT_WITH_STATS
                         stats.statsUpdate(mc.length);
 #endif
+                        // [jvdhooft]
                         byte[] hdr = new byte[16];
                         var hdr1 = BitConverter.GetBytes((UInt32)description.fourcc);
                         hdr1.CopyTo(hdr, 0);
@@ -103,10 +137,17 @@ namespace Cwipc
                         hdr3.CopyTo(hdr, 8);
                         var buf = new byte[mc.length];
                         System.Runtime.InteropServices.Marshal.Copy(mc.pointer, buf, 0, mc.length);
-                        Debug.Log($"{Name()}: should transmit header and {mc.length} bytes");
-                        
+                        mc.free();
+                        byte[] rv = new byte[hdr.Length + buf.Length];
+                        System.Buffer.BlockCopy(hdr, 0, rv, 0, hdr.Length);
+                        System.Buffer.BlockCopy(buf, 0, rv, hdr.Length, buf.Length);
+                        // send_frame_data(rv, (uint)(hdr.Length + buf.Length));
+                        send_tile_data(rv, (uint)(hdr.Length + buf.Length), (uint)tile_number);
                     }
-                    Debug.Log($"{Name()}: thread stopped");
+                    // [jvdhooft]
+                    Debug.Log($"{Name()}: Cleaning up WebRTC");
+                    // clean_up();
+                    Debug.Log($"{Name()}: Thread stopped");
                 }
 #pragma warning disable CS0168
                 catch (System.Exception e)
@@ -152,6 +193,8 @@ namespace Cwipc
         }
  
         WebRTCPushThread[] pusherThreads;
+        System.Diagnostics.Process process_writer;
+        System.Diagnostics.Process process_reader;
 
         protected AsyncWebRTCWriter() : base()
         {
@@ -207,12 +250,48 @@ namespace Cwipc
         {
             base.Start();
             int nThreads = descriptions.Length;
+
+            // [jvdhooft]
+
+            Debug.Log($"{Name()}: Number of tiles: {(uint)nThreads}");
+
+            /*
+            // Create a process
+            process_writer = new System.Diagnostics.Process();            
+
+            // Set the StartInfo of process
+            process_writer.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal;
+            process_writer.StartInfo.FileName = "D:\\Nextcloud\\Internship\\GoWebRTCPeer\\peer.exe";
+            process_writer.StartInfo.Arguments = "-p :8000 -i";
+
+            // Start the process
+            process_writer.Start();
+            // process.WaitForExit();
+
+            // Create a process
+            process_reader = new System.Diagnostics.Process();
+
+            // Set the StartInfo of process
+            process_reader.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal;
+            process_reader.StartInfo.FileName = "D:\\Nextcloud\\Internship\\GoWebRTCPeer\\peer.exe";
+            process_reader.StartInfo.Arguments = "-p :8001 -o -n";
+
+            // Start the process
+            process_reader.Start();
+            // process.WaitForExit();
+            */
+
+            Thread.Sleep(5000);
+            set_log_directory("C:\\Users\\jeroe\\GitHub\\cwipc_test\\cwipc-unity-test\\Assets\\Plugins");
+            connect_to_proxy("127.0.0.1", 8000, 8001, (uint) nThreads);
+            Thread.Sleep(1000);
+
             pusherThreads = new WebRTCPushThread[nThreads];
             for (int i = 0; i < nThreads; i++)
             {
                 // Note: we need to copy i to a new variable, otherwise the lambda expression capture will bite us
                 int stream_number = i;
-                pusherThreads[i] = new WebRTCPushThread(this, descriptions[i]);
+                pusherThreads[i] = new WebRTCPushThread(this, descriptions[i], i);
 #if VRT_WITH_STATS
                 Statistics.Output(base.Name(), $"pusher={pusherThreads[i].Name()}, stream={i}");
 #endif
@@ -235,6 +314,12 @@ namespace Cwipc
                     d.inQueue.Close();
                 }
             }
+
+            // [jvdhooft[
+            /*// Close existing processes
+            process_writer.Close();
+            process_reader.Close();*/
+
             // Stop our thread
             base.AsyncOnStop();
             // wait for pusherThreads to terminate
@@ -243,19 +328,16 @@ namespace Cwipc
                 t.Stop();
                 t.Join();
             }
+
             Debug.Log($"{Name()} Stopped");
         }
 
-        protected override void AsyncUpdate()
-        {
-        }
+        protected override void AsyncUpdate() {}
 
 #if xxxjack_disabled
-
         public override SyncConfig.ClockCorrespondence GetSyncInfo()
         {
             System.TimeSpan sinceEpoch = System.DateTime.UtcNow - new System.DateTime(1970, 1, 1);
-
             return new SyncConfig.ClockCorrespondence
             {
                 wallClockTime = (Timestamp)sinceEpoch.TotalMilliseconds,

@@ -144,6 +144,7 @@ namespace Cwipc
                         hdr3.CopyTo(hdr, 8);
                         var buf = new byte[mc.length];
                         System.Runtime.InteropServices.Marshal.Copy(mc.pointer, buf, 0, mc.length);
+                        mc.free();
                         try
                         {
                             sendSocket.Send(hdr);
