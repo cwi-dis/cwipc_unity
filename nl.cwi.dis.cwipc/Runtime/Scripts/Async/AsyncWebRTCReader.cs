@@ -32,31 +32,25 @@ namespace Cwipc
         protected class XxxjackTrackOrStream { };
 
         [DllImport("ProxyPlugin")]
-        static extern void set_log_directory(string log_directory);
+        static extern void set_logging(string log_directory, bool debug_mode);
         [DllImport("ProxyPlugin")]
         static extern int connect_to_proxy(string ip, UInt32 port_send, UInt32 port_receive, UInt32 number_of_tiles);
         [DllImport("ProxyPlugin")]
-        static extern int start_listening();
+        static extern void start_listening();
         [DllImport("ProxyPlugin")]
         static extern void clean_up();
         [DllImport("ProxyPlugin")]
-        static extern int send_frame_data(byte[] data, uint size);
+        static extern int send_tile(byte[] data, UInt32 size, UInt32 tile_number);
         [DllImport("ProxyPlugin")]
-        static extern int send_tile_data(byte[] data, uint size, uint tile_number);
+        static extern int get_tile_size(UInt32 tile_number);
         [DllImport("ProxyPlugin")]
-        static extern int send_control_data(byte[] data, uint size);
+        static extern void retrieve_tile(byte[] buffer, UInt32 tile_number);
         [DllImport("ProxyPlugin")]
-        static extern int next_frame();
+        static extern int send_control(byte[] data, UInt32 size);
         [DllImport("ProxyPlugin")]
-        static extern int next_tile(uint tile_number);
+        static extern int get_control_size();
         [DllImport("ProxyPlugin")]
-        static extern int next_control_packet();
-        [DllImport("ProxyPlugin")]
-        static extern int set_frame_data(byte[] b);
-        [DllImport("ProxyPlugin")]
-        static extern int set_tile_data(byte[] b, uint tile_number);
-        [DllImport("ProxyPlugin")]
-        static extern int set_control_data(byte[] b);
+        static extern void retrieve_control(byte[] buffer);
 
         protected Uri url;
         protected class ReceiverInfo
@@ -131,14 +125,13 @@ namespace Cwipc
                         {
                             return;
                         }
-                        // int p_size = next_frame();
-                        int p_size = next_tile((uint)thread_index);
+                        // [jvdhooft]
+                        int p_size = get_tile_size((uint)thread_index);
                         if (p_size > 0)
                         {
                             Debug.Log($"{Name()}: WebRTC frame available");
                             byte[] d = new byte[p_size];
-                            // set_frame_data(d);
-                            set_tile_data(d, (uint)thread_index);
+                            retrieve_tile(d, (uint)thread_index);
                             int fourccReceived = BitConverter.ToInt32(d, 0);
                             if (fourccReceived != receiverInfo.fourcc)
                             {
@@ -155,6 +148,7 @@ namespace Cwipc
                             Thread.Sleep(1);
                         }
                     }
+                    // [jvdhooft]
                     Debug.Log($"{Name()}: Cleaning up WebRTC");
                     clean_up();
                 }

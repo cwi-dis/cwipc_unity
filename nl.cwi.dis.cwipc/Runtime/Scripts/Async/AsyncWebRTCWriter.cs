@@ -33,31 +33,25 @@ namespace Cwipc
         protected class XxxjackTrackOrStream { };
 
         [DllImport("ProxyPlugin")]
-        static extern void set_log_directory(string log_directory);
+        static extern void set_logging(string log_directory, bool debug_mode);
         [DllImport("ProxyPlugin")]
-        static extern int connect_to_proxy(string ip, UInt32 port_send, UInt32 port_receive, UInt32 number_of_tiles);
+        static extern int connect_to_proxy(string ip_send, UInt32 port_send, string ip_recv, UInt32 port_recv, UInt32 number_of_tiles);
         [DllImport("ProxyPlugin")]
-        static extern int start_listening();
+        static extern void start_listening();
         [DllImport("ProxyPlugin")]
         static extern void clean_up();
         [DllImport("ProxyPlugin")]
-        static extern int send_frame_data(byte[] data, uint size);
+        static extern int send_tile(byte[] data, UInt32 size, UInt32 tile_number);
         [DllImport("ProxyPlugin")]
-        static extern int send_tile_data(byte[] data, uint size, uint tile_number);
+        static extern int get_tile_size(UInt32 tile_number);
         [DllImport("ProxyPlugin")]
-        static extern int send_control_data(byte[] data, uint size);
+        static extern void retrieve_tile(byte[] buffer, UInt32 tile_number);
         [DllImport("ProxyPlugin")]
-        static extern int next_frame();
+        static extern int send_control(byte[] data, UInt32 size);
         [DllImport("ProxyPlugin")]
-        static extern int next_tile(uint tile_number);
+        static extern int get_control_size();
         [DllImport("ProxyPlugin")]
-        static extern int next_control_packet();
-        [DllImport("ProxyPlugin")]
-        static extern int set_frame_data(byte[] b);
-        [DllImport("ProxyPlugin")]
-        static extern int set_tile_data(byte[] b, uint tile_number);
-        [DllImport("ProxyPlugin")]
-        static extern int set_control_data(byte[] b);
+        static extern void retrieve_control(byte[] buffer);
 
         protected struct WebRTCStreamDescription
         {
@@ -105,8 +99,7 @@ namespace Cwipc
             public void Stop()
             {
                 // [jvdhooft]
-                Debug.Log($"{Name()}: Should close stream or track");
-                // clean_up();
+                Debug.Log($"{Name()}: Closing stream from within the reader");
             }
 
             public void Join()
@@ -141,12 +134,11 @@ namespace Cwipc
                         byte[] rv = new byte[hdr.Length + buf.Length];
                         System.Buffer.BlockCopy(hdr, 0, rv, 0, hdr.Length);
                         System.Buffer.BlockCopy(buf, 0, rv, hdr.Length, buf.Length);
-                        // send_frame_data(rv, (uint)(hdr.Length + buf.Length));
-                        send_tile_data(rv, (uint)(hdr.Length + buf.Length), (uint)tile_number);
+                        send_tile(rv, (uint)(hdr.Length + buf.Length), (uint)tile_number);
                     }
                     // [jvdhooft]
                     Debug.Log($"{Name()}: Cleaning up WebRTC");
-                    // clean_up();
+                    clean_up();
                     Debug.Log($"{Name()}: Thread stopped");
                 }
 #pragma warning disable CS0168
@@ -282,8 +274,8 @@ namespace Cwipc
             */
 
             Thread.Sleep(5000);
-            set_log_directory("C:\\Users\\jeroe\\GitHub\\cwipc_test\\cwipc-unity-test\\Assets\\Plugins");
-            connect_to_proxy("127.0.0.1", 8000, 8001, (uint) nThreads);
+            set_logging("C:\\Users\\jeroe\\GitHub\\cwipc_test\\cwipc-unity-test\\Assets\\Plugins", false);
+            connect_to_proxy("127.0.0.1", 8000, "127.0.0.1", 8001, (uint) nThreads);
             Thread.Sleep(1000);
 
             pusherThreads = new WebRTCPushThread[nThreads];
@@ -316,9 +308,11 @@ namespace Cwipc
             }
 
             // [jvdhooft[
-            /*// Close existing processes
+            /*
+            // Close existing processes
             process_writer.Close();
-            process_reader.Close();*/
+            process_reader.Close();
+            */
 
             // Stop our thread
             base.AsyncOnStop();
