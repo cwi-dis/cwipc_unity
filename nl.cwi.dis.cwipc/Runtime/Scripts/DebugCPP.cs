@@ -17,7 +17,7 @@ public class DebugCPP : MonoBehaviour
         string debug_string = Marshal.PtrToStringAnsi(request, size);
         // Add specified color
         debug_string =
-            String.Format("{0}{1}{2}{3}{4}",
+            String.Format("WebRTCConnector: {0}{1}{2}{3}{4}",
             "<color=",
             ((Color)color).ToString(), ">", debug_string, "</color>");
         // Log the string
