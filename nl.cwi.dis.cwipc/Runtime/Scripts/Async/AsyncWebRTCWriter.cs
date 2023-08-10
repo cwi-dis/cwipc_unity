@@ -32,25 +32,25 @@ namespace Cwipc
         protected class XxxjackPeerConnection { };
         protected class XxxjackTrackOrStream { };
 
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern void set_logging(string log_directory, bool debug_mode);
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern int connect_to_proxy(string ip_send, UInt32 port_send, string ip_recv, UInt32 port_recv, UInt32 number_of_tiles);
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern void start_listening();
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern void clean_up();
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern int send_tile(byte[] data, UInt32 size, UInt32 tile_number);
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern int get_tile_size(UInt32 tile_number);
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern void retrieve_tile(byte[] buffer, UInt32 tile_number);
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern int send_control(byte[] data, UInt32 size);
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern int get_control_size();
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern void retrieve_control(byte[] buffer);
 
         protected struct WebRTCStreamDescription
@@ -273,9 +273,9 @@ namespace Cwipc
             // process.WaitForExit();
             */
 
-            Thread.Sleep(5000);
+            Thread.Sleep(2000);
             set_logging("C:\\Users\\jeroe\\GitHub\\cwipc_test\\cwipc-unity-test\\Assets\\Plugins", false);
-            connect_to_proxy("127.0.0.1", 8000, "127.0.0.1", 8001, (uint) nThreads);
+            connect_to_proxy("127.0.0.1", 8000, "127.0.0.1", 8000, (uint) nThreads);
             Thread.Sleep(1000);
 
             pusherThreads = new WebRTCPushThread[nThreads];

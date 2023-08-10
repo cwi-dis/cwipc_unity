@@ -31,25 +31,25 @@ namespace Cwipc
         protected class XxxjackPeerConnection { };
         protected class XxxjackTrackOrStream { };
 
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern void set_logging(string log_directory, bool debug_mode);
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern int connect_to_proxy(string ip, UInt32 port_send, UInt32 port_receive, UInt32 number_of_tiles);
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern void start_listening();
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern void clean_up();
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern int send_tile(byte[] data, UInt32 size, UInt32 tile_number);
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern int get_tile_size(UInt32 tile_number);
-        [DllImport("ProxyPlugin")]
-        static extern void retrieve_tile(byte[] buffer, UInt32 tile_number);
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
+        static extern void retrieve_tile(byte[] buffer, UInt32 size, UInt32 tile_number);
+        [DllImport("WebRTCConnector")]
         static extern int send_control(byte[] data, UInt32 size);
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern int get_control_size();
-        [DllImport("ProxyPlugin")]
+        [DllImport("WebRTCConnector")]
         static extern void retrieve_control(byte[] buffer);
 
         protected Uri url;
@@ -131,7 +131,7 @@ namespace Cwipc
                         {
                             Debug.Log($"{Name()}: WebRTC frame available");
                             byte[] d = new byte[p_size];
-                            retrieve_tile(d, (uint)thread_index);
+                            retrieve_tile(d, (uint)p_size, (uint)thread_index);
                             int fourccReceived = BitConverter.ToInt32(d, 0);
                             if (fourccReceived != receiverInfo.fourcc)
                             {
