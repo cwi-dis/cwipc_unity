@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class DebugCPP : MonoBehaviour
 {
-    [DllImport("ProxyPlugin", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("WebRTCConnector", CallingConvention = CallingConvention.Cdecl)]
     static extern void RegisterDebugCallback(debugCallback cb);
     // Create string param callback delegate
     delegate void debugCallback(IntPtr request, int color, int size);
