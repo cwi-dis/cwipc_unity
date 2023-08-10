@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class DebugCPP : MonoBehaviour
 {
-    [Tooltip("Set to an absolute pathname to enable WebRTCConnector logging")]
-    public string logFileName;
+    [Tooltip("Set to a pathname to enable WebRTCConnector logging")]
+    public string logFileDirectory;
     [Tooltip("Enable for more messages")]
     public bool debug;
     [DllImport("WebRTCConnector")]
@@ -34,9 +34,9 @@ public class DebugCPP : MonoBehaviour
     public void OnEnable()
     {
         RegisterDebugCallback(OnDebugCallback);
-        if (logFileName != null && logFileName != "")
+        if (logFileDirectory != null && logFileDirectory != "")
         {
-            set_logging(logFileName, debug);
+            set_logging(logFileDirectory, debug);
         }
 
     }
