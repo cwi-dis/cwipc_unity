@@ -33,8 +33,6 @@ namespace Cwipc
         protected class XxxjackTrackOrStream { };
 
         [DllImport("WebRTCConnector")]
-        static extern void set_logging(string log_directory, bool debug_mode);
-        [DllImport("WebRTCConnector")]
         static extern int connect_to_proxy(string ip_send, UInt32 port_send, string ip_recv, UInt32 port_recv, UInt32 number_of_tiles);
         [DllImport("WebRTCConnector")]
         static extern void start_listening();
@@ -274,7 +272,6 @@ namespace Cwipc
             */
 
             Thread.Sleep(2000);
-            set_logging("C:\\Users\\jeroe\\GitHub\\cwipc_test\\cwipc-unity-test\\Assets\\Plugins", false);
             connect_to_proxy("127.0.0.1", 8000, "127.0.0.1", 8000, (uint) nThreads);
             Thread.Sleep(1000);
 
