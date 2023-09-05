@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.17.0] - 2023-08-29
+
+Not being able to load capturers (for the generic capturer) isn't a fatal error.
+
+## [0.16.0] - 2023-08-08
+
+Added support for cwipc_capturer (which uses whatever capturer is specified in cameraconfig.json)
+
+## [0.15.0] - 2023-08-06
+
+Added support for reading pointclouds from a remote camera (using cwipc_forward on the camera machine)
+
+## [0.14.0] - 2023-08-04
+
+Load native dynamic libraries from /opt/homebrew on Silicon Macs.
+
+## [0.13.0] - 2023-07-27
+
+Native support for the Oculus Quest added.
+
+
 ## [0.12.0] - 2023-03-29
 
 ViewAdjust has moved from Samples/VR to Runtime and adjusts self-pointcloud-playback.

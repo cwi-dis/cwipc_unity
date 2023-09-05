@@ -105,10 +105,9 @@ namespace Cwipc
             {
                 earliestNextCapture = System.DateTime.Now + frameInterval;
             }
-            if (dontWait) {
-            	if (!reader.available(false)) return;
-            }
-            cwipc.pointcloud pc = reader.get();
+           
+            cwipc.pointcloud pc = GetOnePointcloud();
+           
             if (pc == null) return;
            
             OptionalProcessing(pc);
@@ -176,6 +175,15 @@ namespace Cwipc
                 mostRecentPC?.free();
                 mostRecentPC = pc;
             }
+        }
+
+        protected virtual cwipc.pointcloud GetOnePointcloud()
+        {
+            if (dontWait)
+            {
+                if (!reader.available(false)) return null;
+            }
+            return reader.get();
         }
 
         public Vector3 GetPosition()

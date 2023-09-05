@@ -39,6 +39,10 @@ namespace Cwipc
         static int instanceCounter = 0;
         int instanceNumber = instanceCounter++;
 
+        public override string Name()
+        {
+            return $"{GetType().Name}#{instanceNumber}";
+        }
         protected class TCPPullThread
         {
             AsyncTCPReader parent;

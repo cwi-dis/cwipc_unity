@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028326, g: 0.22571333, b: 0.30692202, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -315,6 +315,32 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &706171059 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5653253474329525849, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
+  m_PrefabInstance: {fileID: 2942035107735954227}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &706171060
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706171059}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 369e92bc8ae403847a29bc3fc5f2f787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentSize: 0
+  _currentTimestamp: 0
+  currentCellSize: 0
+  nRead: 0
+  nDropped: 0
+  voxelSize: 0
+  defaultCellSize: 0.01
+  cellSizeFactor: 1
+  configFileName: 
 --- !u!1 &1697452587
 GameObject:
   m_ObjectHideFlags: 0
@@ -454,5 +480,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 4089730585797677243, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4770916539198233020, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
+      propertyPath: pointcloudSource
+      value: 
+      objectReference: {fileID: 706171060}
+    m_RemovedComponents:
+    - {fileID: 4089730585797677243, guid: c3b1c94af23e743a08547f27f81df210, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: c3b1c94af23e743a08547f27f81df210, type: 3}

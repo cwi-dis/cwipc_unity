@@ -7,6 +7,8 @@ These samples do not cater for VR use, see the `VR` sample set for that. And tho
 ## Scenes
 
 - `SimplePointCloudViewer` shows a point cloud stream using the `cwipc_display` prefab and a camera. By default a synthetic point cloud is shown but this can be changed.
+  - `RealsensePointCloudViewer` is the same, but captures from a realsense camera
+  - `RemoteCameraPointCloudViewer` is the same again, but uses a remote camera (Run command `cwipc_forward --noencode` on the machine with the camera) 
 - `PrerecordedPointCloudViewer` is similar but uses the `PointCloudPlayback` script to allow for more control over playback of prerecorded point cloud streams.
 - `TwoUsers` runs an interactive session with two users (on two machines). You specify the hostnames of the two machines, but by default both machines are `localhost` so you are actually viewing yourself. Default representation is the synthetic point cloud, but again this can be changed to a RealSense camera, Azure Kinect camera or prerecorded point cloud source. Look in the `cwipc_avatar_self_simple` prefab.
 - `TwoUsersTiled` is similar to `TwoUsers` but allows for transmitting point clouds as tiled streams (which can lead to better performance due to parallel encoding and decoding). Structure is similar to `TwoUsers`.

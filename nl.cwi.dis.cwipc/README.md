@@ -23,16 +23,17 @@ pointcloud suite.
 
 - You must first install the `cwipc` libraries, utilities and
   dependencies onto your computer. Follow the instructions on
-  <https://github.com/cwi-dis/cwipc>
+  <https://github.com/cwi-dis/cwipc
+  - When developing for the Oculus Quest you do _not_ have to install the
+    cwipc libraries for the Quest: those are already included in this 
+	package. But you probably want to install the libraries for your
+	desktop platform, so you can test your app from within the Unity Editor.
 - Create a new Unity project
 - If you want to use the VR samples it is better to first enable the XR
   Loader, OpenXR and the OpenXR device profile for the device you are
   going to use. You should also install the _XR Interaction Toolkit_.
 - In the Unity Package Manager, do _Add Package by URL_ and use the URL
   `git+https://github.com/cwi-dis/cwipc_unity?path=/nl.cwi.dis.cwipc`
-  - Alternatively, after installing `cwipc`, you can _Add Package from
-    Disk_. The package is located in the installation directory, in
-    `share/cwipc/unity/nl.cwi.dis.cwipc`.
 
 
 ## Samples
