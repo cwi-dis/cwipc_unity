@@ -30,6 +30,8 @@ namespace Cwipc
         public bool debug;
         [Tooltip("(introspection) connected to peer")]
         public bool peerConnected = false;
+        [Tooltip("(introspection) SFU that peer is connected to")]
+        public string peerSFUAddress;
 
         private Process peerProcess;
 
@@ -97,12 +99,21 @@ namespace Cwipc
             }
         }
 
-        public void StartWebRTCPeer()
+        public void StartWebRTCPeer(Uri url)
         {
-
+            string mySFUAddress = $"{url.Host}:{url.Port}";
+            if (peerProcess != null)
+            {
+                // A peer has already been started. Double-check it's for the correct SFU.
+                if (mySFUAddress != peerSFUAddress)
+                {
+                    Debug.LogError($"WebRTCConnector: want peer for SFU {mySFUAddress} but already have one for {peerSFUAddress}");
+                }
+                return;
+            }
             peerProcess = new Process();
             peerProcess.StartInfo.FileName = peerExecutablePath;
-            peerProcess.StartInfo.Arguments = $"-p :{peerUDPPort} -i -o";
+            peerProcess.StartInfo.Arguments = $"-p :{peerUDPPort} -i -o -sfu {peerSFUAddress}";
             peerProcess.StartInfo.CreateNoWindow = !peerInWindow;
             Debug.Log($"WebRTCConnector: Start {peerProcess.StartInfo.FileName} {peerProcess.StartInfo.Arguments}");
             try

@@ -203,7 +203,6 @@ namespace Cwipc
             {
                 throw new System.Exception($"{Name()}: No WebRTCConnector in scene.");
             }
-            WebRTCConnector.Instance.StartWebRTCPeer();
             if (string.IsNullOrEmpty(_url))
             {
                 throw new System.Exception($"{Name()}: No WebRTC SFU URL found in session description.");
@@ -218,7 +217,8 @@ namespace Cwipc
             }
             uint fourccInt = StreamSupport.VRT_4CC(fourcc[0], fourcc[1], fourcc[2], fourcc[3]);
             Uri url = new Uri(_url);
-            
+            WebRTCConnector.Instance.StartWebRTCPeer(url);
+
             WebRTCStreamDescription[] ourDescriptions = new WebRTCStreamDescription[_descriptions.Length];
             // We use the lowest ports for the first quality, for each tile.
             // The the next set of ports is used for the next quality, and so on.
