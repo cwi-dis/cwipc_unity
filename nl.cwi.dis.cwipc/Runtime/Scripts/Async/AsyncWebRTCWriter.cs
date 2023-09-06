@@ -33,8 +33,6 @@ namespace Cwipc
         protected class XxxjackTrackOrStream { };
 
         [DllImport("WebRTCConnector")]
-        static extern int connect_to_proxy(string ip_send, UInt32 port_send, string ip_recv, UInt32 port_recv, UInt32 number_of_tiles);
-        [DllImport("WebRTCConnector")]
         static extern void start_listening();
         [DllImport("WebRTCConnector")]
         static extern void clean_up();
@@ -201,6 +199,15 @@ namespace Cwipc
         public AsyncWebRTCWriter(string _url, string fourcc, OutgoingStreamDescription[] _descriptions) : base()
         {
             NoUpdateCallsNeeded();
+            if (WebRTCConnector.Instance == null)
+            {
+                throw new System.Exception($"{Name()}: No WebRTCConnector in scene.");
+            }
+            WebRTCConnector.Instance.StartWebRTCPeer();
+            if (string.IsNullOrEmpty(_url))
+            {
+                throw new System.Exception($"{Name()}: No WebRTC SFU URL found in session description.");
+            }
             if (_descriptions == null || _descriptions.Length == 0)
             {
                 throw new System.Exception($"{Name()}: descriptions is null or empty");
@@ -245,35 +252,7 @@ namespace Cwipc
 
             Debug.Log($"{Name()}: Number of tiles: {(uint)nThreads}");
 
-            /*
-            // Create a process
-            process_writer = new System.Diagnostics.Process();            
-
-            // Set the StartInfo of process
-            process_writer.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal;
-            process_writer.StartInfo.FileName = "D:\\Nextcloud\\Internship\\GoWebRTCPeer\\peer.exe";
-            process_writer.StartInfo.Arguments = "-p :8000 -i";
-
-            // Start the process
-            process_writer.Start();
-            // process.WaitForExit();
-
-            // Create a process
-            process_reader = new System.Diagnostics.Process();
-
-            // Set the StartInfo of process
-            process_reader.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal;
-            process_reader.StartInfo.FileName = "D:\\Nextcloud\\Internship\\GoWebRTCPeer\\peer.exe";
-            process_reader.StartInfo.Arguments = "-p :8001 -o -n";
-
-            // Start the process
-            process_reader.Start();
-            // process.WaitForExit();
-            */
-
-            Thread.Sleep(2000);
-            connect_to_proxy("127.0.0.1", 8000, "127.0.0.1", 8000, (uint) nThreads);
-            Thread.Sleep(1000);
+            WebRTCConnector.Instance.ConnectToPeer(nThreads);
 
             pusherThreads = new WebRTCPushThread[nThreads];
             for (int i = 0; i < nThreads; i++)
