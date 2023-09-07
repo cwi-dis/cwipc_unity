@@ -69,6 +69,18 @@ namespace Cwipc
             Instance = this;
         }
 
+        public void Initialize(string _peerExecutablePath)
+        {
+            if (!string.IsNullOrEmpty(_peerExecutablePath)) {
+                peerExecutablePath = _peerExecutablePath;
+            }
+        }
+        
+        public void AllConnectionsDone()
+        {
+
+        }
+
         // Use this for initialization
         public void OnEnable()
         {
