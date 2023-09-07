@@ -5,6 +5,7 @@ using System.Diagnostics;
 using UnityEngine;
 
 using Debug = UnityEngine.Debug;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace Cwipc
 {
@@ -111,10 +112,22 @@ namespace Cwipc
                 }
                 return;
             }
+            peerSFUAddress = mySFUAddress;
+            // xxxjack this is not correct for built Unity players.
+            string appPath = System.IO.Path.GetDirectoryName(Application.dataPath);
+            peerExecutablePath = System.IO.Path.Combine(appPath, peerExecutablePath);
             peerProcess = new Process();
             peerProcess.StartInfo.FileName = peerExecutablePath;
             peerProcess.StartInfo.Arguments = $"-p :{peerUDPPort} -i -o -sfu {peerSFUAddress}";
             peerProcess.StartInfo.CreateNoWindow = !peerInWindow;
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+            if (peerInWindow && peerWindowDontClose)
+            {
+                // xxxjack this will fail if there are spaces in the pathname. But escaping them is impossible on Windows.
+                peerProcess.StartInfo.Arguments = $"/K {peerProcess.StartInfo.FileName} {peerProcess.StartInfo.Arguments}";
+                peerProcess.StartInfo.FileName = "CMD.EXE";
+            }
+#endif
             Debug.Log($"WebRTCConnector: Start {peerProcess.StartInfo.FileName} {peerProcess.StartInfo.Arguments}");
             try
             {
