@@ -34,7 +34,7 @@ namespace Cwipc
         [DllImport("WebRTCConnector")]
         static extern void set_logging(string log_directory, bool debug_mode);
         [DllImport("WebRTCConnector")]
-        static extern int connect_to_proxy(string ip, UInt32 port_send, UInt32 port_receive, UInt32 number_of_tiles);
+        static extern int connect_to_proxy(string ip, UInt32 port_send, UInt32 port_receive, UInt32 number_of_tiles, UInt32 client_id);
         [DllImport("WebRTCConnector")]
         static extern void start_listening();
         [DllImport("WebRTCConnector")]
@@ -42,9 +42,9 @@ namespace Cwipc
         [DllImport("WebRTCConnector")]
         static extern int send_tile(byte[] data, UInt32 size, UInt32 tile_number);
         [DllImport("WebRTCConnector")]
-        static extern int get_tile_size(UInt32 tile_number);
+        static extern int get_tile_size(UInt32 client_id, UInt32 tile_number);
         [DllImport("WebRTCConnector")]
-        static extern void retrieve_tile(byte[] buffer, UInt32 size, UInt32 tile_number);
+        static extern void retrieve_tile(byte[] buffer, UInt32 size, UInt32 client_id, UInt32 tile_number);
         [DllImport("WebRTCConnector")]
         static extern int send_control(byte[] data, UInt32 size);
         [DllImport("WebRTCConnector")]
@@ -53,6 +53,7 @@ namespace Cwipc
         static extern void retrieve_control(byte[] buffer);
 
         protected Uri url;
+        protected int client_id;
         protected class ReceiverInfo
         {
             public QueueThreadSafe outQueue;
@@ -126,12 +127,12 @@ namespace Cwipc
                             return;
                         }
                         // [jvdhooft]
-                        int p_size = get_tile_size((uint)thread_index);
+                        int p_size = get_tile_size((uint)parent.client_id, (uint)thread_index);
                         if (p_size > 0)
                         {
                             Debug.Log($"{Name()}: WebRTC frame available");
                             byte[] d = new byte[p_size];
-                            retrieve_tile(d, (uint)p_size, (uint)thread_index);
+                            retrieve_tile(d, (uint)p_size, (uint)parent.client_id, (uint)thread_index);
                             int fourccReceived = BitConverter.ToInt32(d, 0);
                             if (fourccReceived != receiverInfo.fourcc)
                             {
@@ -212,7 +213,7 @@ namespace Cwipc
         /// The subclass could initialize the receivers array and call Start().
         /// </summary>
         /// <param name="_url">The base URL for the streams</param>
-        protected AsyncWebRTCReader(string _url) : base()
+        protected AsyncWebRTCReader(string _url, int _client_id) : base()
         {
             NoUpdateCallsNeeded();
             lock (this)
@@ -224,6 +225,7 @@ namespace Cwipc
                     throw new System.Exception($"{Name()}: TCP transport requires tcp://host:port/ URL, but no URL specified");
                 }
                 url = new Uri(_url);
+                client_id = _client_id;
                 
 
             }
@@ -236,7 +238,7 @@ namespace Cwipc
         /// <param name="_url">The server to connect to</param>
         /// <param name="fourcc">The 4CC of the frames expected on the stream</param>
         /// <param name="outQueue">The queue into which received frames will be deposited</param>
-        public AsyncWebRTCReader(string _url, string fourcc, QueueThreadSafe outQueue) : this(_url)
+        public AsyncWebRTCReader(string _url, int _client_id, string fourcc, QueueThreadSafe outQueue) : this(_url, _client_id)
         {
             lock (this)
             {

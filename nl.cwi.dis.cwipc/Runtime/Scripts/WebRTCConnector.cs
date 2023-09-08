@@ -70,11 +70,12 @@ namespace Cwipc
             Instance = this;
         }
 
-        public void Initialize(string _peerExecutablePath)
+        public void Initialize(string _peerExecutablePath, int _clientId)
         {
             if (!string.IsNullOrEmpty(_peerExecutablePath)) {
                 peerExecutablePath = _peerExecutablePath;
             }
+            clientId = _clientId;
         }
         
         public void AllConnectionsDone()
