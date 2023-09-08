@@ -33,7 +33,8 @@ namespace Cwipc
         public bool peerConnected = false;
         [Tooltip("(introspection) SFU that peer is connected to")]
         public string peerSFUAddress;
-
+        [Tooltip("(introspection)Client ID within SFU session")]
+        public int clientId = 1;
         private Process peerProcess;
 
         [DllImport("WebRTCConnector")]
@@ -41,7 +42,7 @@ namespace Cwipc
         [DllImport("WebRTCConnector", CallingConvention = CallingConvention.Cdecl)]
         static extern void RegisterDebugCallback(debugCallback cb);
         [DllImport("WebRTCConnector")]
-        static extern int connect_to_proxy(string ip_send, UInt32 port_send, string ip_recv, UInt32 port_recv, UInt32 number_of_tiles);
+        static extern int connect_to_proxy(string ip_send, UInt32 port_send, string ip_recv, UInt32 port_recv, UInt32 number_of_tiles, UInt32 client_id);
 
         // Create string param callback delegate
         delegate void debugCallback(IntPtr request, int color, int size);
@@ -130,7 +131,7 @@ namespace Cwipc
             peerExecutablePath = System.IO.Path.Combine(appPath, peerExecutablePath);
             peerProcess = new Process();
             peerProcess.StartInfo.FileName = peerExecutablePath;
-            peerProcess.StartInfo.Arguments = $"-p :{peerUDPPort} -i -o -sfu {peerSFUAddress}";
+            peerProcess.StartInfo.Arguments = $"-p :{peerUDPPort} -i -o -sfu {peerSFUAddress} -c {clientId}";
             peerProcess.StartInfo.CreateNoWindow = !peerInWindow;
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
             if (peerInWindow && peerWindowDontClose)
@@ -189,7 +190,7 @@ namespace Cwipc
             // between sender and receiver (i.e. between two instances of VR2Gather)?
             if (peerConnected) return;
             //Thread.Sleep(2000);
-            connect_to_proxy("127.0.0.1", (uint)peerUDPPort, "127.0.0.1", (uint)peerUDPPort, (uint)nThreads);
+            connect_to_proxy("127.0.0.1", (uint)peerUDPPort, "127.0.0.1", (uint)peerUDPPort, (uint)nThreads, (uint)clientId);
             //Thread.Sleep(1000);
             peerConnected = true;
         }
