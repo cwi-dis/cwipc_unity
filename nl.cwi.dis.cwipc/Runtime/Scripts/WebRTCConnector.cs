@@ -88,10 +88,11 @@ namespace Cwipc
         {
             Debug.Log($"WebRTCConnector: installing message callback");
             RegisterDebugCallback(OnDebugCallback);
-            if (logFileDirectory != null && logFileDirectory != "")
+            if (logFileDirectory == null)
             {
-                set_logging(logFileDirectory, debug);
+                logFileDirectory = "";
             }
+            set_logging(logFileDirectory, debug);
         }
 
         public void OnDestroy()
