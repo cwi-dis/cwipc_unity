@@ -26,7 +26,8 @@ namespace Cwipc
         public int peerUDPPort = 8000;
         [Tooltip("IP address where peer process will be running")]
         public string peerIPAddress = "127.0.0.1";
-
+        [Tooltip("API version of the provided WebRTCConnector.dll")]
+        string api_version = "1.0";
         [Tooltip("Maximum number of tracks to receive from other WebRTC peers")]
         int maxReceiverTracks = 9;
         [Tooltip("Set to a pathname to enable WebRTCConnector plugin logging")]
@@ -49,7 +50,8 @@ namespace Cwipc
             [DllImport("WebRTCConnector", CallingConvention = CallingConvention.Cdecl)]
             public static extern void RegisterDebugCallback(debugCallback cb);
             [DllImport("WebRTCConnector")]
-            public static extern int initialize(string ip_send, UInt32 port_send, string ip_recv, UInt32 port_recv, UInt32 number_of_tiles, UInt32 client_id);
+            public static extern int initialize(string ip_send, UInt32 port_send, string ip_recv, UInt32 port_recv,
+                UInt32 number_of_tiles, UInt32 client_id, string api_version);
             [DllImport("WebRTCConnector")]
             public static extern void clean_up();
             [DllImport("WebRTCConnector")]
@@ -116,7 +118,7 @@ namespace Cwipc
                 nTracks = nTransmissionTracks;
             }
             //Thread.Sleep(2000);
-            WebRTCConnectorPinvoke.initialize(peerIPAddress, (uint)peerUDPPort, peerIPAddress, (uint)peerUDPPort, (uint)nTracks, (uint)clientId);
+            WebRTCConnectorPinvoke.initialize(peerIPAddress, (uint)peerUDPPort, peerIPAddress, (uint)peerUDPPort, (uint)nTracks, (uint)clientId, api_version);
             //Thread.Sleep(1000);
             peerConnected = true;
         }
@@ -124,7 +126,7 @@ namespace Cwipc
         // Use this for initialization
         public void OnEnable()
         {
-            Debug.Log($"WebRTCConnector: installing message callback");
+            Debug.Log($"WebRTCConnector: Installing message callback");
             WebRTCConnectorPinvoke.RegisterDebugCallback(OnDebugCallback);
             if (logFileDirectory == null)
             {
@@ -148,7 +150,7 @@ namespace Cwipc
             // xxxjack Check that peerProcess is still running
             if (peerProcess != null && peerProcess.HasExited)
             {
-                Debug.LogError($"WebRTCConnector: peer process has exited with exit status {peerProcess.ExitCode}");
+                Debug.LogError($"WebRTCConnector: Ieer process has exited with exit status {peerProcess.ExitCode}");
                 peerProcess = null;
             }
         }
@@ -161,7 +163,7 @@ namespace Cwipc
                 // A peer has already been started. Double-check it's for the correct SFU.
                 if (mySFUAddress != peerSFUAddress)
                 {
-                    Debug.LogError($"WebRTCConnector: want peer for SFU {mySFUAddress} but already have one for {peerSFUAddress}");
+                    Debug.LogError($"WebRTCConnector: Want peer for SFU {mySFUAddress} but already have one for {peerSFUAddress}");
                 }
                 return;
             }
@@ -195,32 +197,6 @@ namespace Cwipc
                 Debug.LogError($"WebRTCConnector: Cannot start peer: {e.Message}");
                 peerProcess = null;
             }
-          
-            /*
-            // Create a process
-            process_writer = new System.Diagnostics.Process();            
-
-            // Set the StartInfo of process
-            process_writer.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal;
-            process_writer.StartInfo.FileName = "D:\\Nextcloud\\Internship\\GoWebRTCPeer\\peer.exe";
-            process_writer.StartInfo.Arguments = "-p :8000 -i";
-
-            // Start the process
-            process_writer.Start();
-            // process.WaitForExit();
-
-            // Create a process
-            process_reader = new System.Diagnostics.Process();
-
-            // Set the StartInfo of process
-            process_reader.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal;
-            process_reader.StartInfo.FileName = "D:\\Nextcloud\\Internship\\GoWebRTCPeer\\peer.exe";
-            process_reader.StartInfo.Arguments = "-p :8001 -o -n";
-
-            // Start the process
-            process_reader.Start();
-            // process.WaitForExit();
-            */
 
         }
 
