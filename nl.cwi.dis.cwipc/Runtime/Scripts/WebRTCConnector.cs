@@ -32,8 +32,8 @@ namespace Cwipc
         int maxReceiverTracks = 9;
         [Tooltip("Set to a pathname to enable WebRTCConnector plugin logging")]
         public string logFileDirectory;
-        [Tooltip("Enable for more messages")]
-        public bool debug;
+        [Tooltip("Higher for more messages")]
+        public int debug = 0;
         [Tooltip("(introspection) connected to peer")]
         public bool peerConnected = false;
         [Tooltip("(introspection) SFU that peer is connected to")]
@@ -46,7 +46,7 @@ namespace Cwipc
         public class WebRTCConnectorPinvoke
         {
             [DllImport("WebRTCConnector")]
-            public static extern void set_logging(string log_directory, bool debug_mode);
+            public static extern void set_logging(string log_directory, int logLevel);
             [DllImport("WebRTCConnector", CallingConvention = CallingConvention.Cdecl)]
             public static extern void RegisterDebugCallback(debugCallback cb);
             [DllImport("WebRTCConnector")]
