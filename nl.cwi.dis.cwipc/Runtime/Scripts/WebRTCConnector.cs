@@ -84,7 +84,7 @@ namespace Cwipc
             Debug.Log(debug_string);
         }
 
-        ~WebRTCConnector()
+        void OnDestroy()
         {
             WebRTCConnectorPinvoke.clean_up();
         }
