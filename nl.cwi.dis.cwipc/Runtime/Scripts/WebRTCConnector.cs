@@ -84,10 +84,6 @@ namespace Cwipc
             Debug.Log(debug_string);
         }
 
-        void OnDestroy()
-        {
-            WebRTCConnectorPinvoke.clean_up();
-        }
 
         void Awake()
         {
@@ -139,12 +135,12 @@ namespace Cwipc
 
         public void OnDestroy()
         {
+            WebRTCConnectorPinvoke.clean_up();
             if (peerProcess != null)
             {
                 Debug.Log("WebRTCConnector: Terminating peer");
                 peerProcess.Kill();
             }
-            // xxxjack Can we unload the DLL?
         }
 
         public void Update()
