@@ -31,26 +31,7 @@ namespace Cwipc
         protected class XxxjackPeerConnection { };
         protected class XxxjackTrackOrStream { };
 
-        [DllImport("WebRTCConnector")]
-        static extern void set_logging(string log_directory, bool debug_mode);
-        [DllImport("WebRTCConnector")]
-        static extern int connect_to_proxy(string ip, UInt32 port_send, UInt32 port_receive, UInt32 number_of_tiles, UInt32 client_id);
-        [DllImport("WebRTCConnector")]
-        static extern void start_listening();
-        [DllImport("WebRTCConnector")]
-        static extern void clean_up();
-        [DllImport("WebRTCConnector")]
-        static extern int send_tile(byte[] data, UInt32 size, UInt32 tile_number);
-        [DllImport("WebRTCConnector")]
-        static extern int get_tile_size(UInt32 client_id, UInt32 tile_number);
-        [DllImport("WebRTCConnector")]
-        static extern void retrieve_tile(byte[] buffer, UInt32 size, UInt32 client_id, UInt32 tile_number);
-        [DllImport("WebRTCConnector")]
-        static extern int send_control(byte[] data, UInt32 size);
-        [DllImport("WebRTCConnector")]
-        static extern int get_control_size();
-        [DllImport("WebRTCConnector")]
-        static extern void retrieve_control(byte[] buffer);
+     
 
         protected Uri url;
         protected int client_id;
@@ -127,12 +108,12 @@ namespace Cwipc
                             return;
                         }
                         // [jvdhooft]
-                        int p_size = get_tile_size((uint)parent.client_id, (uint)thread_index);
+                        int p_size = WebRTCConnector.WebRTCConnectorPinvoke.get_tile_size((uint)parent.client_id, (uint)thread_index);
                         if (p_size > 0)
                         {
                             Debug.Log($"{Name()}: WebRTC frame available");
                             byte[] d = new byte[p_size];
-                            retrieve_tile(d, (uint)p_size, (uint)parent.client_id, (uint)thread_index);
+                            WebRTCConnector.WebRTCConnectorPinvoke.retrieve_tile(d, (uint)p_size, (uint)parent.client_id, (uint)thread_index);
                             int fourccReceived = BitConverter.ToInt32(d, 0);
                             if (fourccReceived != receiverInfo.fourcc)
                             {
@@ -152,10 +133,7 @@ namespace Cwipc
                             Thread.Sleep(1);
                         }
                     }
-                    // [jvdhooft]
-                    Debug.Log($"{Name()}: Cleaning up WebRTC");
-                    clean_up();
-                }
+                 }
 #pragma warning disable CS0168
                 catch (System.Exception e)
                 {
@@ -226,8 +204,6 @@ namespace Cwipc
                 }
                 url = new Uri(_url);
                 client_id = _client_id;
-                
-
             }
         }
 
@@ -264,9 +240,7 @@ namespace Cwipc
 
         protected override void Start()
         {
-            // [jvdhooft]
-            start_listening();
-            base.Start();
+           base.Start();
             InitThreads();
         }
 

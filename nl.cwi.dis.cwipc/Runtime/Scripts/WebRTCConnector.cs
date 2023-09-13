@@ -24,7 +24,11 @@ namespace Cwipc
         public bool peerWindowDontClose = false;
         [Tooltip("UDP Port this peer will use to communicate with this connector instance")]
         public int peerUDPPort = 8000;
+        [Tooltip("IP address where peer process will be running")]
+        public string peerIPAddress = "127.0.0.1";
 
+        [Tooltip("Maximum number of tracks to receive from other WebRTC peers")]
+        int maxReceiverTracks = 9;
         [Tooltip("Set to a pathname to enable WebRTCConnector plugin logging")]
         public string logFileDirectory;
         [Tooltip("Enable for more messages")]
@@ -36,16 +40,35 @@ namespace Cwipc
         [Tooltip("(introspection)Client ID within SFU session")]
         public int clientId = 1;
         private Process peerProcess;
+        private int nTransmissionTracks = 0;
 
-        [DllImport("WebRTCConnector")]
-        static extern void set_logging(string log_directory, bool debug_mode);
-        [DllImport("WebRTCConnector", CallingConvention = CallingConvention.Cdecl)]
-        static extern void RegisterDebugCallback(debugCallback cb);
-        [DllImport("WebRTCConnector")]
-        static extern int connect_to_proxy(string ip_send, UInt32 port_send, string ip_recv, UInt32 port_recv, UInt32 number_of_tiles, UInt32 client_id);
+        public class WebRTCConnectorPinvoke
+        {
+            [DllImport("WebRTCConnector")]
+            public static extern void set_logging(string log_directory, bool debug_mode);
+            [DllImport("WebRTCConnector", CallingConvention = CallingConvention.Cdecl)]
+            public static extern void RegisterDebugCallback(debugCallback cb);
+            [DllImport("WebRTCConnector")]
+            public static extern int initialize(string ip_send, UInt32 port_send, string ip_recv, UInt32 port_recv, UInt32 number_of_tiles, UInt32 client_id);
+            [DllImport("WebRTCConnector")]
+            public static extern void clean_up();
+            [DllImport("WebRTCConnector")]
+            public static extern int send_tile(byte[] data, UInt32 size, UInt32 tile_number);
+            [DllImport("WebRTCConnector")]
+            public static extern int get_tile_size(UInt32 client_id, UInt32 tile_number);
+            [DllImport("WebRTCConnector")]
+            public static extern void retrieve_tile(byte[] buffer, UInt32 size, UInt32 client_id, UInt32 tile_number);
+
+            [DllImport("WebRTCConnector")]
+            public static extern int send_control(byte[] data, UInt32 size);
+            [DllImport("WebRTCConnector")]
+            public static extern int get_control_size();
+            [DllImport("WebRTCConnector")]
+            public static extern void retrieve_control(byte[] buffer);
+        }
 
         // Create string param callback delegate
-        delegate void debugCallback(IntPtr request, int color, int size);
+        public delegate void debugCallback(IntPtr request, int color, int size);
         enum Color { red, green, blue, black, white, yellow, orange };
         [MonoPInvokeCallback(typeof(debugCallback))]
         static void OnDebugCallback(IntPtr request, int color, int size)
@@ -59,6 +82,11 @@ namespace Cwipc
                 ((Color)color).ToString(), ">", debug_string, "</color>");
             // Log the string
             Debug.Log(debug_string);
+        }
+
+        ~WebRTCConnector()
+        {
+            WebRTCConnectorPinvoke.clean_up();
         }
 
         void Awake()
@@ -81,18 +109,32 @@ namespace Cwipc
         public void AllConnectionsDone()
         {
 
+            if (peerConnected)
+            {
+                Debug.LogWarning("WebRTCConnector: second call to AllConnectionsDone");
+                return;
+            }
+            int nTracks = maxReceiverTracks;
+            if (nTransmissionTracks > nTracks)
+            {
+                nTracks = nTransmissionTracks;
+            }
+            //Thread.Sleep(2000);
+            WebRTCConnectorPinvoke.initialize(peerIPAddress, (uint)peerUDPPort, peerIPAddress, (uint)peerUDPPort, (uint)nTracks, (uint)clientId);
+            //Thread.Sleep(1000);
+            peerConnected = true;
         }
 
         // Use this for initialization
         public void OnEnable()
         {
             Debug.Log($"WebRTCConnector: installing message callback");
-            RegisterDebugCallback(OnDebugCallback);
+            WebRTCConnectorPinvoke.RegisterDebugCallback(OnDebugCallback);
             if (logFileDirectory == null)
             {
                 logFileDirectory = "";
             }
-            set_logging(logFileDirectory, debug);
+            WebRTCConnectorPinvoke.set_logging(logFileDirectory, debug);
         }
 
         public void OnDestroy()
@@ -186,15 +228,9 @@ namespace Cwipc
 
         }
 
-        public void ConnectToPeer(int nThreads)
+        public void PrepareForTransmission(int _nTracks)
         {
-            // xxxjack is worried about nThreads/number_of_tiles. Does this suppose a symmetry
-            // between sender and receiver (i.e. between two instances of VR2Gather)?
-            if (peerConnected) return;
-            //Thread.Sleep(2000);
-            connect_to_proxy("127.0.0.1", (uint)peerUDPPort, "127.0.0.1", (uint)peerUDPPort, (uint)nThreads, (uint)clientId);
-            //Thread.Sleep(1000);
-            peerConnected = true;
+            nTransmissionTracks += _nTracks;
         }
 
     }

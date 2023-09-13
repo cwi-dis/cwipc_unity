@@ -32,22 +32,7 @@ namespace Cwipc
         protected class XxxjackPeerConnection { };
         protected class XxxjackTrackOrStream { };
 
-        [DllImport("WebRTCConnector")]
-        static extern void start_listening();
-        [DllImport("WebRTCConnector")]
-        static extern void clean_up();
-        [DllImport("WebRTCConnector")]
-        static extern int send_tile(byte[] data, UInt32 size, UInt32 tile_number);
-        [DllImport("WebRTCConnector")]
-        static extern int get_tile_size(UInt32 tile_number);
-        [DllImport("WebRTCConnector")]
-        static extern void retrieve_tile(byte[] buffer, UInt32 tile_number);
-        [DllImport("WebRTCConnector")]
-        static extern int send_control(byte[] data, UInt32 size);
-        [DllImport("WebRTCConnector")]
-        static extern int get_control_size();
-        [DllImport("WebRTCConnector")]
-        static extern void retrieve_control(byte[] buffer);
+       
 
         protected struct WebRTCStreamDescription
         {
@@ -130,11 +115,8 @@ namespace Cwipc
                         byte[] rv = new byte[hdr.Length + buf.Length];
                         System.Buffer.BlockCopy(hdr, 0, rv, 0, hdr.Length);
                         System.Buffer.BlockCopy(buf, 0, rv, hdr.Length, buf.Length);
-                        send_tile(rv, (uint)(hdr.Length + buf.Length), (uint)tile_number);
+                        WebRTCConnector.WebRTCConnectorPinvoke.send_tile(rv, (uint)(hdr.Length + buf.Length), (uint)tile_number);
                     }
-                    // [jvdhooft]
-                    Debug.Log($"{Name()}: Cleaning up WebRTC");
-                    clean_up();
                     Debug.Log($"{Name()}: Thread stopped");
                 }
 #pragma warning disable CS0168
@@ -246,16 +228,16 @@ namespace Cwipc
         protected override void Start()
         {
             base.Start();
-            int nThreads = descriptions.Length;
+            int nTracks = descriptions.Length;
 
             // [jvdhooft]
 
-            Debug.Log($"{Name()}: Number of tiles: {(uint)nThreads}");
+            Debug.Log($"{Name()}: Number of tracks: {(uint)nTracks}");
 
-            WebRTCConnector.Instance.ConnectToPeer(nThreads);
+            WebRTCConnector.Instance.PrepareForTransmission(nTracks);
 
-            pusherThreads = new WebRTCPushThread[nThreads];
-            for (int i = 0; i < nThreads; i++)
+            pusherThreads = new WebRTCPushThread[nTracks];
+            for (int i = 0; i < nTracks; i++)
             {
                 // Note: we need to copy i to a new variable, otherwise the lambda expression capture will bite us
                 int stream_number = i;
