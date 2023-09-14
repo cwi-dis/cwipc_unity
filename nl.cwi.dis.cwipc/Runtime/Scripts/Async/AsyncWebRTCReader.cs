@@ -108,22 +108,31 @@ namespace Cwipc
                             return;
                         }
                         // [jvdhooft]
+                        // xxxjack the following code is very inefficient (all data is copied).
+                        // See the comment in AsyncWebRTCWriter for details, but suffice it to say here that it's much better if
+                        // retreive_tile had two sets of pointer, len.
                         int p_size = WebRTCConnector.WebRTCConnectorPinvoke.get_tile_size((uint)parent.client_id, (uint)thread_index);
                         if (p_size > 0)
                         {
                             Debug.Log($"{Name()}: WebRTC frame available");
-                            byte[] d = new byte[p_size];
-                            WebRTCConnector.WebRTCConnectorPinvoke.retrieve_tile(d, (uint)p_size, (uint)parent.client_id, (uint)thread_index);
-                            int fourccReceived = BitConverter.ToInt32(d, 0);
+                            byte[] messageBuffer = new byte[p_size];
+                            unsafe
+                            {
+                                fixed (byte* bufferPointer = messageBuffer)
+                                {
+                                    WebRTCConnector.WebRTCConnectorPinvoke.retrieve_tile(bufferPointer, (uint)p_size, (uint)parent.client_id, (uint)thread_index);
+                                }
+                            }
+                            int fourccReceived = BitConverter.ToInt32(messageBuffer, 0);
                             if (fourccReceived != receiverInfo.fourcc)
                             {
                                 Debug.LogError($"{Name()}: expected 4CC 0x{receiverInfo.fourcc:x} got 0x{fourccReceived:x}");
                             }
-                            int dataSize = BitConverter.ToInt32(d, 4);
-                            Timestamp timestamp = BitConverter.ToInt64(d, 8);
+                            int dataSize = BitConverter.ToInt32(messageBuffer, 4);
+                            Timestamp timestamp = BitConverter.ToInt64(messageBuffer, 8);
                             NativeMemoryChunk mc = new NativeMemoryChunk(dataSize);
                             mc.metadata.timestamp = timestamp;
-                            System.Runtime.InteropServices.Marshal.Copy(d[16..], 0, mc.pointer, dataSize);
+                            System.Runtime.InteropServices.Marshal.Copy(messageBuffer[16..], 0, mc.pointer, dataSize);
                             bool ok = receiverInfo.outQueue.Enqueue(mc);
 #if VRT_WITH_STATS
                             stats.statsUpdate(dataSize, !ok);

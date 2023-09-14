@@ -102,6 +102,12 @@ namespace Cwipc
                         stats.statsUpdate(mc.length);
 #endif
                         // [jvdhooft]
+                        // xxxjack the following code is very inefficient (all data is copied).
+                        // NativeMemoryChunk has the data in an unmanaged buffer, and here we are copying it back to a
+                        // managed byte array so that we can prepend the header.
+                        //
+                        // It would be better if send_tile would have two ptr, len sets so we could use the first one for the header
+                        // and the second one for the data.
                         byte[] hdr = new byte[16];
                         var hdr1 = BitConverter.GetBytes((UInt32)description.fourcc);
                         hdr1.CopyTo(hdr, 0);
@@ -112,10 +118,16 @@ namespace Cwipc
                         var buf = new byte[mc.length];
                         System.Runtime.InteropServices.Marshal.Copy(mc.pointer, buf, 0, mc.length);
                         mc.free();
-                        byte[] rv = new byte[hdr.Length + buf.Length];
-                        System.Buffer.BlockCopy(hdr, 0, rv, 0, hdr.Length);
-                        System.Buffer.BlockCopy(buf, 0, rv, hdr.Length, buf.Length);
-                        WebRTCConnector.WebRTCConnectorPinvoke.send_tile(rv, (uint)(hdr.Length + buf.Length), (uint)tile_number);
+                        byte[] messageBuffer = new byte[hdr.Length + buf.Length];
+                        System.Buffer.BlockCopy(hdr, 0, messageBuffer, 0, hdr.Length);
+                        System.Buffer.BlockCopy(buf, 0, messageBuffer, hdr.Length, buf.Length);
+                        unsafe
+                        {
+                            fixed(byte* bufferPointer = messageBuffer)
+                            {
+                                WebRTCConnector.WebRTCConnectorPinvoke.send_tile(bufferPointer, (uint)(hdr.Length + buf.Length), (uint)tile_number);
+                            }
+                        }
                     }
                     Debug.Log($"{Name()}: Thread stopped");
                 }

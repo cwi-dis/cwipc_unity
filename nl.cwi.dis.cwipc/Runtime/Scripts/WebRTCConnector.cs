@@ -43,7 +43,7 @@ namespace Cwipc
         private Process peerProcess;
         private int nTransmissionTracks = 0;
 
-        public class WebRTCConnectorPinvoke
+        public unsafe class WebRTCConnectorPinvoke
         {
             [DllImport("WebRTCConnector")]
             public static extern void set_logging(string log_directory, int logLevel);
@@ -55,18 +55,18 @@ namespace Cwipc
             [DllImport("WebRTCConnector")]
             public static extern void clean_up();
             [DllImport("WebRTCConnector")]
-            public static extern int send_tile(byte[] data, UInt32 size, UInt32 tile_number);
+            public static extern int send_tile(byte* data, UInt32 size, UInt32 tile_number);
             [DllImport("WebRTCConnector")]
             public static extern int get_tile_size(UInt32 client_id, UInt32 tile_number);
             [DllImport("WebRTCConnector")]
-            public static extern void retrieve_tile(byte[] buffer, UInt32 size, UInt32 client_id, UInt32 tile_number);
+            public static extern void retrieve_tile(byte* buffer, UInt32 size, UInt32 client_id, UInt32 tile_number);
 
             [DllImport("WebRTCConnector")]
-            public static extern int send_control(byte[] data, UInt32 size);
+            public static extern int send_control(byte* data, UInt32 size);
             [DllImport("WebRTCConnector")]
             public static extern int get_control_size();
             [DllImport("WebRTCConnector")]
-            public static extern void retrieve_control(byte[] buffer);
+            public static extern void retrieve_control(byte* buffer);
         }
 
         // Create string param callback delegate
