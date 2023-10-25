@@ -204,6 +204,7 @@ namespace Cwipc
                 }
                 url = new Uri(_url);
                 client_id = _client_id;
+                WebRTCConnector.Instance.StartWebRTCPeer(url);
             }
         }
 
