@@ -6,6 +6,6 @@ namespace Cwipc
 {
     public interface IPointCloudPositionProvider
     {
-        Vector3 GetPosition();
+        Vector3? GetPosition();
     }
 }

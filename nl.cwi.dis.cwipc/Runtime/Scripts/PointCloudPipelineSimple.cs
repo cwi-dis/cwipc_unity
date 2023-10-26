@@ -242,7 +242,7 @@ namespace Cwipc
 
         }
 
-        public Vector3 GetPosition()
+        public Vector3? GetPosition()
         {
             if (PCcapturer == null)
             {

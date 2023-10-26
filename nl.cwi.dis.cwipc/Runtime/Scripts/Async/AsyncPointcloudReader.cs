@@ -186,7 +186,7 @@ namespace Cwipc
             return reader.get();
         }
 
-        public Vector3 GetPosition()
+        public Vector3? GetPosition()
         {
             cwipc.pointcloud pc = null;
             lock (this)
@@ -196,15 +196,15 @@ namespace Cwipc
             }
             if (pc == null)
             {
-                return Vector3.zero;
+                return null;
             }
         
-            Vector3 rv = ComputePosition(pc);
+            Vector3? rv = ComputePosition(pc);
             pc.free();
             return rv;
         }
 
-        protected Vector3 ComputePosition(cwipc.pointcloud pc)
+        protected Vector3? ComputePosition(cwipc.pointcloud pc)
         {
             cwipc.pointcloud pcTmp;
             bool pcTmpAllocated = false;
@@ -212,7 +212,7 @@ namespace Cwipc
             Vector3 corner1, corner2, centroid;
             if (!AnalysePointcloud(pc, out corner1, out corner2, out centroid))
             {
-                return Vector3.zero;
+                return null;
             }
             // If the bounding box is far too big we should limit it and recompute,
             // to get rid of outliers
@@ -249,8 +249,9 @@ namespace Cwipc
 
         protected bool AnalysePointcloud(cwipc.pointcloud pc, out Vector3 corner1, out Vector3 corner2, out Vector3 centroid)
         {
+            const int minPointsForAnalysis = 3000; // xxxjack This should probably be a configurable parameter
             cwipc.PointCloudPoint[] points = pc.get_points();
-            if (points == null || points.Length == 0)
+            if (points == null || points.Length < minPointsForAnalysis)
             {
                 corner1 = Vector3.zero;
                 corner2 = Vector3.zero;

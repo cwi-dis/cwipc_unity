@@ -197,40 +197,57 @@ public class ViewAdjust : LocomotionProvider
 			int lastDistanceSameCount = 0;
 			while (stage == ViewAdjustStage.position)
 			{
-				Vector3 pcPosition = pointCloudPipeline.GetPosition();
-				if (pointCloudCenterOfGravityIndicator != null)
+				Vector3? _pcPosition = pointCloudPipeline.GetPosition();
+				if (_pcPosition == null)
 				{
-					pointCloudCenterOfGravityIndicator.position = pcPosition;
-				}
-				float distance = pcPosition.magnitude;
-				int distanceCm = (int)(distance * 100);
-
-                float angle = Vector3.Angle(-Vector3.forward, pcPosition);
-				int dir = (int)(angle / 30);
-				if (dir <= 0) dir += 12;
-
-				ShowPositionIndicator(stage: "Adjust Position", instructions:
-					$"Look down, position your body on the cartoon feet.\n\nYou are {distanceCm} cm away from where you should be.\nMove in the {dir} o'clock direction."
-					);
-				// Check whether the user has been standing still in a reasonable position for 2 seconds.
-				if (distanceCm == lastDistanceCm && distanceCm < 5) {
-					lastDistanceSameCount++;
-					if (lastDistanceSameCount > 3)
-					{
-						stage = ViewAdjustStage.orientation;
-					}
-				}
-				else
-				{
+					ShowPositionIndicator(stage: "No Point Cloud", instructions:
+						"You are not seen by the cameras. Please move into the capture area"
+						);
+					lastDistanceCm = -1;
 					lastDistanceSameCount = 0;
-					lastDistanceCm = distanceCm;
+					yield return new WaitForSeconds(0.3f);
+					continue;
+				}
+                else
+                {
+					Vector3 pcPosition = (Vector3) _pcPosition;
+                    // xxxjack use getTiles() to determine number of cameras, and adjust if needed.
+                    if (pointCloudCenterOfGravityIndicator != null)
+                    {
+                        pointCloudCenterOfGravityIndicator.localPosition = pcPosition;
+                    }
+                    float distance = pcPosition.magnitude;
+                    int distanceCm = (int)(distance * 100);
+
+                    float angle = Vector3.Angle(-Vector3.forward, pcPosition);
+                    int dir = (int)(angle / 30);
+                    if (dir <= 0) dir += 12;
+
+                    ShowPositionIndicator(stage: "Adjust Position", instructions:
+                        $"Look down, position your body on the cartoon feet.\n\nYou are {distanceCm} cm away from where you should be.\nMove in the {dir} o'clock direction."
+                        );
+                    // Check whether the user has been standing still in a reasonable position for 2 seconds.
+                    if (distanceCm == lastDistanceCm && distanceCm < 5)
+                    {
+                        lastDistanceSameCount++;
+                        if (lastDistanceSameCount > 4)
+                        {
+                            stage = ViewAdjustStage.orientation;
+                        }
+                    }
+                    else
+                    {
+                        lastDistanceSameCount = 0;
+                        lastDistanceCm = distanceCm;
+                    }
                     yield return new WaitForSeconds(0.3f);
                 }
             }
-
-            // Show the countdown
-            ShowPositionIndicator(stage: "Adjust Orientation", instructions: "To be provided");
+#if xxxjack_bad_idea
+			// Show the countdown
+			ShowPositionIndicator(stage: "Adjust Orientation", instructions: "To be provided");
 			yield return new WaitForSeconds(3);
+#endif
 			stage = ViewAdjustStage.done;
 			
 		}
