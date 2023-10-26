@@ -38,6 +38,9 @@ public class ViewAdjust : LocomotionProvider
 	[Tooltip("How many meters forward the camera should be positioned relative to player origin")]
 	[SerializeField] float cameraZFudgeFactor = 0;
 
+	[Tooltip("How many meters forward the center of gravity of the point cloud should be moved for single camera capturers")]
+	[SerializeField] float singleCameraCoGForwardMove = 0.05f;
+
 	[Tooltip("Multiplication factor for height adjustment")]
 	[SerializeField] float heightFactor = 1;
 
@@ -193,6 +196,7 @@ public class ViewAdjust : LocomotionProvider
 
 			// now instruct the user position correctly.
             stage = ViewAdjustStage.position;
+			int cameraCount = -1;
 			int lastDistanceCm = -1;
 			int lastDistanceSameCount = 0;
 			while (stage == ViewAdjustStage.position)
@@ -211,7 +215,17 @@ public class ViewAdjust : LocomotionProvider
                 else
                 {
 					Vector3 pcPosition = (Vector3) _pcPosition;
-                    // xxxjack use getTiles() to determine number of cameras, and adjust if needed.
+                    if (cameraCount < 0) {
+						// Determine number of cameras.
+						cameraCount = pointCloudPipeline.GetCameraCount();
+					}
+                    if (cameraCount == 1)
+                    {
+						// For a single-camera setup (and note only if we are sure: we don't do
+						// this for cameraCount == 0) we move the center of gravity, because we
+						// expect to capture only half a person.
+						pcPosition.z += singleCameraCoGForwardMove;
+                    }
                     if (pointCloudCenterOfGravityIndicator != null)
                     {
                         pointCloudCenterOfGravityIndicator.localPosition = pcPosition;

@@ -250,5 +250,10 @@ namespace Cwipc
             }
             return PCcapturer.GetPosition();
         }
+
+        public int GetCameraCount()
+        {
+            return PCcapturer.GetCameraCount();
+        }
     }
 }

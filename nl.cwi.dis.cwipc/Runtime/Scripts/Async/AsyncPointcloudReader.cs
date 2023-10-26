@@ -204,6 +204,13 @@ namespace Cwipc
             return rv;
         }
 
+        public int GetCameraCount()
+        {
+            cwipc.tileinfo[] origTileInfo = reader.get_tileinfo();
+            if (origTileInfo == null) return 0;
+            return origTileInfo.Length;
+        }
+
         protected Vector3? ComputePosition(cwipc.pointcloud pc)
         {
             cwipc.pointcloud pcTmp;
