@@ -29,6 +29,9 @@ public class ViewAdjust : LocomotionProvider
 	[Tooltip("Point cloud pipeline GameObject")]
 	[SerializeField] GameObject pointCloudGO;
 
+	[Tooltip("GameObject that follows center of gravity of the captured pointcloud")]
+	[SerializeField] Transform pointCloudCenterOfGravityIndicator;
+
 	[Tooltip("Camera used for determining zero position and orientation, for resetting origin")]
 	[SerializeField] Camera playerCamera;
 
@@ -40,6 +43,7 @@ public class ViewAdjust : LocomotionProvider
 
 	[Tooltip("Reset viewpoint height when resetting position (otherwise height is untouched)")]
 	[SerializeField] bool resetHeightWithPosition = false;
+
 	[Tooltip("Callback done after view has been adjusted")]
 	public UnityEvent viewAdjusted;
 
@@ -118,6 +122,7 @@ public class ViewAdjust : LocomotionProvider
 		}
 		if (forwardIndicator != null && stage != null)
 		{
+#if xxxjack_bad_idea
 			// We need to determine the direction of the point cloud capture Z axis and rotate
 			// the forward indicator so that is in that direction.
 			// xxxjack this is wrong, currently.
@@ -126,6 +131,7 @@ public class ViewAdjust : LocomotionProvider
 			float angle = angleCamera - angleIndicator;
 
 			forwardIndicator.transform.Rotate(0, angle, 0);
+#endif
 			forwardIndicator.SetActive(true);
 			forwardIndicatorCountdown.text = stage;
 			forwardIndicatorInstructions.text = instructions;
@@ -169,13 +175,33 @@ public class ViewAdjust : LocomotionProvider
         }
         else
 		{
-            // We are a pointcloud. First instruct to position correctly.
+			// We are a pointcloud.
+			// We start by resetting the cameraOffset to known values (for height)
+#if xxxjack_bad_idea
+			cameraOffset.transform.Rotate(0, -cameraOffset.transform.localRotation.y, 0);
+			cameraOffset.transform.Rotate(0, -playerCamera.transform.localRotation.y, 0);
+#endif
+			cameraOffset.transform.Translate(0, -cameraOffset.transform.position.y, 0);
+			//
+			// Now we want to ensure that a camera Y angle of 0 (note: camera, not cameraOffset)
+			// corresponds to t world angle of 0 (note: world, not player).
+			// We do this by rotating the player.
+			//
+			float cameraAngle = playerCamera.transform.rotation.eulerAngles.y;
+			float playerAngle = player.transform.rotation.eulerAngles.y;
+			player.transform.Rotate(0, -cameraAngle - playerAngle, 0);
+
+			// now instruct the user position correctly.
             stage = ViewAdjustStage.position;
 			int lastDistanceCm = -1;
 			int lastDistanceSameCount = 0;
 			while (stage == ViewAdjustStage.position)
 			{
 				Vector3 pcPosition = pointCloudPipeline.GetPosition();
+				if (pointCloudCenterOfGravityIndicator != null)
+				{
+					pointCloudCenterOfGravityIndicator.position = pcPosition;
+				}
 				float distance = pcPosition.magnitude;
 				int distanceCm = (int)(distance * 100);
 
