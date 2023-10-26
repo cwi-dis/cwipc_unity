@@ -181,7 +181,7 @@ public class ViewAdjust : LocomotionProvider
 			cameraOffset.transform.Rotate(0, -cameraOffset.transform.localRotation.y, 0);
 			cameraOffset.transform.Rotate(0, -playerCamera.transform.localRotation.y, 0);
 #endif
-			cameraOffset.transform.Translate(0, -cameraOffset.transform.position.y, 0);
+			cameraOffset.transform.Translate(0, -cameraOffset.transform.localPosition.y, 0);
 			//
 			// Now we want to ensure that a camera Y angle of 0 (note: camera, not cameraOffset)
 			// corresponds to t world angle of 0 (note: world, not player).
