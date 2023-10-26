@@ -1,4 +1,5 @@
 using Cwipc;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,6 +11,14 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs;
 
 public class ViewAdjust : LocomotionProvider
 {
+	[Serializable]
+	public enum ViewAdjustStage
+	{
+		idle,
+		position,
+		orientation,
+		done
+	};
 
 	[Tooltip("The object of which the height is adjusted, and that resetting origin will modify")]
 	[SerializeField] GameObject cameraOffset;
@@ -49,11 +58,16 @@ public class ViewAdjust : LocomotionProvider
 	[Tooltip("Best forward direction indicator, visible while adjusting position")]
 	[SerializeField] GameObject forwardIndicator;
 
-	[Tooltip("Forward indicator countdown")]
-	[SerializeField] UnityEngine.UI.Text forwardIndicatorCountdown;
+    [Tooltip("Forward indicator instructions")]
+    [SerializeField] UnityEngine.UI.Text forwardIndicatorInstructions;
 
-	[Tooltip("How many seconds is the position indicator visible?")]
+    [Tooltip("Forward indicator countdown")]
+    [SerializeField] UnityEngine.UI.Text forwardIndicatorCountdown;
+
+    [Tooltip("How many seconds is the position indicator visible?")]
 	[SerializeField] float positionIndicatorDuration = 5f;
+
+	[SerializeField] ViewAdjustStage stage = ViewAdjustStage.idle;
 
 	float positionIndicatorInvisibleAfter = 0;
 
@@ -96,7 +110,7 @@ public class ViewAdjust : LocomotionProvider
 		}
 	}
 
-	private void ShowPositionIndicator(string stage = null)
+	private void ShowPositionIndicator(string stage = null, string instructions = "")
 	{
 		if (positionIndicator != null)
 		{
@@ -114,6 +128,7 @@ public class ViewAdjust : LocomotionProvider
 			forwardIndicator.transform.Rotate(0, angle, 0);
 			forwardIndicator.SetActive(true);
 			forwardIndicatorCountdown.text = stage;
+			forwardIndicatorInstructions.text = instructions;
 		}
 		positionIndicatorInvisibleAfter = Time.time + positionIndicatorDuration;
 	}
@@ -123,29 +138,75 @@ public class ViewAdjust : LocomotionProvider
 	/// </summary>
 	public void ResetOrigin()
 	{
-		StartCoroutine(_ResetOrigin());
-	}
+		if (stage == ViewAdjustStage.idle)
+		{
+			// If we are not adjusting the view we start adjusting the view
+            StartCoroutine(_ResetOrigin());
+		}
+        else
+        {
+             // If we are already adjusting the view we might want to stop it.
+			 // xxxjack but not yet.
+        }
+   }
 
 	private IEnumerator _ResetOrigin()
 	{
+		//
+		// First determine if we have a pointcloud representation.
+		// If not things are easy.
+		//
 		IPointCloudPositionProvider pointCloudPipeline = null;
 		if (pointCloudGO != null) pointCloudPipeline = pointCloudGO.GetComponentInChildren<IPointCloudPositionProvider>();
+		
 		yield return null;
+
 		if (pointCloudPipeline == null)
 		{
 			// Show the position indicator and reset the view point immedeately. 
-			ShowPositionIndicator();
-		}
-		else
+			ShowPositionIndicator(stage: "Fixing...");
+            stage = ViewAdjustStage.done;
+        }
+        else
 		{
-			// Show the countdown
-			ShowPositionIndicator(stage: "3");
-			yield return new WaitForSeconds(1);
-			ShowPositionIndicator(stage: "2");
-			yield return new WaitForSeconds(1);
-			ShowPositionIndicator(stage: "1");
-			yield return new WaitForSeconds(1);
-			ShowPositionIndicator(stage: ">CLICK<");
+            // We are a pointcloud. First instruct to position correctly.
+            stage = ViewAdjustStage.position;
+			int lastDistanceCm = -1;
+			int lastDistanceSameCount = 0;
+			while (stage == ViewAdjustStage.position)
+			{
+				Vector3 pcPosition = pointCloudPipeline.GetPosition();
+				float distance = pcPosition.magnitude;
+				int distanceCm = (int)(distance * 100);
+
+                float angle = Vector3.Angle(-Vector3.forward, pcPosition);
+				int dir = (int)(angle / 30);
+				if (dir <= 0) dir += 12;
+
+				ShowPositionIndicator(stage: "Adjust Position", instructions:
+					$"Look down, position your body on the cartoon feet.\n\nYou are {distanceCm} cm away from where you should be.\nMove in the {dir} o'clock direction."
+					);
+				// Check whether the user has been standing still in a reasonable position for 2 seconds.
+				if (distanceCm == lastDistanceCm && distanceCm < 5) {
+					lastDistanceSameCount++;
+					if (lastDistanceSameCount > 3)
+					{
+						stage = ViewAdjustStage.orientation;
+					}
+				}
+				else
+				{
+					lastDistanceSameCount = 0;
+					lastDistanceCm = distanceCm;
+                    yield return new WaitForSeconds(0.3f);
+                }
+            }
+
+            // Show the countdown
+            ShowPositionIndicator(stage: "Adjust Orientation", instructions: "To be provided");
+			yield return new WaitForSeconds(3);
+			stage = ViewAdjustStage.done;
+			
 		}
 
 		if (BeginLocomotion())
@@ -193,6 +254,7 @@ public class ViewAdjust : LocomotionProvider
 			EndLocomotion();
 		}
 		ShowPositionIndicator(stage: "Done!");
+		stage = ViewAdjustStage.idle;
 	}
 
 	public void HigherView(float deltaHeight = 0.02f)
