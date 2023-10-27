@@ -246,7 +246,7 @@ namespace Cwipc
         {
             if (PCcapturer == null)
             {
-                return Vector3.zero;
+                return null;
             }
             return PCcapturer.GetPosition();
         }

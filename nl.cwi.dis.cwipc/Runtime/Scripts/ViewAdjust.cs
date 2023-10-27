@@ -115,7 +115,7 @@ public class ViewAdjust : LocomotionProvider
             bool doResetOrigin = m_resetOriginAction.action.ReadValue<float>() >= 0.5;
             if (doResetOrigin)
             {
-                ResetOrigin();
+                ResetOrigin(false);
             }
         }
     }
@@ -128,20 +128,17 @@ public class ViewAdjust : LocomotionProvider
         }
         if (forwardIndicator != null && stage != null)
         {
-#if xxxjack_bad_idea
-            // We need to determine the direction of the point cloud capture Z axis and rotate
-            // the forward indicator so that is in that direction.
-            // xxxjack this is wrong, currently.
-            float angleIndicator = forwardIndicator.transform.rotation.eulerAngles.y;
-            float angleCamera = playerCamera.transform.rotation.eulerAngles.y;
-            float angle = angleCamera - angleIndicator;
-
-            forwardIndicator.transform.Rotate(0, angle, 0);
-#endif
-            forwardIndicator.SetActive(true);
-            forwardIndicatorCountdown.text = stage;
-            forwardIndicatorInstructions.text = instructions;
-            floorInstructions.text = floor;
+            if (stage == "")
+            {
+                forwardIndicator.SetActive(false);
+            }
+            else
+            {
+                forwardIndicator.SetActive(true);
+                forwardIndicatorCountdown.text = stage;
+                forwardIndicatorInstructions.text = instructions;
+                floorInstructions.text = floor;
+            }
         }
         positionIndicatorInvisibleAfter = Time.time + positionIndicatorDuration;
     }
@@ -149,17 +146,17 @@ public class ViewAdjust : LocomotionProvider
     /// <summary>
     /// The user wants the current head position, (X,Z) only, to be the (0, Y, 0), right above the XROrigin.
     /// </summary>
-    public void ResetOrigin()
+    public void ResetOrigin(bool canStop=true)
     {
         if (stage == ViewAdjustStage.idle)
         {
             // If we are not adjusting the view we start adjusting the view
             StartCoroutine(_ResetOrigin());
         }
-        else
+        else if (canStop)
         {
-             // If we are already adjusting the view we might want to stop it.
-             // xxxjack but not yet.
+            // If we are already adjusting the view we might want to stop it.
+            stage = ViewAdjustStage.done;
         }
    }
 
@@ -317,7 +314,7 @@ public class ViewAdjust : LocomotionProvider
             viewAdjusted.Invoke();
             EndLocomotion();
         }
-        ShowPositionIndicator(stage: "Done!");
+        ShowPositionIndicator(stage: "");
         stage = ViewAdjustStage.idle;
     }
 
