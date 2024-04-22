@@ -35,7 +35,8 @@ namespace Cwipc
         [SerializeField] protected float Preparer_DefaultCellSize = 1.0f;
         [Tooltip("Multiplication factor for pointcloud cellsize")]
         [SerializeField] protected float Preparer_CellSizeFactor = 1.0f;
-
+        [Header("Source type: WebRTC")]
+        [SerializeField] public int clientId;
         [Header("Source type: TCP")]
         [Tooltip("Specifies TCP server to contact for source, in the form tcp://host:port")]
         [SerializeField] public string inputUrl;
@@ -134,7 +135,7 @@ namespace Cwipc
             //
             if (sourceType == SourceType.WebRTC)
             {
-                PCreceiver = new AsyncWebRTCPCReader(inputUrl, fourcc, tileDescription);
+                PCreceiver = new AsyncWebRTCPCReader(inputUrl, clientId, fourcc, tileDescription);
             }
             else
             {

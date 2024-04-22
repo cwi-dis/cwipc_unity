@@ -31,6 +31,8 @@ namespace Cwipc
         [SerializeField] bool enableTransmission = true;
         [Tooltip("Force untiled")]
         [SerializeField] bool _forceUntiled = false;
+        [Tooltip("WebRTC client ID")]
+        [SerializeField] int clientId;
         public override bool forceUntiled
         {
             set { _forceUntiled = value; }
@@ -56,7 +58,7 @@ namespace Cwipc
             RendererInputQueue = new QueueThreadSafe("DecoderOutputQueue", 2, false);
             if (isWebRTC)
             {
-                PCreceiver = new AsyncWebRTCReader(inputUrl, fourcc, ReaderRenderQueue);
+                PCreceiver = new AsyncWebRTCReader(inputUrl, clientId, fourcc, ReaderRenderQueue);
             }
             else
             {

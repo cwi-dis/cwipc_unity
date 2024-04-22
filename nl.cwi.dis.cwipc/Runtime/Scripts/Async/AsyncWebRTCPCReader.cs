@@ -10,8 +10,8 @@ namespace Cwipc
 
     public class AsyncWebRTCPCReader : AsyncWebRTCReader
     {
-        public AsyncWebRTCPCReader(string _url, string fourcc, IncomingTileDescription[] _tileDescriptors)
-        : base(_url)
+        public AsyncWebRTCPCReader(string _url, int _client_id, string fourcc, IncomingTileDescription[] _tileDescriptors)
+        : base(_url, _client_id)
         {
             lock (this)
             {

@@ -63,6 +63,8 @@ namespace Cwipc
         [SerializeField] public string inputUrl;
         [Tooltip("Insert a compressed pointcloud decoder into the stream")]
         public bool compressedInputStream;
+        [Tooltip("WebRTC Client ID")]
+        public int clientId;
 
         /// <summary>
         /// Simple pipeline will always force untiled transmission and report untiled stream.
@@ -211,7 +213,7 @@ namespace Cwipc
             RendererInputQueue = new QueueThreadSafe("DecoderOutputQueue", 2, false);
             if (isWebRTC)
             {
-                PCreceiver = new AsyncWebRTCReader(inputUrl, fourcc, ReaderRenderQueue);
+                PCreceiver = new AsyncWebRTCReader(inputUrl, clientId, fourcc, ReaderRenderQueue);
             }
             else
             {

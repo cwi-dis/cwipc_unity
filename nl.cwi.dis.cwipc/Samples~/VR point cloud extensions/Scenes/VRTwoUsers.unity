@@ -433,20 +433,20 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1911508270948310340, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
+      propertyPath: framerate
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 1911508270948310340, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
       propertyPath: sourceType
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1911508270948310340, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
-      propertyPath: configFileName
-      value: cameraconfig.json
+      propertyPath: _forceUntiled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1911508270948310340, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
-      propertyPath: networkedCameraURL
-      value: tcp://sap.local:9901/
-      objectReference: {fileID: 0}
-    - target: {fileID: 1911508270948310340, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
-      propertyPath: networkedCameraCompressed
-      value: 1
+      propertyPath: Synthetic_NPoints
+      value: 8000
       objectReference: {fileID: 0}
     - target: {fileID: 2942035106827000202, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
       propertyPath: m_Name
@@ -499,6 +499,10 @@ PrefabInstance:
     - target: {fileID: 2942035106827000207, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5158608789170169691, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
+      propertyPath: sinkType
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6051466313898402052, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
       propertyPath: compressedOutputStreams
@@ -567,10 +571,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   singleMachineSession: 1
-  firstHost: 192.168.1.139
-  secondHost: 192.168.1.96
-  useWebRTC: 0
-  webRTCURL: 
+  firstHost: vrtiny.local
+  secondHost: sap.local
+  useWebRTC: 1
+  webRTCURL: http://example.com/
   selfPipeline: {fileID: 765728494}
   otherPipeline: {fileID: 2057174264}
   useCompression: 1
@@ -620,6 +624,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01f69dc1cb084aa42b2f2f8cd87bc770, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1619475988
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1619475990}
+  - component: {fileID: 1619475989}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1619475989
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1619475988}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b525d00924485145b45e4eb91b61bb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1619475990
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1619475988}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.3341328, y: 0, z: 0.33413243}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2057174263
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -627,6 +675,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1884279282219968218, guid: 3e702f36436a04c8cac93d3384747eba, type: 3}
+      propertyPath: sourceType
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2942035106827000202, guid: 3e702f36436a04c8cac93d3384747eba, type: 3}
       propertyPath: m_Name
       value: cwipc_avatar_other

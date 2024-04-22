@@ -5,6 +5,8 @@ using System.Net.Sockets;
 using System.Text;
 using UnityEngine;
 using Cwipc;
+using System.Runtime.InteropServices;
+using AOT;
 #if VRT_WITH_STATS
 using Statistics = Cwipc.Statistics;
 #endif
@@ -13,7 +15,7 @@ namespace Cwipc
 {
     using Timestamp = System.Int64;
     using Timedelta = System.Int64;
-   
+
     /// <summary>
     /// Implementation of AsyncReader that connects to a TCP socket on a remote machine and receives
     /// frames from that socket using a very simple protocol:
@@ -29,7 +31,10 @@ namespace Cwipc
         protected class XxxjackPeerConnection { };
         protected class XxxjackTrackOrStream { };
 
+     
+
         protected Uri url;
+        protected int client_id;
         protected class ReceiverInfo
         {
             public QueueThreadSafe outQueue;
@@ -66,7 +71,6 @@ namespace Cwipc
 #if VRT_WITH_STATS
                 stats = new Stats(Name());
 #endif
-                Debug.Log($"{Name()}: ready to receive");
             }
 
             public string Name()
@@ -81,9 +85,8 @@ namespace Cwipc
 
             public void Stop() {
                 stopping = true;
-                Debug.Log($"{Name()}: Should stop receiving");
-               
-
+                // [jvdhooft]
+                Debug.Log($"{Name()}: Thread stopping");
             }
 
             public void Join()
@@ -104,22 +107,42 @@ namespace Cwipc
                         {
                             return;
                         }
-                        Debug.Log($"{Name()}: should receive WebRTC data, delay one second in stead");
-                        Thread.Sleep(1000);
-                        int dataSize = 0;
-                        Timestamp timestamp = 0;
-                        byte[] data = new byte[dataSize];
-
-                        NativeMemoryChunk mc = new NativeMemoryChunk(dataSize);
-                        mc.metadata.timestamp = timestamp;
-                        System.Runtime.InteropServices.Marshal.Copy(data, 0, mc.pointer, dataSize);
-                        bool ok = receiverInfo.outQueue.Enqueue(mc);
+                        // [jvdhooft]
+                        // xxxjack the following code is very inefficient (all data is copied).
+                        // See the comment in AsyncWebRTCWriter for details, but suffice it to say here that it's much better if
+                        // retreive_tile had two sets of pointer, len.
+                        int p_size = WebRTCConnector.WebRTCConnectorPinvoke.get_tile_size((uint)parent.client_id, (uint)thread_index);
+                        if (p_size > 0)
+                        {
+                            Debug.Log($"{Name()}: WebRTC frame available");
+                            byte[] messageBuffer = new byte[p_size];
+                            unsafe
+                            {
+                                fixed (byte* bufferPointer = messageBuffer)
+                                {
+                                    WebRTCConnector.WebRTCConnectorPinvoke.retrieve_tile(bufferPointer, (uint)p_size, (uint)parent.client_id, (uint)thread_index);
+                                }
+                            }
+                            int fourccReceived = BitConverter.ToInt32(messageBuffer, 0);
+                            if (fourccReceived != receiverInfo.fourcc)
+                            {
+                                Debug.LogError($"{Name()}: expected 4CC 0x{receiverInfo.fourcc:x} got 0x{fourccReceived:x}");
+                            }
+                            int dataSize = BitConverter.ToInt32(messageBuffer, 4);
+                            Timestamp timestamp = BitConverter.ToInt64(messageBuffer, 8);
+                            NativeMemoryChunk mc = new NativeMemoryChunk(dataSize);
+                            mc.metadata.timestamp = timestamp;
+                            System.Runtime.InteropServices.Marshal.Copy(messageBuffer[16..], 0, mc.pointer, dataSize);
+                            bool ok = receiverInfo.outQueue.Enqueue(mc);
 #if VRT_WITH_STATS
-                        stats.statsUpdate(dataSize, !ok);
+                            stats.statsUpdate(dataSize, !ok);
 #endif
-                        
+                        } else
+                        {
+                            Thread.Sleep(1);
+                        }
                     }
-                }
+                 }
 #pragma warning disable CS0168
                 catch (System.Exception e)
                 {
@@ -177,7 +200,7 @@ namespace Cwipc
         /// The subclass could initialize the receivers array and call Start().
         /// </summary>
         /// <param name="_url">The base URL for the streams</param>
-        protected AsyncWebRTCReader(string _url) : base()
+        protected AsyncWebRTCReader(string _url, int _client_id) : base()
         {
             NoUpdateCallsNeeded();
             lock (this)
@@ -189,8 +212,8 @@ namespace Cwipc
                     throw new System.Exception($"{Name()}: TCP transport requires tcp://host:port/ URL, but no URL specified");
                 }
                 url = new Uri(_url);
-                
-
+                client_id = _client_id;
+                WebRTCConnector.Instance.StartWebRTCPeer(url);
             }
         }
 
@@ -201,7 +224,7 @@ namespace Cwipc
         /// <param name="_url">The server to connect to</param>
         /// <param name="fourcc">The 4CC of the frames expected on the stream</param>
         /// <param name="outQueue">The queue into which received frames will be deposited</param>
-        public AsyncWebRTCReader(string _url, string fourcc, QueueThreadSafe outQueue) : this(_url)
+        public AsyncWebRTCReader(string _url, int _client_id, string fourcc, QueueThreadSafe outQueue) : this(_url, _client_id)
         {
             lock (this)
             {
@@ -227,7 +250,7 @@ namespace Cwipc
 
         protected override void Start()
         {
-            base.Start();
+           base.Start();
             InitThreads();
         }
 
@@ -255,7 +278,7 @@ namespace Cwipc
                 for (int i = 0; i < threadCount; i++)
                 {
                     threads[i] = new WebRTCPullThread(this, i, receivers[i]);
-                    string msg = $"pull_thread={threads[i].Name()}";
+                    string msg = $"pull_thread={threads[i].Name()}, client_id={client_id}";
                     if (receivers[i].tileNumber >= 0)
                     {
                         msg += $", tile={receivers[i].tileNumber}";
@@ -280,4 +303,3 @@ namespace Cwipc
         }
     }
 }
-

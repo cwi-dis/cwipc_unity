@@ -4,6 +4,9 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
+using System.Runtime.InteropServices;
+using System.Drawing;
+using System.Threading;
 #if VRT_WITH_STATS
 using Statistics = Cwipc.Statistics;
 #endif
@@ -28,6 +31,9 @@ namespace Cwipc
         // sequence of frames over
         protected class XxxjackPeerConnection { };
         protected class XxxjackTrackOrStream { };
+
+       
+
         protected struct WebRTCStreamDescription
         {
             public int index;
@@ -47,17 +53,18 @@ namespace Cwipc
             AsyncWebRTCWriter parent;
             WebRTCStreamDescription description;
             System.Threading.Thread myThread;
+            int tile_number;
           
-            public WebRTCPushThread(AsyncWebRTCWriter _parent, WebRTCStreamDescription _description)
+            public WebRTCPushThread(AsyncWebRTCWriter _parent, WebRTCStreamDescription _description, int _tile_number)
             {
                 parent = _parent;
                 description = _description;
                 myThread = new System.Threading.Thread(run);
                 myThread.Name = Name();
+                tile_number = _tile_number;
 #if VRT_WITH_STATS
                 stats = new Stats(Name());
 #endif
-                Debug.Log($"{Name()}:  Should initialize stream or track");
             }
 
             public string Name()
@@ -72,7 +79,8 @@ namespace Cwipc
 
             public void Stop()
             {
-               Debug.Log($"{Name()}:  should close stream or track");
+                // [jvdhooft]
+                Debug.Log($"{Name()}: Closing stream from within the reader");
             }
 
             public void Join()
@@ -88,12 +96,18 @@ namespace Cwipc
                     QueueThreadSafe queue = description.inQueue;
                     while (!queue.IsClosed())
                     {
-                        
                         NativeMemoryChunk mc = (NativeMemoryChunk)queue.Dequeue();
-                        if (mc == null) continue; // Probably closing...
+                        if (mc == null) continue;
 #if VRT_WITH_STATS
                         stats.statsUpdate(mc.length);
 #endif
+                        // [jvdhooft]
+                        // xxxjack the following code is very inefficient (all data is copied).
+                        // NativeMemoryChunk has the data in an unmanaged buffer, and here we are copying it back to a
+                        // managed byte array so that we can prepend the header.
+                        //
+                        // It would be better if send_tile would have two ptr, len sets so we could use the first one for the header
+                        // and the second one for the data.
                         byte[] hdr = new byte[16];
                         var hdr1 = BitConverter.GetBytes((UInt32)description.fourcc);
                         hdr1.CopyTo(hdr, 0);
@@ -103,10 +117,19 @@ namespace Cwipc
                         hdr3.CopyTo(hdr, 8);
                         var buf = new byte[mc.length];
                         System.Runtime.InteropServices.Marshal.Copy(mc.pointer, buf, 0, mc.length);
-                        Debug.Log($"{Name()}: should transmit header and {mc.length} bytes");
-                        
+                        mc.free();
+                        byte[] messageBuffer = new byte[hdr.Length + buf.Length];
+                        System.Buffer.BlockCopy(hdr, 0, messageBuffer, 0, hdr.Length);
+                        System.Buffer.BlockCopy(buf, 0, messageBuffer, hdr.Length, buf.Length);
+                        unsafe
+                        {
+                            fixed(byte* bufferPointer = messageBuffer)
+                            {
+                                WebRTCConnector.WebRTCConnectorPinvoke.send_tile(bufferPointer, (uint)(hdr.Length + buf.Length), (uint)tile_number);
+                            }
+                        }
                     }
-                    Debug.Log($"{Name()}: thread stopped");
+                    Debug.Log($"{Name()}: Thread stopped");
                 }
 #pragma warning disable CS0168
                 catch (System.Exception e)
@@ -152,6 +175,8 @@ namespace Cwipc
         }
  
         WebRTCPushThread[] pusherThreads;
+        System.Diagnostics.Process process_writer;
+        System.Diagnostics.Process process_reader;
 
         protected AsyncWebRTCWriter() : base()
         {
@@ -168,6 +193,14 @@ namespace Cwipc
         public AsyncWebRTCWriter(string _url, string fourcc, OutgoingStreamDescription[] _descriptions) : base()
         {
             NoUpdateCallsNeeded();
+            if (WebRTCConnector.Instance == null)
+            {
+                throw new System.Exception($"{Name()}: No WebRTCConnector in scene.");
+            }
+            if (string.IsNullOrEmpty(_url))
+            {
+                throw new System.Exception($"{Name()}: No WebRTC SFU URL found in session description.");
+            }
             if (_descriptions == null || _descriptions.Length == 0)
             {
                 throw new System.Exception($"{Name()}: descriptions is null or empty");
@@ -178,7 +211,8 @@ namespace Cwipc
             }
             uint fourccInt = StreamSupport.VRT_4CC(fourcc[0], fourcc[1], fourcc[2], fourcc[3]);
             Uri url = new Uri(_url);
-            
+            WebRTCConnector.Instance.StartWebRTCPeer(url);
+
             WebRTCStreamDescription[] ourDescriptions = new WebRTCStreamDescription[_descriptions.Length];
             // We use the lowest ports for the first quality, for each tile.
             // The the next set of ports is used for the next quality, and so on.
@@ -206,13 +240,20 @@ namespace Cwipc
         protected override void Start()
         {
             base.Start();
-            int nThreads = descriptions.Length;
-            pusherThreads = new WebRTCPushThread[nThreads];
-            for (int i = 0; i < nThreads; i++)
+            int nTracks = descriptions.Length;
+
+            // [jvdhooft]
+
+            Debug.Log($"{Name()}: Number of tracks: {(uint)nTracks}");
+
+            WebRTCConnector.Instance.PrepareForTransmission(nTracks);
+
+            pusherThreads = new WebRTCPushThread[nTracks];
+            for (int i = 0; i < nTracks; i++)
             {
                 // Note: we need to copy i to a new variable, otherwise the lambda expression capture will bite us
                 int stream_number = i;
-                pusherThreads[i] = new WebRTCPushThread(this, descriptions[i]);
+                pusherThreads[i] = new WebRTCPushThread(this, descriptions[i], i);
 #if VRT_WITH_STATS
                 Statistics.Output(base.Name(), $"pusher={pusherThreads[i].Name()}, stream={i}");
 #endif
@@ -235,6 +276,14 @@ namespace Cwipc
                     d.inQueue.Close();
                 }
             }
+
+            // [jvdhooft[
+            /*
+            // Close existing processes
+            process_writer.Close();
+            process_reader.Close();
+            */
+
             // Stop our thread
             base.AsyncOnStop();
             // wait for pusherThreads to terminate
@@ -243,19 +292,16 @@ namespace Cwipc
                 t.Stop();
                 t.Join();
             }
+
             Debug.Log($"{Name()} Stopped");
         }
 
-        protected override void AsyncUpdate()
-        {
-        }
+        protected override void AsyncUpdate() {}
 
 #if xxxjack_disabled
-
         public override SyncConfig.ClockCorrespondence GetSyncInfo()
         {
             System.TimeSpan sinceEpoch = System.DateTime.UtcNow - new System.DateTime(1970, 1, 1);
-
             return new SyncConfig.ClockCorrespondence
             {
                 wallClockTime = (Timestamp)sinceEpoch.TotalMilliseconds,
