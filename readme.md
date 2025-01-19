@@ -25,3 +25,8 @@ git config --local core.symlinks true
 ```
 
 (the `--local` command may not be needed in all cases, don't worry if it fails).
+
+### Note for creating a new release
+
+The Android native plugins for `cwipc` are included in this package (unlike those for desktop). They need to be updated for a new release.
+
