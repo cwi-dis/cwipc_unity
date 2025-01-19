@@ -1,5 +1,9 @@
 # Changelog
 
+## [7.6.0] - 2025-01-19
+
+- New version of native cwipc package
+
 ## [7.5.7] - 2024-11-05
 
 - Include Quest native libraries (from git lfs) in zip distribution (#37)
