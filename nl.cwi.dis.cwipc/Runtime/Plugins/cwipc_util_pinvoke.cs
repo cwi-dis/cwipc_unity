@@ -307,6 +307,17 @@ namespace Cwipc
 
         }
 
+#if UNITY_EDITOR_WIN
+        private class API_kernel
+        {
+            [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+            public static extern IntPtr GetModuleHandle(string lpModuleName);
+            [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+            public static extern int GetModuleFileName(IntPtr hModule, System.Text.StringBuilder modulePath, int nSize);
+            [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+            public static extern IntPtr LoadLibrary(string lpFileName);
+        }; 
+        
         static public string GetCwipcDLLDirectory()
         {
             try
@@ -317,20 +328,22 @@ namespace Cwipc
             }
             catch (System.TypeLoadException e)
             {
-                UnityEngine.Debug.Log($"GetCwipcDLLDirectory: cannot load cwipc_util DLL.");
-                UnityEngine.Debug.Log($"GetCwipcDLLDirectory: Exception while loading cwipc_util: {e.ToString()}");
-                throw new CwipcException("GetCwipcDLLDirectory: Native DLLs not installed correctly. See https://github.com/cwi-dis/cwipc for instructions on installing the native cwipc package.");
+                UnityEngine.Debug.LogWarning($"GetCwipcDLLDirectory: cannot load cwipc_util DLL.");
+                return null;
             }
-            IntPtr hMod = GetModuleHandle(_API_cwipc_util.myDllName);
+            IntPtr hMod = API_kernel.GetModuleHandle(_API_cwipc_util.myDllName);
             if (hMod == IntPtr.Zero)
             {
-                throw new CwipcException($"GetCwipcDLLDirectory: GetModuleHandle failed for {_API_cwipc_util.myDllName}");
+                UnityEngine.Debug.LogWarning($"GetCwipcDLLDirectory: GetModuleHandle failed for {_API_cwipc_util.myDllName}");
+                return null;
             }
             var cwipc_util_path = new System.Text.StringBuilder(1024);
-            GetModuleFileName(hMod, cwipc_util_path, cwipc_util_path.Capacity);
+            API_kernel.GetModuleFileName(hMod, cwipc_util_path, cwipc_util_path.Capacity);
             string path = System.IO.Path.GetDirectoryName(cwipc_util_path.ToString());
             return path;
         }
+
+#endif
 
         public class cwipc_auxiliary_data
         {

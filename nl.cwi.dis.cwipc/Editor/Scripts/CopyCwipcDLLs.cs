@@ -12,6 +12,20 @@ namespace Cwipc {
         public void OnPostprocessBuild(BuildReport report)
         {
             Debug.LogWarning("xxxjack CopyCwipcDLLs.OnPostprocessBuild not implemented yet");
+#if UNITY_EDITOR_WIN
+            string cwipc_dll_dir = Cwipc.cwipc.GetCwipcDLLDirectory();
+            if (cwipc_dll_dir == null)
+            {
+                Debug.LogError("CopyCwipcDLLs: could not find cwipc DLL directory");
+                return;
+            }
+            string buildPlatformLibrariesPath = getBuildPlatformLibrariesPath(report);
+            if (buildPlatformLibrariesPath == null)
+            {
+                return;
+            }
+            CopyFiles(cwipc_dll_dir, buildPlatformLibrariesPath);
+#endif
         }
 
         public static string getBuildPlatformLibrariesPath(BuildReport report)
@@ -19,6 +33,7 @@ namespace Cwipc {
             if (report.summary.platform == BuildTarget.StandaloneWindows64)
             {
                 var buildOutputPath = Path.GetDirectoryName(report.summary.outputPath);
+                // xxxjack return buildOutputPath;
                 var dataDirs = Directory.GetDirectories(buildOutputPath, "*_Data");
                 if (dataDirs.Length != 1)
                 {
@@ -54,7 +69,7 @@ namespace Cwipc {
             }
             foreach (var file in Directory.GetFiles(srcDir))
             {
-                if (file.EndsWith(".meta"))
+                if (!file.EndsWith(".dll"))
                 {
                     continue;
                 }
