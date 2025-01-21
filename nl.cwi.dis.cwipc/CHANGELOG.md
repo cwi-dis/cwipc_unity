@@ -1,5 +1,9 @@
 # Changelog
 
+## [7.6.1] - 2025-01-21
+
+- When building a Windows player including this package copy the cwipc DLLs into the player (#39)
+
 ## [7.6.0] - 2025-01-19
 
 - New version of native cwipc package
