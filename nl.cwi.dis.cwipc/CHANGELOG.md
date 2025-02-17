@@ -1,5 +1,9 @@
 # Changelog
 
+## [7.6.2] - 2025-02-17
+
+- Closed some memory leaks, especially with uncompressed TCP transport (#41)
+
 ## [7.6.1] - 2025-01-21
 
 - When building a Windows player including this package copy the cwipc DLLs into the player (#39)
