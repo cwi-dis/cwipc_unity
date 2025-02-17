@@ -422,7 +422,9 @@ namespace Cwipc
 
             ~pointcloud()
             {
-                free();
+                if (pointer != IntPtr.Zero) {
+                    free();
+                }
             }
 
             protected override void onfree()
