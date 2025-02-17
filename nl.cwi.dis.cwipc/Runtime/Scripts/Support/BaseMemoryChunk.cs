@@ -1,8 +1,9 @@
 ﻿using System;
-using System.IO;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem.EnhancedTouch;
 
 namespace Cwipc
 {
@@ -41,31 +42,49 @@ namespace Cwipc
     /// </summary>
     public class BaseMemoryChunkReferences
     {
-        static List<Type> types = new List<Type>();
-        public static void AddReference(Type _type)
+        static List<BaseMemoryChunk> types = new List<BaseMemoryChunk>();
+        public static void AddReference(BaseMemoryChunk _type)
         {
+#if !VRT_WITHOUT_MEMDEBUG
+            StackTrace stackTrace = new System.Diagnostics.StackTrace();
+            StackFrame frame = null;
+            for (int i = 1; i < stackTrace.FrameCount; i++)
+            {
+                frame = stackTrace.GetFrame(i);
+                // We are not interested in BaseMemoryChunk methods/creators or those of its subclasses
+                var methodType = frame.GetMethod().DeclaringType;
+                if (methodType != typeof(BaseMemoryChunk) && !methodType.IsSubclassOf(typeof(BaseMemoryChunk)))
+                    break;
+            }
+            _type.constructedBy = frame.GetMethod().DeclaringType.ToString() + "." + frame.GetMethod().Name;
             lock (types)
             {
                 types.Add(_type);
             }
+#endif
         }
-        public static void DeleteReference(Type _type)
+        public static void DeleteReference(BaseMemoryChunk _type)
         {
+#if !VRT_WITHOUT_MEMDEBUG
             lock (types)
             {
                 types.Remove(_type);
             }
+#endif
         }
 
         public static void ShowTotalRefCount()
         {
+#if !VRT_WITHOUT_MEMDEBUG
             lock (types)
             {
                 if (types.Count == 0) return;
-                Debug.Log($"BaseMemoryChunkReferences: {types.Count} TotalRefCount pending:");
+                UnityEngine.Debug.LogError($"BaseMemoryChunkReferences: {types.Count} leaked BaseMemoryChunk objects. See log for details.");
+                UnityEngine.Debug.Log($"BaseMemoryChunkReferences: {types.Count} leaked BaseMemoryChunk objects:");
                 for (int i = 0; i < types.Count; ++i)
-                    Debug.Log($"BaseMemoryChunkReferences: [{i}] --> {types[i]}");
+                    UnityEngine.Debug.Log($"BaseMemoryChunkReferences: [{i}] --> {types[i]} size={types[i].length} creator={types[i].constructedBy}");
             }
+#endif
         }
     }
 
@@ -90,20 +109,23 @@ namespace Cwipc
         public FrameMetadata metadata;
         public int length { get; protected set; }
 
+#if !VRT_WITHOUT_MEMDEBUG
+        public string constructedBy;
+#endif
         protected BaseMemoryChunk(IntPtr _pointer)
         {
             if (_pointer == IntPtr.Zero) throw new Exception("BaseMemoryChunk: constructor called with null pointer");
             this._pointer = _pointer;
             this.metadata = new FrameMetadata();
             refCount = 1;
-            BaseMemoryChunkReferences.AddReference(GetType());
+            BaseMemoryChunkReferences.AddReference(this);
         }
 
         protected BaseMemoryChunk()
         {
             // _pointer will be set later, in the subclass constructor. Not a pattern I'm happy with but difficult to
             refCount = 1;
-            BaseMemoryChunkReferences.AddReference(GetType());
+            BaseMemoryChunkReferences.AddReference(this);
         }
 
         /// <summary>
@@ -151,7 +173,12 @@ namespace Cwipc
                 {
                     if (refCount < 0)
                     {
-                        throw new Exception($"BaseMemoryChunk.free: refCount={refCount}");
+#if !VRT_WITHOUT_MEMDEBUG
+                        UnityEngine.Debug.LogError($"{this.GetType()}.free: refCount={refCount}. Constructor was {constructedBy}");
+#else
+                        UnityEngine.Debug.LogError($"{this.GetType()}.free: refCount={refCount}. Constructor was unknown, undefine VRT_WITHOUT_MEMDEBUG to get more information.");
+#endif
+                        return 0;
                     }
                     if (_pointer != IntPtr.Zero)
                     {
@@ -159,7 +186,7 @@ namespace Cwipc
                         onfree();
                         refCount = 0;
                         _pointer = IntPtr.Zero;
-                        BaseMemoryChunkReferences.DeleteReference(GetType());
+                        BaseMemoryChunkReferences.DeleteReference(this);
                     }
                 }
                 return refCount;
