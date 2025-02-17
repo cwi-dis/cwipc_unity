@@ -17,7 +17,7 @@ namespace Cwipc
     /// </summary>
     public class QueueThreadSafe
     {
-       
+
         string name;
         int size;
         bool dropWhenFull;
@@ -342,7 +342,7 @@ namespace Cwipc
         {
             try
             {
-                lock(queue)
+                lock (queue)
                 {
                     bool gotSlot = empty.Wait(0, isClosed.Token);
                     if (!gotSlot)
@@ -352,12 +352,18 @@ namespace Cwipc
                         // But: if we have a 1-entry queue we could end up in a livelock if we use
                         // dequeue() because the consumer does the Wait outside the lock. So we have to cater
                         // for it overtaking us and grabbing the item, in which case we would be stuck in a livelock.
-                       
+
                         BaseMemoryChunk oldItem = TryDequeue(0);
                         if (oldItem == null)
                         {
+                            UnityEngine.Debug.Log($"xxxjack enqueue free new {oldItem.xxxjackIndex}");
                             item.free();
                             return false;
+                        }
+                        else
+                        {
+                            UnityEngine.Debug.Log($"xxxjack enqueue free old {oldItem.xxxjackIndex}");
+                            oldItem.free();
                         }
                         empty.Wait(isClosed.Token);
                     }

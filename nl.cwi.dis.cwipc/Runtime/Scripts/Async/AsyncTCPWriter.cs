@@ -122,7 +122,7 @@ namespace Cwipc
                                 Statistics.Output(Name(), $"open=1, remote={sendSocket.RemoteEndPoint.ToString()}");
 #endif
                             }
-                            catch(SocketException e)
+                            catch (SocketException e)
                             {
                                 if (listenSocket != null)
                                 {
@@ -145,6 +145,7 @@ namespace Cwipc
                         hdr3.CopyTo(hdr, 8);
                         var buf = new byte[mc.length];
                         System.Runtime.InteropServices.Marshal.Copy(mc.pointer, buf, 0, mc.length);
+                        mc.free();
                         try
                         {
                             sendSocket.Send(hdr);
@@ -161,7 +162,7 @@ namespace Cwipc
                             Statistics.Output(Name(), $"open=0");
 #endif
                         }
-                        catch(SocketException e)
+                        catch (SocketException e)
                         {
                             if (sendSocket != null)
                             {
@@ -200,7 +201,7 @@ namespace Cwipc
 
                 public void statsUpdate(int nBytes)
                 {
- 
+
                     statsTotalBytes += nBytes;
                     statsTotalPackets++;
                     statsAggregatePackets++;
@@ -218,12 +219,12 @@ namespace Cwipc
             protected Stats stats;
 #endif
         }
- 
+
         TCPPushThread[] pusherThreads;
 
         protected AsyncTCPWriter() : base()
         {
-           
+
         }
 
         /// <summary>
@@ -259,17 +260,17 @@ namespace Cwipc
             // We use the lowest ports for the first quality, for each tile.
             // The the next set of ports is used for the next quality, and so on.
             int maxTileNumber = -1;
-            for(int i=0; i<_descriptions.Length; i++)
+            for (int i = 0; i < _descriptions.Length; i++)
             {
                 if (_descriptions[i].tileNumber > maxTileNumber) maxTileNumber = (int)_descriptions[i].tileNumber;
             }
-            int portsPerQuality = maxTileNumber+1;
-            for(int i=0; i<_descriptions.Length; i++)
+            int portsPerQuality = maxTileNumber + 1;
+            for (int i = 0; i < _descriptions.Length; i++)
             {
                 ourDescriptions[i] = new TCPStreamDescription
                 {
                     host = url.Host,
-                    port = url.Port + (int)_descriptions[i].tileNumber + (portsPerQuality*_descriptions[i].qualityIndex),
+                    port = url.Port + (int)_descriptions[i].tileNumber + (portsPerQuality * _descriptions[i].qualityIndex),
                     fourcc = fourccInt,
                     inQueue = _descriptions[i].inQueue
 
