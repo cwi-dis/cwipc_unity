@@ -356,13 +356,11 @@ namespace Cwipc
                         BaseMemoryChunk oldItem = TryDequeue(0);
                         if (oldItem == null)
                         {
-                            UnityEngine.Debug.Log($"xxxjack enqueue free new {oldItem.xxxjackIndex}");
                             item.free();
                             return false;
                         }
                         else
                         {
-                            UnityEngine.Debug.Log($"xxxjack enqueue free old {oldItem.xxxjackIndex}");
                             oldItem.free();
                         }
                         empty.Wait(isClosed.Token);
