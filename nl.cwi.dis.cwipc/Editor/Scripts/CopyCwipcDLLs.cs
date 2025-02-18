@@ -13,18 +13,25 @@ namespace Cwipc {
         {
             Debug.LogWarning("xxxjack CopyCwipcDLLs.OnPostprocessBuild not implemented yet");
 #if UNITY_EDITOR_WIN
-            string cwipc_dll_dir = Cwipc.cwipc.GetCwipcDLLDirectory();
-            if (cwipc_dll_dir == null)
+            if (report.summary.platform == BuildTarget.StandaloneWindows64)
             {
-                Debug.LogError("CopyCwipcDLLs: could not find cwipc DLL directory");
-                return;
+                // When building ON Windows FOR Windows we can try searching for the cwipc DLLs.
+                // All other build/run combinations we have to rely on the Unity asset collection
+                // to do the copying for us (or the end user installing the required dynamic libraries
+                // into their system themselves).
+                string cwipc_dll_dir = Cwipc.cwipc.GetCwipcDLLDirectory();
+                if (cwipc_dll_dir == null)
+                {
+                    Debug.LogError("CopyCwipcDLLs: could not find cwipc DLL directory");
+                    return;
+                }
+                string buildPlatformLibrariesPath = getBuildPlatformLibrariesPath(report);
+                if (buildPlatformLibrariesPath == null)
+                {
+                    return;
+                }
+                CopyFiles(cwipc_dll_dir, buildPlatformLibrariesPath);
             }
-            string buildPlatformLibrariesPath = getBuildPlatformLibrariesPath(report);
-            if (buildPlatformLibrariesPath == null)
-            {
-                return;
-            }
-            CopyFiles(cwipc_dll_dir, buildPlatformLibrariesPath);
 #endif
         }
 
