@@ -108,8 +108,6 @@ namespace Cwipc
         {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             public const string myDllName = "__Internal";
-#elif UNITY_ANDROID
-            public const string myDllName = "libcwipc_util.so";
 #else
             public const string myDllName = "cwipc_util";
 #endif        
@@ -251,8 +249,6 @@ namespace Cwipc
         {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             public const string myDllName = "__Internal";
-#elif UNITY_ANDROID
-            public const string myDllName = "libcwipc_codec.so";
 #else
             public const string myDllName = "cwipc_codec";
 #endif
