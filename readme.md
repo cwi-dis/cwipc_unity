@@ -28,5 +28,10 @@ git config --local core.symlinks true
 
 ### Note for creating a new release
 
-The Android native plugins for `cwipc` are included in this package (unlike those for desktop). They need to be updated for a new release.
+The Android native plugins for `cwipc` are included in this package (unlike those for desktop). They need to be updated for a new release:
 
+- Download `cwipc_vX.Y.Z_android_arm64.tar.gz` from the current release of <https://github.com/cwi-dis/cwipc/releases>
+- Unpack the tarball.
+- Copy the `.so` files from the `lib` folder into `./nl.cwi.dis.cwipc/Runtime/Plugins/android-arm64`
+- Open the `cwipc_unity_develop` package in the Unity Editor, navigate to `Plugins/android-arm64` and ensure that all the meta-information about the native plugins is correct.
+- `git commit`
