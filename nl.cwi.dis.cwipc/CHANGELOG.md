@@ -1,5 +1,9 @@
 # Changelog
 
+## [7.6.3] - 2025-02-21
+
+- Fixed failure to run on Android (#42)
+
 ## [7.6.2] - 2025-02-17
 
 - Closed some memory leaks, especially with uncompressed TCP transport (#41)
