@@ -1,5 +1,9 @@
 # Changelog
 
+## [7.6.7] - 2025-05-30
+
+- Fixed off-by-one error for tile numbering (#44)
+
 ## [7.6.3] - 2025-02-21
 
 - Fixed failure to run on Android (#42)

@@ -176,7 +176,6 @@ namespace Cwipc
         static public PointCloudNetworkTileDescription CreateNetworkTileDescription(Cwipc.PointCloudTileDescription[] tilesToTransmit, int[] octreeBitsArray)
         {
             int nTileToTransmit = tilesToTransmit.Length;
-            int minTileNum = nTileToTransmit == 1 ? 0 : 1;
             int nQuality = octreeBitsArray.Length;
             int nStream = nQuality * nTileToTransmit;
             //
@@ -215,7 +214,6 @@ namespace Cwipc
         static public OutgoingStreamDescription[] CreateOutgoingStreamDescription(Cwipc.PointCloudTileDescription[] tilesToTransmit, int[] octreeBitsArray)
         {
             int nTileToTransmit = tilesToTransmit.Length;
-            int minTileNum = 0; // nTileToTransmit == 1 ? 0 : 1;
             int nQuality = octreeBitsArray.Length;
             int nStream = nQuality * nTileToTransmit;
             //
@@ -233,7 +231,7 @@ namespace Cwipc
                    
                     outgoingStreamDescriptions[streamNum] = new OutgoingStreamDescription
                     {
-                        tileNumber = (uint)(tileNum + minTileNum),
+                        tileNumber = (uint)tileNum,
                         // quality = (uint)(100 * octreeBits + 75),
                         qualityIndex = qualityNum,
                         orientation = tileOrientation,
@@ -252,7 +250,6 @@ namespace Cwipc
         static public EncoderStreamDescription[] CreateEncoderStreamDescription(Cwipc.PointCloudTileDescription[] tilesToTransmit, int[] octreeBitsArray)
         {
             int nTileToTransmit = tilesToTransmit.Length;
-            int minTileNum = nTileToTransmit == 1 ? 0 : 1;
             int nQuality = octreeBitsArray.Length;
             int nStream = nQuality * nTileToTransmit;
             //
@@ -269,7 +266,7 @@ namespace Cwipc
                     encoderStreamDescriptions[streamNum] = new EncoderStreamDescription
                     {
                         octreeBits = octreeBits,
-                        tileFilter = tileNum + minTileNum,
+                        tileFilter = tileNum,
                     };
                 }
             }
@@ -283,13 +280,7 @@ namespace Cwipc
         /// <returns></returns>
         static public IncomingTileDescription[] CreateIncomingTileDescription(PointCloudNetworkTileDescription networkTileDescription)
         {
-            //
-            // At some stage we made the decision that tilenumer 0 represents the whole untiled pointcloud.
-            // So if we receive an untiled stream we want tile 0 only, and if we receive a tiled stream we
-            // never want tile 0.
-            //
             int nTileToReceive = networkTileDescription.tiles.Length;
-            int minTileNumber = networkTileDescription.tiles.Length == 1 ? 0 : 1;
 
             //
             // Create the right number of rendering pipelines
@@ -305,7 +296,7 @@ namespace Cwipc
                 //
                 tilesToReceive[tileIndex] = new IncomingTileDescription()
                 {
-                    tileNumber = tileIndex + minTileNumber,
+                    tileNumber = tileIndex,
                     name = $"tile-{tileIndex}",
                 };
             }
