@@ -264,8 +264,15 @@ namespace Cwipc
                 if (timestamp > 0)
                 {
                     Timedelta latency = (Timestamp)sinceEpoch.TotalMilliseconds - timestamp;
-                    if (latency < statsMinLatency || statsMinLatency == 0) statsMinLatency = latency;
-                    if (latency > statsMaxLatency) statsMaxLatency = latency;
+                    if (latency > 1000000)
+                    {
+                        Debug.LogWarning($"{name}: Preposterous latency {latency} ms. timestamp={timestamp}.");
+                    }
+                    else
+                    {
+                        if (latency < statsMinLatency || statsMinLatency == 0) statsMinLatency = latency;
+                        if (latency > statsMaxLatency) statsMaxLatency = latency;
+                    }
                 }
 
                 if (ShouldOutput())
