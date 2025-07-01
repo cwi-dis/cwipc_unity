@@ -20,11 +20,6 @@ namespace Cwipc
             Start();
         }
 
-        public override PointCloudTileDescription[] getTiles()
-        {
-            return tileInfo;
-        }
-
         public override void ReportCurrentTimestamp(long curIndex)
         {
             return;
