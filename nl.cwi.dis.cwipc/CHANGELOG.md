@@ -1,5 +1,9 @@
 # Changelog
 
+## [7.6.8] - 2025-07-01
+
+- Allow tiled point clouds to be rendered at th same point size (#47)
+
 ## [7.6.7] - 2025-05-30
 
 - Fixed off-by-one error for tile numbering (#44)

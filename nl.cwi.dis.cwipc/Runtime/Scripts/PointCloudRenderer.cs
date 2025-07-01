@@ -33,6 +33,8 @@ namespace Cwipc
         [SerializeField] protected int timeoutBeforeGhosting = 5; // seconds
         [Tooltip("Multiplication factor for pointSize for this renderer")]
         public float pointSizeFactor = 1f;
+        [Tooltip("Maximize point size to this value (if greater than 0)")]
+        public float maximumPointSize = 0;
         [Tooltip("Mirror point X axis because they use a right-hand coordinate system (usually true)")]
         [SerializeField] protected bool pcMirrorX = true;
         [Tooltip("Mirror point Z axis because they use a right-hand coordinate system")]
@@ -62,7 +64,7 @@ namespace Cwipc
         [Tooltip("Number of points in most recent pointcloud")]
         [SerializeField] int pointCountMostRecentReception;
         [Tooltip("Number of points in most recent pointcloud")]
-        [SerializeField] float pointSizeMostRecentReception;
+        [SerializeField] public float pointSizeMostRecentReception;
         [Tooltip("Renderer temporarily paused by a script")]
         [SerializeField] bool paused = false;
         
@@ -176,6 +178,10 @@ namespace Cwipc
                 pointCountMostRecentReception = pointCount;
                 pointSize = preparer.GetPointSize() * pointSizeFactor;
                 pointSizeMostRecentReception = pointSize;
+                if (maximumPointSize > 0 && pointSize > maximumPointSize)
+                {
+                    pointSize = maximumPointSize;
+                }
                 if (pointSize == 0)
                 {
                     Debug.LogWarning($"{Name()}: pointSize == 0");

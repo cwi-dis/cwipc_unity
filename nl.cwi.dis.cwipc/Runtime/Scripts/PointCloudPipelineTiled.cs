@@ -37,6 +37,9 @@ namespace Cwipc
         [SerializeField] protected float Preparer_DefaultCellSize = 1.0f;
         [Tooltip("Multiplication factor for pointcloud cellsize")]
         [SerializeField] protected float Preparer_CellSizeFactor = 1.0f;
+       
+        [Tooltip("When true, all tiled point clouds are renderered with the point size of the best tile")]
+        public bool maximizePointSize = true;
 
         [Header("Source type: TCP")]
         [Tooltip("Specifies TCP server to contact for source, in the form tcp://host:port")]
@@ -200,7 +203,26 @@ namespace Cwipc
         // Update is called once per frame
         void Update()
         {
+            if (maximizePointSize)
+            {
+                float maxPointSize = 9999;
+                foreach (var renderer in PCrenderers)
+                {
+                    float thisPointSize = renderer.pointSizeMostRecentReception;
+                    if ( thisPointSize > 0 && thisPointSize < maxPointSize)
+                    {
+                        maxPointSize = renderer.pointSizeMostRecentReception;
+                    }
+                }
+                if (maxPointSize < 9999)
+                {
+                    foreach (var renderer in PCrenderers)
+                    {
+                        renderer.maximumPointSize = maxPointSize;
+                    }
+                }
 
+            }
         }
     }
 }
