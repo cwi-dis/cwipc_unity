@@ -40,7 +40,7 @@ namespace Cwipc
             PointCloudTileDescription[] rv = new PointCloudTileDescription[nTile];
             for (int i = 0; i < nTile; i++)
             {
-                rv[i].normal = new Vector3((float)origTileInfo[i].normal.x, (float)origTileInfo[i].normal.y, (float)origTileInfo[i].normal.z);
+                rv[i].normal = new Vector3((float)origTileInfo[i].normal.x, (float)origTileInfo[i].normal.y, (float)origTileInfo[i].normal.z).normalized;
                 rv[i].cameraName = System.Runtime.InteropServices.Marshal.PtrToStringAnsi(origTileInfo[i].cameraName);
                 rv[i].cameraMask = origTileInfo[i].cameraMask;
             }
