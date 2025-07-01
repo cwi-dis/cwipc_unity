@@ -1618,7 +1618,7 @@ namespace Cwipc
             }
             catch (System.DllNotFoundException)
             {
-                if (!required) return;
+                // xxxjack removed: if (!required) return;
                 UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: could not load cwipc_realsense2 from {_API_cwipc_realsense2_prober_standard_path.myDllName}");
                 // Let's try and load from the silicon path.
                 try
