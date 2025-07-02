@@ -127,6 +127,7 @@ namespace Cwipc
                 // are more input packets available feed the decoder
                 // again.
                 cwipc.pointcloud pc = decoders[outDecoderIndex].get();
+                var pointSize = pc.cellsize();
                 Timedelta decodeDuration = (Timedelta)(System.DateTime.Now - mostRecentFeeds[outDecoderIndex]).TotalMilliseconds;
                 mostRecentFeeds[outDecoderIndex] = System.DateTime.MinValue;
                 outDecoderIndex = (outDecoderIndex + 1) % nParallel;
@@ -148,7 +149,7 @@ namespace Cwipc
                 Timedelta queuedDuration = outQueue.QueuedDuration();
                 bool dropped = !outQueue.Enqueue(pc);
 #if VRT_WITH_STATS
-                stats.statsUpdate(pc.count(), dropped, inQueue.QueuedDuration(), decodeDuration, queuedDuration);
+                stats.statsUpdate(pc.count(), dropped, inQueue.QueuedDuration(), decodeDuration, queuedDuration, pointSize);
 #endif
                 _FeedDecoder();
             }
@@ -165,9 +166,10 @@ namespace Cwipc
             double statsTotalInQueueDuration = 0;
             double statsTotalDecodeDuration = 0;
             double statsTotalQueuedDuration = 0;
+            double statsTotalPointSizes = 0;
             int statsAggregatePackets = 0;
 
-            public void statsUpdate(int pointCount, bool dropped, Timedelta inQueueDuration, Timedelta decodeDuration, Timedelta queuedDuration)
+            public void statsUpdate(int pointCount, bool dropped, Timedelta inQueueDuration, Timedelta decodeDuration, Timedelta queuedDuration, float pointSize)
             {
                 statsTotalPoints += pointCount;
                 statsTotalPointclouds++;
@@ -175,12 +177,13 @@ namespace Cwipc
                 statsTotalInQueueDuration += inQueueDuration;
                 statsTotalDecodeDuration += decodeDuration;
                 statsTotalQueuedDuration += queuedDuration;
+                statsTotalPointSizes += pointSize;
                 if (dropped) statsTotalDropped++;
-                
+
                 if (ShouldOutput())
                 {
                     double factor = (statsTotalPointclouds == 0 ? 1 : statsTotalPointclouds);
-                    Output($"fps={statsTotalPointclouds / Interval():F2}, fps_dropped={statsTotalDropped / Interval():F2}, points_per_cloud={(int)(statsTotalPoints / factor)}, decoder_queue_ms={(int)(statsTotalInQueueDuration / factor)}, decoder_ms={statsTotalDecodeDuration / factor:F2}, aggregate_packets={statsAggregatePackets}");
+                    Output($"fps={statsTotalPointclouds / Interval():F2}, fps_dropped={statsTotalDropped / Interval():F2}, points_per_cloud={(int)(statsTotalPoints / factor)}, decoder_queue_ms={(int)(statsTotalInQueueDuration / factor)}, decoder_ms={statsTotalDecodeDuration / factor:F2}, avg_pointsize={statsTotalPointSizes / factor:F3}, aggregate_packets={statsAggregatePackets}");
                     Clear();
                     statsTotalPoints = 0;
                     statsTotalPointclouds = 0;
@@ -188,6 +191,7 @@ namespace Cwipc
                     statsTotalInQueueDuration = 0;
                     statsTotalQueuedDuration = 0;
                     statsTotalDecodeDuration = 0;
+                    statsTotalPointSizes = 0;
                 }
             }
         }
