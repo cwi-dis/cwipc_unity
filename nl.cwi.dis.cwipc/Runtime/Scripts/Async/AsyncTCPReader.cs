@@ -127,7 +127,7 @@ namespace Cwipc
                             portOffset = receiverInfo.portOffset;
                             IPEndPoint remoteEndpoint = new IPEndPoint(ipAddress, receiverInfo.port + portOffset);
 #if VRT_WITH_STATS
-                            Statistics.Output(Name(), $"connected=0, destination={remoteEndpoint.ToString()}");
+                            Statistics.Output(Name(), $"connected=0, destination={remoteEndpoint.ToString()}, opening=1");
 #endif
                             socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                             try
@@ -142,9 +142,9 @@ namespace Cwipc
                                 continue;
                             }
 #if VRT_WITH_STATS
-                            Statistics.Output(Name(), $"connected=1, destination={remoteEndpoint.ToString()}");
+                            Statistics.Output(Name(), $"connected=1, destination={remoteEndpoint.ToString()}, opening=1");
 #endif
-                            Debug.Log($"{Name()}: Connect({remoteEndpoint}) succeeded");
+                            Debug.Log($"{Name()}: Connect({remoteEndpoint}) succeeded (portoffset={portOffset})");
                         }
                         System.DateTime receiveStartTime = System.DateTime.Now;
                         byte[] hdr = new byte[16];
@@ -189,9 +189,12 @@ namespace Cwipc
                         // Close the socket if the portOffset (the quality index) has been changed in the mean time
                         if (socket != null && receiverInfo.portOffset != portOffset)
                         {
-                            Debug.Log($"{Name()}: closing socket for quality switch");
+                            Debug.Log($"{Name()}: closing socket for quality switch (from {portOffset} to {receiverInfo.portOffset})");
                             socket.Close();
                             socket = null;
+#if VRT_WITH_STATS
+                            Statistics.Output(Name(), $"connected=0, opening=0");
+#endif
                         }
                     }
                 }
