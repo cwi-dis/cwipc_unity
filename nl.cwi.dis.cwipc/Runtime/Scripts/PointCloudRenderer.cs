@@ -215,10 +215,12 @@ namespace Cwipc
                 Debug.Log($"{Name()}: xxxjack invalid pointBuffer");
                 return;
             }
+#if xxxjack_silly
             if (pointCount <= 0 || pointSize <= 0)
             {
                 Debug.Log($"{Name()}: pointCount={pointCount}, framenum={UnityEngine.Time.frameCount}, pointSize={pointSize}");
             }
+#endif
             Matrix4x4 pcMatrix = transform.localToWorldMatrix;
             if (pcMirrorX)
             {
