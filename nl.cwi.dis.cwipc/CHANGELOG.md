@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.6.12] - 2025-07-03
+
+- Underlying cwipc has some fixes (in v7.6.12) that were needed here.
+- Various fixes needed by VR2Gather LiveTileSelector (#50)
+- Minor fixes.
+
 ## [7.6.8] - 2025-07-01
 
 - Allow tiled point clouds to be rendered at th same point size (#47)
