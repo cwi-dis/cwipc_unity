@@ -259,6 +259,7 @@ namespace Cwipc
             for (int tileNum = 0; tileNum < nTileToTransmit; tileNum++)
             {
                 var tileOrientation = tilesToTransmit[tileNum].normal;
+                var cameraMask = tilesToTransmit[tileNum].cameraMask;
                 for (int qualityNum = 0; qualityNum < nQuality; qualityNum++)
                 {
                     int streamNum = tileNum * nQuality + qualityNum;
@@ -266,7 +267,8 @@ namespace Cwipc
                     encoderStreamDescriptions[streamNum] = new EncoderStreamDescription
                     {
                         octreeBits = octreeBits,
-                        tileFilter = tileNum,
+                        tileFilter = cameraMask
+
                     };
                 }
             }
