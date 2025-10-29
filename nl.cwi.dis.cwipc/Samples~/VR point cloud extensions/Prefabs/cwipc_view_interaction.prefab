@@ -27,13 +27,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4860176228408884512}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4860176230166721861}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4860176228408884519
 MonoBehaviour:
@@ -80,6 +80,18 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 8248158260566104461, guid: d348712bda248c246b8c49b3db54643f, type: 3}
+  m_IsTrackedAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Is Tracked
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: 4e4d87e2-4837-4e7a-9415-64dedcc4ecb4
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 1
+    m_Reference: {fileID: 0}
   m_TrackingStateAction:
     m_UseReference: 1
     m_Action:
@@ -164,6 +176,18 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 71106601250685021, guid: d348712bda248c246b8c49b3db54643f, type: 3}
+  m_UIScrollAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: UI Scroll
+      m_Type: 0
+      m_ExpectedControlType: Vector2
+      m_Id: f18aa90d-f246-4c20-83de-be2154995e94
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 0}
   m_HapticDeviceAction:
     m_UseReference: 1
     m_Action:
@@ -212,6 +236,30 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 7779212132400271959, guid: d348712bda248c246b8c49b3db54643f, type: 3}
+  m_ScaleToggleAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Scale Toggle
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: b2043ed7-1488-4360-b003-847af6e8f874
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 0}
+  m_ScaleDeltaAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Scale Delta
+      m_Type: 0
+      m_ExpectedControlType: Vector2
+      m_Id: b2d93231-2b83-4690-a9c0-f756705b3a3c
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 0}
   m_ButtonPressPoint: 0.5
 --- !u!114 &4860176228408884516
 MonoBehaviour:
@@ -314,6 +362,8 @@ MonoBehaviour:
   m_SampleFrequency: 20
   m_HitDetectionType: 0
   m_SphereCastRadius: 0.1
+  m_ConeCastAngle: 6
+  m_LiveConeCastDebugVisuals: 0
   m_RaycastMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -325,14 +375,26 @@ MonoBehaviour:
   m_AutoDeselect: 0
   m_TimeToAutoDeselect: 3
   m_EnableUIInteraction: 1
+  m_BlockUIOnInteractableSelection: 1
   m_AllowAnchorControl: 1
   m_UseForceGrab: 1
   m_RotateSpeed: 180
   m_TranslateSpeed: 1
   m_AnchorRotateReferenceFrame: {fileID: 0}
   m_AnchorRotationMode: 0
+  m_UIHoverEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_UIHoverExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_EnableARRaycasting: 0
+  m_OccludeARHitsWith3DObjects: 0
+  m_OccludeARHitsWith2DObjects: 0
+  m_ScaleMode: 0
 --- !u!120 &4860176228408884517
 LineRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -429,16 +491,20 @@ LineRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 4
     numCapVertices: 4
     alignment: 0
     textureMode: 0
+    textureScale: {x: 1, y: 1}
     shadowBias: 0.5
     generateLightingData: 0
+  m_MaskInteraction: 0
   m_UseWorldSpace: 1
   m_Loop: 0
+  m_ApplyActiveColorSpace: 0
 --- !u!114 &4860176228408884514
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -454,6 +520,11 @@ MonoBehaviour:
   m_LineWidth: 0.02
   m_OverrideInteractorLineLength: 1
   m_LineLength: 10
+  m_AutoAdjustLineLength: 0
+  m_MinLineLength: 0.5
+  m_UseDistanceToHitAsMaxLineLength: 1
+  m_LineRetractionDelay: 0.5
+  m_LineLengthChangeSpeed: 12
   m_WidthCurve:
     serializedVersion: 2
     m_Curve:
@@ -478,6 +549,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  m_SetLineColorGradient: 1
   m_ValidColorGradient:
     serializedVersion: 2
     key0: {r: 1, g: 1, b: 1, a: 1}
@@ -505,6 +577,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
+    m_ColorSpace: -1
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   m_InvalidColorGradient:
@@ -534,6 +607,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
+    m_ColorSpace: -1
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   m_BlockedColorGradient:
@@ -563,6 +637,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
+    m_ColorSpace: -1
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   m_TreatSelectionAsValidState: 0
@@ -574,6 +649,12 @@ MonoBehaviour:
   m_StopLineAtFirstRaycastHit: 1
   m_StopLineAtSelection: 0
   m_SnapEndpointIfAvailable: 1
+  m_LineBendRatio: 0.5
+  m_BendingEnabledInteractionLayers:
+    m_Bits: 4294967295
+  m_OverrideInteractorLineOrigin: 1
+  m_LineOriginTransform: {fileID: 0}
+  m_LineOriginOffset: 0
 --- !u!1 &4860176228723360672
 GameObject:
   m_ObjectHideFlags: 0
@@ -601,13 +682,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4860176228723360672}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4860176230166721861}
-  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4860176228723360679
 MonoBehaviour:
@@ -654,6 +735,18 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 5101698808175986029, guid: d348712bda248c246b8c49b3db54643f, type: 3}
+  m_IsTrackedAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Is Tracked
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: 3d0178ee-6fa9-4389-91f2-bee81e9438d1
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 1
+    m_Reference: {fileID: 0}
   m_TrackingStateAction:
     m_UseReference: 1
     m_Action:
@@ -738,6 +831,18 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: -5908353012961274365, guid: d348712bda248c246b8c49b3db54643f, type: 3}
+  m_UIScrollAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: UI Scroll
+      m_Type: 0
+      m_ExpectedControlType: Vector2
+      m_Id: c99b8100-be39-48f2-a97f-224e547cb117
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 0}
   m_HapticDeviceAction:
     m_UseReference: 1
     m_Action:
@@ -786,6 +891,30 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 875253871413052681, guid: d348712bda248c246b8c49b3db54643f, type: 3}
+  m_ScaleToggleAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Scale Toggle
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: d89ff95e-3a7f-47d1-9ffc-5ef288755d6c
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 0}
+  m_ScaleDeltaAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Scale Delta
+      m_Type: 0
+      m_ExpectedControlType: Vector2
+      m_Id: 19d0c8c2-6db9-4cbf-acbe-6a882d27dd5f
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 0}
   m_ButtonPressPoint: 0.5
 --- !u!114 &4860176228723360676
 MonoBehaviour:
@@ -888,6 +1017,8 @@ MonoBehaviour:
   m_SampleFrequency: 20
   m_HitDetectionType: 0
   m_SphereCastRadius: 0.1
+  m_ConeCastAngle: 6
+  m_LiveConeCastDebugVisuals: 0
   m_RaycastMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -899,14 +1030,26 @@ MonoBehaviour:
   m_AutoDeselect: 0
   m_TimeToAutoDeselect: 3
   m_EnableUIInteraction: 1
+  m_BlockUIOnInteractableSelection: 1
   m_AllowAnchorControl: 1
   m_UseForceGrab: 1
   m_RotateSpeed: 180
   m_TranslateSpeed: 1
   m_AnchorRotateReferenceFrame: {fileID: 0}
   m_AnchorRotationMode: 0
+  m_UIHoverEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_UIHoverExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_EnableARRaycasting: 0
+  m_OccludeARHitsWith3DObjects: 0
+  m_OccludeARHitsWith2DObjects: 0
+  m_ScaleMode: 0
 --- !u!120 &4860176228723360677
 LineRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1003,16 +1146,20 @@ LineRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 4
     numCapVertices: 4
     alignment: 0
     textureMode: 0
+    textureScale: {x: 1, y: 1}
     shadowBias: 0.5
     generateLightingData: 0
+  m_MaskInteraction: 0
   m_UseWorldSpace: 1
   m_Loop: 0
+  m_ApplyActiveColorSpace: 0
 --- !u!114 &4860176228723360674
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1028,6 +1175,11 @@ MonoBehaviour:
   m_LineWidth: 0.02
   m_OverrideInteractorLineLength: 1
   m_LineLength: 10
+  m_AutoAdjustLineLength: 0
+  m_MinLineLength: 0.5
+  m_UseDistanceToHitAsMaxLineLength: 1
+  m_LineRetractionDelay: 0.5
+  m_LineLengthChangeSpeed: 12
   m_WidthCurve:
     serializedVersion: 2
     m_Curve:
@@ -1052,6 +1204,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  m_SetLineColorGradient: 1
   m_ValidColorGradient:
     serializedVersion: 2
     key0: {r: 1, g: 1, b: 1, a: 1}
@@ -1079,6 +1232,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
+    m_ColorSpace: -1
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   m_InvalidColorGradient:
@@ -1108,6 +1262,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
+    m_ColorSpace: -1
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   m_BlockedColorGradient:
@@ -1137,6 +1292,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
+    m_ColorSpace: -1
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   m_TreatSelectionAsValidState: 0
@@ -1148,6 +1304,12 @@ MonoBehaviour:
   m_StopLineAtFirstRaycastHit: 1
   m_StopLineAtSelection: 0
   m_SnapEndpointIfAvailable: 1
+  m_LineBendRatio: 0.5
+  m_BendingEnabledInteractionLayers:
+    m_Bits: 4294967295
+  m_OverrideInteractorLineOrigin: 1
+  m_LineOriginTransform: {fileID: 0}
+  m_LineOriginOffset: 0
 --- !u!1 &4860176229091537137
 GameObject:
   m_ObjectHideFlags: 0
@@ -1173,6 +1335,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4860176229091537137}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -1180,7 +1343,6 @@ Transform:
   m_Children:
   - {fileID: 4860176230166721861}
   m_Father: {fileID: 4860176230215406221}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4860176229091537139
 MonoBehaviour:
@@ -1237,13 +1399,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4860176229223398373}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4860176230215406221}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4860176229223398372
 MonoBehaviour:
@@ -1286,13 +1448,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4860176229408347809}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4860176230215406221}
-  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4860176229408347810
 MonoBehaviour:
@@ -1433,13 +1595,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4860176229602588881}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4860176230166721861}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &4860176229602588885
 Camera:
@@ -1455,9 +1617,17 @@ Camera:
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -1550,13 +1720,21 @@ MonoBehaviour:
   m_TrackingStateInput:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name: Tracking State Input
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: 
+      m_Id: c8368a37-c833-4b91-aebe-330a29abaac2
       m_Processors: 
       m_Interactions: 
-      m_SingletonActionBindings: []
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: c8897558-d2b9-4d9f-ba04-0f226f51f3b3
+        m_Path: <XRHMD>/trackingState
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Tracking State Input
+        m_Flags: 0
       m_Flags: 0
     m_Reference: {fileID: 0}
   m_PositionAction:
@@ -1577,7 +1755,6 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
-  m_HasMigratedActions: 1
 --- !u!1 &4860176230166721858
 GameObject:
   m_ObjectHideFlags: 0
@@ -1601,6 +1778,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4860176230166721858}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -1610,7 +1788,6 @@ Transform:
   - {fileID: 4860176228408884515}
   - {fileID: 4860176228723360675}
   m_Father: {fileID: 4860176229091537138}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4860176230215406218
 GameObject:
@@ -1635,6 +1812,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4860176230215406218}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.10000001, y: 0, z: 3.875}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -1645,13 +1823,13 @@ Transform:
   - {fileID: 4860176229408347813}
   - {fileID: 4860176228497449860}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1086209181357291291
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 4860176230215406221}
     m_Modifications:
     - target: {fileID: 5503449293659493529, guid: 38346b54d1d6bda4d9a7bb0d5fcd4b9f, type: 3}
@@ -1715,6 +1893,9 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 38346b54d1d6bda4d9a7bb0d5fcd4b9f, type: 3}
 --- !u!4 &4860176228497449860 stripped
 Transform:
