@@ -51,6 +51,8 @@ MonoBehaviour:
   pointCloudGO: {fileID: 0}
   pointCloudCenterOfGravityIndicator: {fileID: 4625708138126744661}
   playerCamera: {fileID: 0}
+  teleportToOrigin: 0
+  adjustCameraContinuous: 1
   cameraFudgeVector: {x: 0, y: 0, z: 0}
   singleCameraCoGForwardMove: 0
   heightFactor: 0.001
@@ -99,7 +101,8 @@ MonoBehaviour:
   floorInstructions: {fileID: 6070436769964225041}
   forwardIndicatorCountdown: {fileID: 434962919936966845}
   positionIndicatorDuration: 5
-  stage: 0
+  ViewAdjustInProgress: 0
+  ViewAdjustDone: 0
   debug: 1
 --- !u!1001 &6143232053400569135
 PrefabInstance:

@@ -454,6 +454,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 412585988363098140, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
+      propertyPath: cameraFudgeFactor
+      value: -0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 412585988363098140, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
       propertyPath: cameraZFudgeFactor
       value: 0
       objectReference: {fileID: 0}

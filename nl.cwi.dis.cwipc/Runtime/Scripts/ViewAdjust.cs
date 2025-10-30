@@ -29,8 +29,14 @@ public class ViewAdjust : LocomotionProvider
     [Tooltip("Camera used for determining zero position and orientation, for resetting origin")]
     [SerializeField] Camera playerCamera;
 
-    [Tooltip("How much the camera should be moved")]
-    [SerializeField] Vector3 cameraFudgeVector;
+    [Tooltip("Teleport to 0,0,0 before adjustment")] [SerializeField]
+    private bool teleportToOrigin = false;
+    
+    [Tooltip("Adjust camera continually during adjustment. May induce motion sickness")]
+    [SerializeField] bool adjustCameraContinuous = true;
+    
+    [Tooltip("How much the camera should be moved forward after adjustment")]
+    [SerializeField] float cameraFudgeFactor;
 
     [Tooltip("How many meters forward the center of gravity of the point cloud should be moved for single camera capturers")]
     [SerializeField] float singleCameraCoGForwardMove = 0.05f;
@@ -186,7 +192,12 @@ public class ViewAdjust : LocomotionProvider
         ViewAdjustDone = false;
         IPointCloudPositionProvider pointCloudPipeline = null;
         if (pointCloudGO != null) pointCloudPipeline = pointCloudGO.GetComponentInChildren<IPointCloudPositionProvider>();
-        
+
+        if (teleportToOrigin)
+        {
+            player.transform.position = Vector3.zero;
+            player.transform.rotation = Quaternion.identity;
+        }
         yield return null;
 
         if (pointCloudPipeline == null)
@@ -268,15 +279,15 @@ public class ViewAdjust : LocomotionProvider
                 {
                     pointCloudCenterOfGravityIndicator.position = pcPosition;
                 }
-                if (!tempCameraMoveDone)
+                // xxxjack the next line depends on PointCloudGO having an identity transform
+                tempCameraOffset = pcPosition - playerCamera.transform.position;
+                tempCameraYRotation = (player.transform.rotation.eulerAngles.y - playerCamera.transform.rotation.eulerAngles.y);
+                tempCameraOffset.y = 0;
+                if (!tempCameraMoveDone || adjustCameraContinuous)
                 {
                     // We move the camera to the first point cloud position. We do this only 
                     // once otherwise it will induce motion sickness.
                     tempCameraMoveDone = true;
-                    // xxxjack the next line depends on PointCloudGO having an identity transform
-                    tempCameraOffset = pcPosition - playerCamera.transform.position;
-                    tempCameraYRotation = (player.transform.rotation.eulerAngles.y - playerCamera.transform.rotation.eulerAngles.y);
-                    tempCameraOffset.y = 0;
                     cameraOffset.transform.position += tempCameraOffset;
                     cameraOffset.transform.Rotate(0, tempCameraYRotation, 0);
                 }
@@ -326,7 +337,6 @@ public class ViewAdjust : LocomotionProvider
             cameraOffset.transform.Rotate(0, -cameraToPlayerRotationY, 0);
             // Next set correct position on the camera
             Vector3 moveXZ = playerCamera.transform.position - player.transform.position;
-            moveXZ += cameraFudgeVector;
             bool resetHeightWithPosition = XRSettings.enabled && XRSettings.isDeviceActive;
             if (debug)
             {
@@ -342,7 +352,11 @@ public class ViewAdjust : LocomotionProvider
             }
             cameraOffset.transform.position -= moveXZ;
             if (debug) Debug.Log($"ResetOrigin: moved cameraOffset by {-moveXZ} to worldpos={playerCamera.transform.position}");
-
+            if (cameraFudgeFactor != 0)
+            {
+                Vector3 fudgeVector = cameraOffset.transform.forward * cameraFudgeFactor;
+                cameraOffset.transform.position += fudgeVector;
+            }
             viewAdjusted.Invoke();
             EndLocomotion();
         }
