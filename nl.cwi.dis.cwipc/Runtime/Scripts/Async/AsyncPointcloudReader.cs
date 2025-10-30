@@ -71,10 +71,13 @@ namespace Cwipc
             base.Stop();
             if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
             if (out2Queue != null && !out2Queue.IsClosed()) out2Queue.Close();
-            if (mostRecentPC != null)
+            lock (this)
             {
-                mostRecentPC.free();
-                mostRecentPC = null;
+                if (mostRecentPC != null)
+                {
+                    mostRecentPC.free();
+                    mostRecentPC = null;
+                }
             }
         }
 
@@ -192,14 +195,14 @@ namespace Cwipc
             lock (this)
             {
                 pc = mostRecentPC;
+                if (pc == null)
+                {
+                    return null;
+                }
+
+                Vector3? rv = ComputePosition(pc);
+                return rv;
             }
-            if (pc == null)
-            {
-                return null;
-            }
-        
-            Vector3? rv = ComputePosition(pc);
-            return rv;
         }
 
         public int GetCameraCount()
