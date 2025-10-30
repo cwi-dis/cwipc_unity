@@ -192,7 +192,6 @@ namespace Cwipc
             lock (this)
             {
                 pc = mostRecentPC;
-                mostRecentPC = null;
             }
             if (pc == null)
             {
@@ -200,7 +199,6 @@ namespace Cwipc
             }
         
             Vector3? rv = ComputePosition(pc);
-            pc.free();
             return rv;
         }
 
