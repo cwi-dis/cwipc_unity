@@ -51,8 +51,8 @@ MonoBehaviour:
   pointCloudGO: {fileID: 0}
   pointCloudCenterOfGravityIndicator: {fileID: 4625708138126744661}
   playerCamera: {fileID: 0}
-  cameraZFudgeFactor: -0.17
-  singleCameraCoGForwardMove: -0.1
+  cameraFudgeVector: {x: 0, y: 0, z: 0}
+  singleCameraCoGForwardMove: 0
   heightFactor: 0.001
   viewAdjusted:
     m_PersistentCalls:
@@ -69,7 +69,6 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 6463340122363546935, guid: d348712bda248c246b8c49b3db54643f, type: 3}
-  useResetOriginAction: 1
   m_resetOriginAction:
     m_UseReference: 1
     m_Action:

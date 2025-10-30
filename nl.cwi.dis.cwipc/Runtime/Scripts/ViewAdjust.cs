@@ -36,8 +36,8 @@ public class ViewAdjust : LocomotionProvider
     [Tooltip("Camera used for determining zero position and orientation, for resetting origin")]
     [SerializeField] Camera playerCamera;
 
-    [Tooltip("How many meters forward the camera should be positioned relative to player origin")]
-    [SerializeField] float cameraZFudgeFactor = 0;
+    [Tooltip("How much the camera should be moved")]
+    [SerializeField] Vector3 cameraFudgeVector;
 
     [Tooltip("How many meters forward the center of gravity of the point cloud should be moved for single camera capturers")]
     [SerializeField] float singleCameraCoGForwardMove = 0.05f;
@@ -111,10 +111,10 @@ public class ViewAdjust : LocomotionProvider
         }
         if (m_resetOriginAction != null)
         {
-            bool doResetOrigin = m_resetOriginAction.action.ReadValue<float>() >= 0.5;
+            bool doResetOrigin = m_resetOriginAction.action.WasPerformedThisFrame();
             if (doResetOrigin)
             {
-                ResetOrigin(false);
+                ResetOrigin(true);
             }
         }
         if (m_hmdTrackingAction != null && m_hmdTrackingAction.action != null && m_hmdTrackingAction.action.WasPerformedThisFrame()) 
@@ -157,13 +157,28 @@ public class ViewAdjust : LocomotionProvider
     {
         if (stage == ViewAdjustStage.idle)
         {
+            if (debug)
+            {
+                Debug.Log("ViewAdjust: ResetOrigin: starting");
+            }
             // If we are not adjusting the view we start adjusting the view
             StartCoroutine(_ResetOrigin());
         }
         else if (canStop)
         {
+            if (debug)
+            {
+                Debug.Log("ViewAdjust: ResetOrigin: stopping");
+            }
             // If we are already adjusting the view we might want to stop it.
             stage = ViewAdjustStage.done;
+        }
+        else
+        {
+            if (debug)
+            {
+                Debug.Log("ViewAdjust: ResetOrigin: ignored, already active");
+            }
         }
    }
 
@@ -317,7 +332,7 @@ public class ViewAdjust : LocomotionProvider
             cameraOffset.transform.Rotate(0, -cameraToPlayerRotationY, 0);
             // Next set correct position on the camera
             Vector3 moveXZ = playerCamera.transform.position - player.transform.position;
-            moveXZ.z += cameraZFudgeFactor;
+            moveXZ += cameraFudgeVector;
             bool resetHeightWithPosition = XRSettings.enabled && XRSettings.isDeviceActive;
             if (debug)
             {
