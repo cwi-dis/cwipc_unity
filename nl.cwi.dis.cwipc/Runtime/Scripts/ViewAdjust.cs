@@ -51,9 +51,6 @@ public class ViewAdjust : LocomotionProvider
     [Tooltip("The Input System Action that will be used to change view height. Must be a Value Vector2 Control of which y is used.")]
     [SerializeField] InputActionProperty m_ViewHeightAction;
 
-    [Tooltip("Use Reset Origin action. Unset if ResetOrigin() is called from a script.")]
-    [SerializeField] bool useResetOriginAction = true;
-
     [Tooltip("The Input System Action that will be used to reset view origin.")]
     [SerializeField] InputActionProperty m_resetOriginAction;
 
@@ -112,7 +109,7 @@ public class ViewAdjust : LocomotionProvider
             // afterwards we do also save height changes.
             EndLocomotion();
         }
-        if (useResetOriginAction && m_resetOriginAction != null)
+        if (m_resetOriginAction != null)
         {
             bool doResetOrigin = m_resetOriginAction.action.ReadValue<float>() >= 0.5;
             if (doResetOrigin)
@@ -227,6 +224,10 @@ public class ViewAdjust : LocomotionProvider
                 Vector3? _pcPosition = pointCloudPipeline.GetPosition();
                 if (_pcPosition == null)
                 {
+                    if (debug)
+                    {
+                        Debug.Log("ViewAdjust: Cannot determine point cloud position");
+                    }
                     ShowPositionIndicator(stage: "No Point Cloud", instructions:
                         "You are not seen by the cameras. Please move into the capture area"
                         );
@@ -361,12 +362,12 @@ public class ViewAdjust : LocomotionProvider
     protected void OnEnable()
     {
         m_ViewHeightAction.EnableDirectAction();
-        if (useResetOriginAction) m_resetOriginAction.EnableDirectAction();
+        m_resetOriginAction.EnableDirectAction();
     }
 
     protected void OnDisable()
     {
         m_ViewHeightAction.DisableDirectAction();
-        if (useResetOriginAction) m_resetOriginAction.DisableDirectAction();
+        m_resetOriginAction.DisableDirectAction();
     }
 }
