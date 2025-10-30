@@ -12,14 +12,7 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs;
 
 public class ViewAdjust : LocomotionProvider
 {
-    [Serializable]
-    public enum ViewAdjustStage
-    {
-        idle,
-        position,
-        orientation,
-        done
-    };
+    
 
     [Tooltip("The object of which the height is adjusted, and that resetting origin will modify")]
     [SerializeField] GameObject cameraOffset;
@@ -76,7 +69,8 @@ public class ViewAdjust : LocomotionProvider
     [Tooltip("How many seconds is the position indicator visible?")]
     [SerializeField] float positionIndicatorDuration = 5f;
 
-    [SerializeField] ViewAdjustStage stage = ViewAdjustStage.idle;
+    [SerializeField] bool ViewAdjustInProgress = false;
+    [SerializeField] bool ViewAdjustDone = false;
 
     float positionIndicatorInvisibleAfter = 0;
 
@@ -155,7 +149,7 @@ public class ViewAdjust : LocomotionProvider
     /// </summary>
     public void ResetOrigin(bool canStop=true)
     {
-        if (stage == ViewAdjustStage.idle)
+        if (!ViewAdjustInProgress)
         {
             if (debug)
             {
@@ -171,7 +165,7 @@ public class ViewAdjust : LocomotionProvider
                 Debug.Log("ViewAdjust: ResetOrigin: stopping");
             }
             // If we are already adjusting the view we might want to stop it.
-            stage = ViewAdjustStage.done;
+            ViewAdjustDone = true;
         }
         else
         {
@@ -188,6 +182,8 @@ public class ViewAdjust : LocomotionProvider
         // First determine if we have a pointcloud representation.
         // If not things are easy.
         //
+        ViewAdjustInProgress = true;
+        ViewAdjustDone = false;
         IPointCloudPositionProvider pointCloudPipeline = null;
         if (pointCloudGO != null) pointCloudPipeline = pointCloudGO.GetComponentInChildren<IPointCloudPositionProvider>();
         
@@ -197,7 +193,7 @@ public class ViewAdjust : LocomotionProvider
         {
             // Show the position indicator and reset the view point immedeately. 
             ShowPositionIndicator(stage: "Fixing...");
-            stage = ViewAdjustStage.done;
+            ViewAdjustDone = true;
         }
         else
         {
@@ -230,11 +226,10 @@ public class ViewAdjust : LocomotionProvider
             cameraOffset.transform.Rotate(0, -cameraAngle - playerAngle, 0);
 
             // now instruct the user position correctly.
-            stage = ViewAdjustStage.position;
             int cameraCount = -1;
             int lastDistanceCm = -1;
             int lastDistanceSameCount = 0;
-            while (stage == ViewAdjustStage.position)
+            while (!ViewAdjustDone)
             {
                 Vector3? _pcPosition = pointCloudPipeline.GetPosition();
                 if (_pcPosition == null)
@@ -306,7 +301,7 @@ public class ViewAdjust : LocomotionProvider
                     lastDistanceSameCount++;
                     if (lastDistanceSameCount > 4)
                     {
-                        stage = ViewAdjustStage.orientation;
+                        ViewAdjustDone = true;
                     }
                 }
                 else
@@ -316,7 +311,6 @@ public class ViewAdjust : LocomotionProvider
                 }
                 yield return new WaitForSeconds(0.3f);
             }
-            stage = ViewAdjustStage.done;
             cameraOffset.transform.position -= tempCameraOffset;
             cameraOffset.transform.Rotate(0, -tempCameraYRotation, 0);
 
@@ -353,7 +347,8 @@ public class ViewAdjust : LocomotionProvider
             EndLocomotion();
         }
         ShowPositionIndicator(stage: "");
-        stage = ViewAdjustStage.idle;
+        ViewAdjustInProgress = false;
+        ViewAdjustDone = false;
     }
 
     public void HigherView(float deltaHeight = 0.02f)
