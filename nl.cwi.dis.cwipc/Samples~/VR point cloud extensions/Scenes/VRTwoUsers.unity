@@ -521,6 +521,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4770916539198233020, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
+      propertyPath: pointSizeFactor
+      value: 0.14
+      objectReference: {fileID: 0}
     - target: {fileID: 6051466313898402052, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
       propertyPath: compressedOutputStreams
       value: 0
