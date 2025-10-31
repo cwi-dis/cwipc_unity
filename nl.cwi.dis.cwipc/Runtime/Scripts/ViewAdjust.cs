@@ -294,11 +294,11 @@ public class ViewAdjust : LocomotionProvider
                     floor:
                     $"You are {distanceCm} cm away from where you should be."
                     );
-                // Check whether the user has been standing still in a reasonable position for 2 seconds.
+                // Check whether the user has been standing still in a reasonable position for 1 second.
                 if (distanceCm == lastDistanceCm && distanceCm < 5)
                 {
                     lastDistanceSameCount++;
-                    if (lastDistanceSameCount > 4)
+                    if (lastDistanceSameCount > 10)
                     {
                         ViewAdjustDone = true;
                     }
@@ -308,7 +308,7 @@ public class ViewAdjust : LocomotionProvider
                     lastDistanceSameCount = 0;
                     lastDistanceCm = distanceCm;
                 }
-                yield return new WaitForSeconds(0.3f);
+                yield return new WaitForSeconds(0.1f);
             }
             cameraOffset.transform.position -= tempCameraOffset;
             cameraOffset.transform.Rotate(0, -tempCameraYRotation, 0);
