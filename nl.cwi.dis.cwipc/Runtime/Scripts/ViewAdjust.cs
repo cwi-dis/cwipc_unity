@@ -202,9 +202,8 @@ public class ViewAdjust : LocomotionProvider
 
         if (pointCloudPipeline == null)
         {
-            // Show the position indicator and reset the view point immedeately. 
-            ShowPositionIndicator(stage: "Fixing...");
-            ViewAdjustDone = true;
+            // Nothing more to do.
+            yield break;
         }
         else
         {
