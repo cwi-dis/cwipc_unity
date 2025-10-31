@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.6.13] - 2025-10-31
+
+- Updated to Unity 2022.3.62
+- Fixed view position fixing with point clouds (#51)
+
 ## [7.6.12] - 2025-07-03
 
 - Underlying cwipc has some fixes (in v7.6.12) that were needed here.
