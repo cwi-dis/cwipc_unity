@@ -290,7 +290,7 @@ public class ViewAdjust : LocomotionProvider
 
                 ShowPositionIndicator(stage: "Adjust Position",
                     instructions:
-                    $"Look down, position your body on the cartoon feet.\n\nYou are {distanceCm} cm away from where you should be.\nMove in the {dir} o'clock direction.",
+                    $"First rotate your body until it aligns.\n\nThen move {distanceCm} cm in the {dir} o'clock direction.\n\nFinally look down and align your feet.",
                     floor:
                     $"You are {distanceCm} cm away from where you should be."
                     );
