@@ -39,7 +39,7 @@ public class ViewAdjust : LocomotionProvider
     [SerializeField] float cameraFudgeFactor;
 
     [Tooltip("How many meters forward the center of gravity of the point cloud should be moved for single camera capturers")]
-    [SerializeField] float singleCameraCoGForwardMove = 0.05f;
+    [SerializeField] float singleCameraExtraFudgeFactor = 0.05f;
 
     [Tooltip("Multiplication factor for height adjustment")]
     [SerializeField] float heightFactor = 1;
@@ -237,7 +237,6 @@ public class ViewAdjust : LocomotionProvider
             cameraOffset.transform.Rotate(0, -cameraAngle - playerAngle, 0);
 
             // now instruct the user position correctly.
-            int cameraCount = -1;
             int lastDistanceCm = -1;
             int lastDistanceSameCount = 0;
             while (!ViewAdjustDone)
@@ -263,18 +262,7 @@ public class ViewAdjust : LocomotionProvider
 
                 Vector3 pcLocalPosition = (Vector3)_pcPosition;
                 Vector3 pcPosition = pointCloudGO.transform.TransformPoint(pcLocalPosition);
-                if (cameraCount < 0)
-                {
-                    // Determine number of cameras.
-                    cameraCount = pointCloudPipeline.GetCameraCount();
-                }
-                if (cameraCount == 1)
-                {
-                    // For a single-camera setup (and note only if we are sure: we don't do
-                    // this for cameraCount == 0) we move the center of gravity, because we
-                    // expect to capture only half a person.
-                    pcPosition.z += singleCameraCoGForwardMove;
-                }
+                
                 if (pointCloudCenterOfGravityIndicator != null)
                 {
                     pointCloudCenterOfGravityIndicator.position = pcPosition;
@@ -352,9 +340,18 @@ public class ViewAdjust : LocomotionProvider
             }
             cameraOffset.transform.position -= moveXZ;
             if (debug) Debug.Log($"ResetOrigin: moved cameraOffset by {-moveXZ} to worldpos={playerCamera.transform.position}");
-            if (cameraFudgeFactor != 0)
+            // See how much we have to move the camera forward, so it isn't at the center of the
+            // head but at approximately eye position.
+            float forwardMove = cameraFudgeFactor;
+            if (pointCloudPipeline.GetCameraCount() == 1)
             {
-                Vector3 fudgeVector = cameraOffset.transform.forward * cameraFudgeFactor;
+                // For single-camera we add an extra factor (because the center of gravity of the point cloud
+                // isn't the center of gravity of the user).
+                forwardMove += singleCameraExtraFudgeFactor;
+            }
+            if (forwardMove != 0)
+            {
+                Vector3 fudgeVector = playerCamera.transform.forward * forwardMove;
                 cameraOffset.transform.position += fudgeVector;
             }
             viewAdjusted.Invoke();

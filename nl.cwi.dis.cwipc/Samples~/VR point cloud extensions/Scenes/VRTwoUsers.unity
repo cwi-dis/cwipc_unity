@@ -455,11 +455,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 412585988363098140, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
       propertyPath: cameraFudgeFactor
-      value: -0.2
+      value: 0.14
       objectReference: {fileID: 0}
     - target: {fileID: 412585988363098140, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
       propertyPath: cameraZFudgeFactor
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 412585988363098140, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
+      propertyPath: singleCameraExtraFudgeFactor
+      value: -0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1911508270948310340, guid: a3e9aeec6c4e96042b6010dc86ac69d3, type: 3}
       propertyPath: sourceType

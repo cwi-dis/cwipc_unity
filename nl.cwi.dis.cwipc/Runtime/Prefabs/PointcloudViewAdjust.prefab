@@ -53,8 +53,8 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   teleportToOrigin: 0
   adjustCameraContinuous: 1
-  cameraFudgeVector: {x: 0, y: 0, z: 0}
-  singleCameraCoGForwardMove: 0
+  cameraFudgeFactor: 0.14
+  singleCameraExtraFudgeFactor: -0.1
   heightFactor: 0.001
   viewAdjusted:
     m_PersistentCalls:
