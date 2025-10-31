@@ -203,7 +203,7 @@ public class ViewAdjust : LocomotionProvider
         if (pointCloudPipeline == null)
         {
             // Nothing more to do.
-            yield break;
+            ViewAdjustDone = true;
         }
         else
         {
@@ -342,7 +342,7 @@ public class ViewAdjust : LocomotionProvider
             // See how much we have to move the camera forward, so it isn't at the center of the
             // head but at approximately eye position.
             float forwardMove = cameraFudgeFactor;
-            if (pointCloudPipeline.GetCameraCount() == 1)
+            if (pointCloudPipeline != null && pointCloudPipeline.GetCameraCount() == 1)
             {
                 // For single-camera we add an extra factor (because the center of gravity of the point cloud
                 // isn't the center of gravity of the user).
