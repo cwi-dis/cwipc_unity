@@ -28,6 +28,11 @@ git config --local core.symlinks true
 
 ### Note for creating a new release
 
+- Update `nl.cwi.dis.cwipc/CHANGELOG.md`
+- Update `nl.cwi.dis.cwipc/package.json`
+
+#### Android native plugins
+
 The Android native plugins for `cwipc` are included in this package (unlike those for desktop). They need to be updated for a new release:
 
 - Download `cwipc_vX.Y.Z_android_arm64.tar.gz` from the current release of <https://github.com/cwi-dis/cwipc/releases>

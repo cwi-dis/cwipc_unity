@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.7.5] - 2025-11-21
+
+- Updated for new cwipc release
+- Fixed version number to be in line with cwipc again
+
 ## [7.6.13] - 2025-10-31
 
 - Updated to Unity 2022.3.62
