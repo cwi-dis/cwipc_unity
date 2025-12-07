@@ -1,5 +1,9 @@
 # Changelog
 
+## [7.7.6] - 2025-12-07
+
+- Minor change in logging output to make debugging easier.
+
 ## [7.7.5] - 2025-11-21
 
 - Updated for new cwipc release
