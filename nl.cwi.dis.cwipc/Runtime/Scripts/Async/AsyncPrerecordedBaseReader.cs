@@ -337,11 +337,11 @@ namespace Cwipc
         }
 
         public override void AsyncOnStop() {
-            base.AsyncOnStop();
             filenames = null;
             if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
             outQueue = null;
             if (out2Queue != null && !out2Queue.IsClosed()) out2Queue.Close();
+            base.AsyncOnStop();
         }
 
         protected override void AsyncUpdate() {

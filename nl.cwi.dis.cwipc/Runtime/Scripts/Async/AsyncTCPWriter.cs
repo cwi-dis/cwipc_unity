@@ -314,15 +314,12 @@ namespace Cwipc
                     d.inQueue.Close();
                 }
             }
-            // Stop our thread
-            base.AsyncOnStop();
             // wait for pusherThreads to terminate
             foreach (var t in pusherThreads)
             {
                 t.Stop();
                 t.Join();
-            }
-            Debug.Log($"{Name()} Stopped");
+            }base.AsyncOnStop();
         }
 
         protected override void AsyncUpdate()

@@ -38,8 +38,8 @@ namespace Cwipc
 
         public override void AsyncOnStop()
         {
-            base.AsyncOnStop();
             if (byteArray.Length != 0) byteArray.Dispose();
+            base.AsyncOnStop();
         }
 
         protected override void AsyncUpdate()

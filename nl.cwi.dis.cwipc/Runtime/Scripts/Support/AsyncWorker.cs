@@ -92,6 +92,7 @@ namespace Cwipc
 
         /// <summary>
         /// Called in the worker thread when the thread is about to stop. Should clean up any resources in use.
+        /// When overriding in a subclass call this at the end.
         /// </summary>
         public virtual void AsyncOnStop()
         {

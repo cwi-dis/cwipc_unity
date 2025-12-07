@@ -154,17 +154,19 @@ namespace Cwipc
             // Clear our encoderGroup to signal the Update thread
             var tmp = encoderGroup;
             encoderGroup = null;
-            // Stop the Update thread
-            base.AsyncOnStop();
             // Clear the encoderGroup including all of its encoders
             tmp?.free();
             foreach (var eo in encoderOutputs)
             {
                 eo.free();
             }
-            Debug.Log($"{Name()}: Stopped");
             // xxxjack is encoderBuffer still used? Think not...
-            if (encoderBuffer != System.IntPtr.Zero) { System.Runtime.InteropServices.Marshal.FreeHGlobal(encoderBuffer); encoderBuffer = System.IntPtr.Zero; }
+            if (encoderBuffer != System.IntPtr.Zero)
+            {
+                System.Runtime.InteropServices.Marshal.FreeHGlobal(encoderBuffer); 
+                encoderBuffer = System.IntPtr.Zero;
+            }
+            base.AsyncOnStop();
         }
 
         protected override void AsyncUpdate()

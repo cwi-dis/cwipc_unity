@@ -36,11 +36,11 @@ namespace Cwipc
 
         public override void AsyncOnStop()
         {
-            base.AsyncOnStop();
             lock (this)
             {
                 if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
             }
+            base.AsyncOnStop();
         }
 
         protected override void AsyncUpdate()

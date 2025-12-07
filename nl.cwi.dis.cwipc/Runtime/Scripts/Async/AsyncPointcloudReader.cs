@@ -83,12 +83,11 @@ namespace Cwipc
 
         public override void AsyncOnStop()
         {
-            base.AsyncOnStop();
             reader?.free();
             reader = null;
             if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
             if (out2Queue != null && !out2Queue.IsClosed()) out2Queue.Close();
-            Debug.Log($"{Name()}: Stopped.");
+            base.AsyncOnStop();
         }
 
         protected override void AsyncUpdate()

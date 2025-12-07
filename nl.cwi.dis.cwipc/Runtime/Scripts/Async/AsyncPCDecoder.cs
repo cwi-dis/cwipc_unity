@@ -71,7 +71,6 @@ namespace Cwipc
 
         public override void AsyncOnStop()
         {
-            base.AsyncOnStop();
             lock (this)
             {
                 foreach(var d in decoders)
@@ -81,7 +80,7 @@ namespace Cwipc
                 decoders = null;
                 if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
             }
-            if (debugThreading) Debug.Log($"{Name()} Stopped");
+            base.AsyncOnStop();
         }
 
         bool _FeedDecoder() {
