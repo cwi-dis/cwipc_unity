@@ -111,8 +111,10 @@ namespace Cwipc
 #else
             public const string myDllName = "cwipc_util";
 #endif        
-            public const ulong CWIPC_API_VERSION = 0x20220126;
+            public const ulong CWIPC_API_VERSION = 0x20260129;
 
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_get_version();
             [DllImport(myDllName)]
             internal extern static IntPtr cwipc_read([MarshalAs(UnmanagedType.LPStr)] string filename, Timestamp timestamp, ref IntPtr errorMessage, ulong apiVersion = CWIPC_API_VERSION);
             [DllImport(myDllName)]
@@ -122,36 +124,41 @@ namespace Cwipc
             [DllImport(myDllName)]
             internal extern static IntPtr cwipc_from_points(IntPtr points, IntPtr size, int nPoint, Timestamp timestamp, ref System.IntPtr errorMessage, System.UInt64 apiVersion = CWIPC_API_VERSION);
             [DllImport(myDllName)]
-            internal extern static void cwipc_free(IntPtr pc);
-            [DllImport(myDllName)]
-            internal extern static Timestamp cwipc_timestamp(IntPtr pc);
-            [DllImport(myDllName)]
-            internal extern static int cwipc_count(IntPtr pc);
-            [DllImport(myDllName)]
-            internal extern static float cwipc_cellsize(IntPtr pc);
-            [DllImport(myDllName)]
-            internal extern static void cwipc__set_cellsize(IntPtr pc, float cellsize);
-            [DllImport(myDllName)]
-            internal extern static void cwipc__set_timestamp(IntPtr pc, Timestamp timestamp);
-            [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_get_uncompressed_size(IntPtr pc);
-            [DllImport(myDllName)]
-            internal extern static int cwipc_copy_uncompressed(IntPtr pc, IntPtr data, IntPtr size);
-            [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_copy_packet(IntPtr pc, IntPtr packet, IntPtr size);
+            internal extern static void cwipc_pointcloud_free(IntPtr pc);
 
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_access_auxiliary_data(IntPtr pc);
+            internal extern static IntPtr cwipc_pointcloud__shallowcopy(IntPtr pc);
             [DllImport(myDllName)]
-            internal extern static int cwipc_auxiliary_data_count(IntPtr collection);
+            internal extern static Timestamp cwipc_pointcloud_timestamp(IntPtr pc);
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_auxiliary_data_name(IntPtr collection, int idx);
+            internal extern static int cwipc_pointcloud_count(IntPtr pc);
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_auxiliary_data_description(IntPtr collection, int idx);
+            internal extern static float cwipc_pointcloud_cellsize(IntPtr pc);
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_auxiliary_data_pointer(IntPtr collection, int idx);
+            internal extern static void cwipc_pointcloud__set_cellsize(IntPtr pc, float cellsize);
             [DllImport(myDllName)]
-            internal extern static int cwipc_auxiliary_data_size(IntPtr collection, int idx);
+            internal extern static void cwipc_pointcloud__set_timestamp(IntPtr pc, Timestamp timestamp);
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_pointcloud_get_uncompressed_size(IntPtr pc);
+            [DllImport(myDllName)]
+            internal extern static int cwipc_pointcloud_copy_uncompressed(IntPtr pc, IntPtr data, IntPtr size);
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_pointcloud_copy_packet(IntPtr pc, IntPtr packet, IntPtr size);
+
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_pointcloud_access_metadata(IntPtr pc);
+            [DllImport(myDllName)]
+            internal extern static int cwipc_metadata_count(IntPtr collection);
+            [DllImport(myDllName)]
+            internal extern static void cwipc_metadata__move(IntPtr src, IntPtr dst);
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_metadata_name(IntPtr collection, int idx);
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_metadata_description(IntPtr collection, int idx);
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_metadata_pointer(IntPtr collection, int idx);
+            [DllImport(myDllName)]
+            internal extern static int cwipc_metadata_size(IntPtr collection, int idx);
 
             [DllImport(myDllName)]
             internal extern static IntPtr cwipc_source_get(IntPtr src);
@@ -162,15 +169,25 @@ namespace Cwipc
             [DllImport(myDllName)]
             internal extern static void cwipc_source_free(IntPtr src);
             [DllImport(myDllName)]
-            internal extern static bool cwipc_source_request_auxiliary_data(IntPtr src, [MarshalAs(UnmanagedType.LPStr)] string name);
+            internal extern static bool cwipc_activesource_request_metadata(IntPtr src, [MarshalAs(UnmanagedType.LPStr)] string name);
             [DllImport(myDllName)]
-            internal extern static bool cwipc_source_auxiliary_data_requested(IntPtr src, [MarshalAs(UnmanagedType.LPStr)] string name);
+            internal extern static bool cwipc_activesource_is_metadata_requested(IntPtr src, [MarshalAs(UnmanagedType.LPStr)] string name);
 
             [DllImport(myDllName)]
-            internal extern static int cwipc_tiledsource_maxtile(IntPtr src);
+            internal extern static bool cwipc_activesource_reload_config(IntPtr src,  [MarshalAs(UnmanagedType.LPStr)] string configFile);
             [DllImport(myDllName)]
-            internal extern static bool cwipc_tiledsource_get_tileinfo(IntPtr src, int tileNum, [Out] out tileinfo _tileinfo);
+            internal extern static IntPtr cwipc_activesource_get_config(IntPtr src, IntPtr buffer, IntPtr size);
+            [DllImport(myDllName)]
+            internal extern static bool cwipc_activesource_seek(IntPtr src, Timestamp timestamp);
+            [DllImport(myDllName)]
+            internal extern static int cwipc_activesource_maxtile(IntPtr src);
+            [DllImport(myDllName)]
+            internal extern static bool cwipc_activesource_get_tileinfo(IntPtr src, int tileNum, [Out] out tileinfo _tileinfo);
 
+            [DllImport(myDllName)]
+            internal extern static bool cwipc_activesource_auxiliary_operation(IntPtr src,
+                [MarshalAs(UnmanagedType.LPStr)] string operation, IntPtr inbuf, IntPtr insize, IntPtr outbuf,
+                IntPtr outsize);
             [DllImport(myDllName)]
             internal extern static int cwipc_sink_free(IntPtr sink);
             [DllImport(myDllName)]
@@ -187,14 +204,14 @@ namespace Cwipc
             internal extern static IntPtr cwipc_capturer([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
 
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_from_certh(IntPtr certhPC, float[] origin, float[] bbox, Timestamp timestamp, ref IntPtr errorMessage, ulong apiVersion = CWIPC_API_VERSION);
-
-            [DllImport(myDllName)]
             internal extern static IntPtr cwipc_proxy([MarshalAs(UnmanagedType.LPStr)] string ip, int port, ref IntPtr errorMessage, ulong apiVersion = CWIPC_API_VERSION);
 
             [DllImport(myDllName)]
             internal extern static IntPtr cwipc_downsample(IntPtr pc, float voxelSize);
 
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_remove_outliers(IntPtr pc, int kNeighbours, float stddevMulThresh,
+                bool perTile);
             [DllImport(myDllName)]
             internal extern static IntPtr cwipc_tilefilter(IntPtr pc, int tilenum);
 
@@ -224,7 +241,11 @@ namespace Cwipc
 #endif
 
             [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_get_version_realsense2();
+            [DllImport(myDllName)]
             internal extern static IntPtr cwipc_realsense2([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_realsense2_playback([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
         }
 
         /// <summary>
@@ -239,7 +260,30 @@ namespace Cwipc
 #endif
 
             [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_get_version_kinect();
+            [DllImport(myDllName)]
             internal extern static IntPtr cwipc_kinect([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_kinect_playback([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
+        }
+
+        /// <summary>
+        /// Low level interface to cwipc_orbbec native dynamic library. See C++ documentation for details.
+        /// </summary>
+        private class _API_cwipc_orbbec
+        {
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            public const string myDllName = "__Internal";
+#else
+            public const string myDllName = "cwipc_orbbec";
+#endif
+
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_get_version_orbbec();
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_orbbec([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_orbbec_playback([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
         }
 
         /// <summary>
@@ -254,6 +298,8 @@ namespace Cwipc
 #endif
             public const int CWIPC_ENCODER_PARAM_VERSION = 0x20220607;
 
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_get_version_codec();
             [DllImport(myDllName)]
             internal extern static IntPtr cwipc_new_decoder(ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
 
@@ -322,9 +368,9 @@ namespace Cwipc
         {
             try
             {
-                delegate_cwipc_synthetic tmp = _API_cwipc_util.cwipc_synthetic;
+                delegate_cwipc_synthetic tmp = _API_cwipc_util.cwipc_get_version;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"GetCwipcDLLDirectory: loaded cwipc_synthetic from {_API_cwipc_util.myDllName} at 0x{tmp2:X}");
+                UnityEngine.Debug.Log($"GetCwipcDLLDirectory: loaded cwipc_get_version from {_API_cwipc_util.myDllName} at 0x{tmp2:X}");
             }
             catch (System.TypeLoadException e)
             {
@@ -345,10 +391,10 @@ namespace Cwipc
 
 #endif
 
-        public class cwipc_auxiliary_data
+        public class cwipc_metadata
         {
             protected IntPtr _pointer;
-            internal cwipc_auxiliary_data(IntPtr pointer)
+            internal cwipc_metadata(IntPtr pointer)
             {
                 if (pointer == IntPtr.Zero) throw new CwipcException("cwipc_auxdata created with NULL pointer argument");
                 _pointer = pointer;
@@ -368,37 +414,37 @@ namespace Cwipc
             public int count()
             {
                 if (_pointer == IntPtr.Zero) throw new CwipcException("cwipc_auxdata.count called with NULL pointer argument");
-                return _API_cwipc_util.cwipc_auxiliary_data_count(_pointer);
+                return _API_cwipc_util.cwipc_metadata_count(_pointer);
             }
 
             public string name(int idx)
             {
                 if (_pointer == IntPtr.Zero) throw new CwipcException("cwipc_auxdata.name called with NULL pointer argument");
-                IntPtr aux_name = _API_cwipc_util.cwipc_auxiliary_data_name(_pointer, idx);
+                IntPtr aux_name = _API_cwipc_util.cwipc_metadata_name(_pointer, idx);
                 return Marshal.PtrToStringAnsi(aux_name);
             }
 
             public string description(int idx)
             {
                 if (_pointer == IntPtr.Zero) throw new CwipcException("cwipc_auxdata.description called with NULL pointer argument");
-                IntPtr aux_description = _API_cwipc_util.cwipc_auxiliary_data_description(_pointer, idx);
+                IntPtr aux_description = _API_cwipc_util.cwipc_metadata_description(_pointer, idx);
                 return Marshal.PtrToStringAnsi(aux_description);
             }
 
             public IntPtr pointer(int idx)
             {
                 if (_pointer == IntPtr.Zero) throw new CwipcException("cwipc_auxdata.pointer called with NULL pointer argument");
-                return _API_cwipc_util.cwipc_auxiliary_data_pointer(_pointer, idx);
+                return _API_cwipc_util.cwipc_metadata_pointer(_pointer, idx);
             }
 
             public int size(int idx)
             {
                 if (_pointer == IntPtr.Zero) throw new CwipcException("cwipc_auxdata.size called with NULL pointer argument");
-                return _API_cwipc_util.cwipc_auxiliary_data_size(_pointer, idx);
+                return _API_cwipc_util.cwipc_metadata_size(_pointer, idx);
             }
 
 #if CWIPC_UNUSED
-            public cwipc_auxiliary_data data(int idx)
+            public cwipc_metadata data(int idx)
             {
 
             }
@@ -430,7 +476,7 @@ namespace Cwipc
             protected override void onfree()
             {
                 if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.pointcloud.onfree called with NULL pointer");
-                _API_cwipc_util.cwipc_free(pointer);
+                _API_cwipc_util.cwipc_pointcloud_free(pointer);
             }
 
             /// <summary>
@@ -440,7 +486,7 @@ namespace Cwipc
             public Timestamp timestamp()
             {
                 if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.pointcloud.timestamp called with NULL pointer");
-                return _API_cwipc_util.cwipc_timestamp(pointer);
+                return _API_cwipc_util.cwipc_pointcloud_timestamp(pointer);
             }
 
             /// <summary>
@@ -450,7 +496,7 @@ namespace Cwipc
             public void _set_timestamp(Timestamp timestamp)
             {
                 if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.pointcloud._set_timestamp called with NULL pointer");
-                _API_cwipc_util.cwipc__set_timestamp(pointer, timestamp);
+                _API_cwipc_util.cwipc_pointcloud__set_timestamp(pointer, timestamp);
                 metadata.timestamp = timestamp;
             }
 
@@ -461,7 +507,7 @@ namespace Cwipc
             public int count()
             {
                 if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.pointcloud.count called with NULL pointer");
-                return _API_cwipc_util.cwipc_count(pointer);
+                return _API_cwipc_util.cwipc_pointcloud_count(pointer);
 
             }
 
@@ -472,7 +518,7 @@ namespace Cwipc
             public float cellsize()
             {
                 if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.pointcloud.cellsize called with NULL pointer");
-                return _API_cwipc_util.cwipc_cellsize(pointer);
+                return _API_cwipc_util.cwipc_pointcloud_cellsize(pointer);
             }
 
             /// <summary>
@@ -482,7 +528,7 @@ namespace Cwipc
             public void _set_cellsize(float cellsize)
             {
                 if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.pointcloud._set_cellsize called with NULL pointer");
-                _API_cwipc_util.cwipc__set_cellsize(pointer, cellsize);
+                _API_cwipc_util.cwipc_pointcloud__set_cellsize(pointer, cellsize);
             }
 
             /// <summary>
@@ -492,7 +538,7 @@ namespace Cwipc
             public int get_uncompressed_size()
             {
                 if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.pointcloud.get_uncompressed_size called with NULL pointer");
-                return (int)_API_cwipc_util.cwipc_get_uncompressed_size(pointer);
+                return (int)_API_cwipc_util.cwipc_pointcloud_get_uncompressed_size(pointer);
             }
 
             /// <summary>
@@ -504,7 +550,7 @@ namespace Cwipc
             public int copy_uncompressed(IntPtr data, int size)
             {
                 if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.pointcloud.copy_uncompressed called with NULL pointer");
-                return _API_cwipc_util.cwipc_copy_uncompressed(pointer, data, (IntPtr)size);
+                return _API_cwipc_util.cwipc_pointcloud_copy_uncompressed(pointer, data, (IntPtr)size);
             }
 
             /// <summary>
@@ -518,7 +564,7 @@ namespace Cwipc
             public int copy_packet(IntPtr data, int size)
             {
                 if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.pointcloud.copy_uncompressed called with NULL pointer");
-                return (int)_API_cwipc_util.cwipc_copy_packet(pointer, data, (IntPtr)size);
+                return (int)_API_cwipc_util.cwipc_pointcloud_copy_packet(pointer, data, (IntPtr)size);
             }
 
             /// <summary>
@@ -548,10 +594,10 @@ namespace Cwipc
             /// 
             /// </summary>
             /// <returns></returns>
-            public cwipc_auxiliary_data access_auxiliary_data()
+            public cwipc_metadata access_metadata()
             {
-                if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.pointcloud.access_auxiliary_data called with NULL pointer");
-                return new cwipc_auxiliary_data(_API_cwipc_util.cwipc_access_auxiliary_data(pointer));
+                if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.pointcloud.access_metadata called with NULL pointer");
+                return new cwipc_metadata(_API_cwipc_util.cwipc_pointcloud_access_metadata(pointer));
             }
 
             /// <summary>
@@ -685,20 +731,20 @@ namespace Cwipc
             /// </summary>
             /// <param name="name">The type of auxiliary data wanted</param>
             /// <returns>True if the named auxiliary data is available from this capturer</returns>
-            public bool request_auxiliary_data(string name)
+            public bool request_metadata(string name)
             {
-                if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.source.request_auxiliary_data called with NULL pointer");
-                return _API_cwipc_util.cwipc_source_request_auxiliary_data(pointer, name);
+                if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.source.request_metadata called with NULL pointer");
+                return _API_cwipc_util.cwipc_activesource_request_metadata(pointer, name);
             }
 
             /// <summary>
             /// No clue.
             /// </summary>
             /// <param name="name"></param>
-            public void auxiliary_data_requested(string name)
+            public void is_metadata_requested(string name)
             {
-                if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.source.auxiliary_data_requested called with NULL pointer");
-                _API_cwipc_util.cwipc_source_auxiliary_data_requested(pointer, name);
+                if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.source.is_metadata_requested called with NULL pointer");
+                _API_cwipc_util.cwipc_activesource_is_metadata_requested(pointer, name);
             }
 
 
@@ -710,12 +756,12 @@ namespace Cwipc
             public tileinfo[] get_tileinfo()
             {
                 if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.source.get_tileinfo called with NULL pointer");
-                int maxTile = _API_cwipc_util.cwipc_tiledsource_maxtile(pointer);
+                int maxTile = _API_cwipc_util.cwipc_activesource_maxtile(pointer);
                 if (maxTile == 0) return null;
                 tileinfo[] rv = new tileinfo[maxTile];
                 for (int i = 0; i < maxTile; i++)
                 {
-                    bool ok = _API_cwipc_util.cwipc_tiledsource_get_tileinfo(pointer, i, out rv[i]);
+                    bool ok = _API_cwipc_util.cwipc_activesource_get_tileinfo(pointer, i, out rv[i]);
                 }
                 return rv;
             }
@@ -959,6 +1005,7 @@ namespace Cwipc
             // Special case: we want to ensure all capturers have been loaded.
             _load_cwipc_kinect(required: false);
             _load_cwipc_realsense2(required: false);
+            _load_cwipc_orbbec(required: false);
 
             IntPtr errorPtr = IntPtr.Zero;
             IntPtr rdr = IntPtr.Zero;
@@ -1072,6 +1119,38 @@ namespace Cwipc
             if (errorPtr != IntPtr.Zero)
             {
                 UnityEngine.Debug.LogError($"cwipc.kinect: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
+            }
+            return new source(rdr);
+        }
+        
+        /// <summary>
+        /// Produce pointclouds from one or more Microsoft Azure Kinect cameras.
+        ///
+        /// For details on the configuration file, how to create it and how to calibrate the fusion of multiple cameras
+        /// please see the documentation at <see href="http://github.com/cwi-dis/cwipc"/>
+        /// </summary>
+        /// <param name="filename">The <c>cameraconfig.xml</c> configuration file.</param>
+        /// <returns></returns>
+        public static source orbbec(string filename)
+        {
+            _load_cwipc_orbbec();
+
+            IntPtr errorPtr = IntPtr.Zero;
+            IntPtr rdr = IntPtr.Zero;
+
+            rdr = _API_cwipc_orbbec.cwipc_orbbec(filename, ref errorPtr);
+            
+            if (rdr == IntPtr.Zero)
+            {
+                if (errorPtr == IntPtr.Zero)
+                {
+                    throw new CwipcException("cwipc.orbbec: returned null without setting error message");
+                }
+                throw new CwipcException($"cwipc.orbbec: {Marshal.PtrToStringAnsi(errorPtr)}. This may be a cwipc installation issue, see https://github.com/cwi-dis/cwipc . ");
+            }
+            if (errorPtr != IntPtr.Zero)
+            {
+                UnityEngine.Debug.LogError($"cwipc.orbbec: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
             }
             return new source(rdr);
         }
@@ -1284,39 +1363,6 @@ namespace Cwipc
         }
 
         /// <summary>
-        /// Legacy method.
-        /// </summary>
-        /// <param name="certhPC"></param>
-        /// <param name="move"></param>
-        /// <param name="bbox"></param>
-        /// <param name="timestamp"></param>
-        /// <returns></returns>
-        public static pointcloud from_certh(IntPtr certhPC, float[] move, float[] bbox, Timestamp timestamp)
-        {
-            _load_cwipc_util();
-
-            IntPtr errorPtr = IntPtr.Zero;
-            // Need to pass origin and bbox as array pointers.
-            IntPtr rvPtr = IntPtr.Zero;
-
-            rvPtr = _API_cwipc_util.cwipc_from_certh(certhPC, move, bbox, timestamp, ref errorPtr);
-            
-            if (rvPtr == IntPtr.Zero)
-            {
-                if (errorPtr == IntPtr.Zero)
-                {
-                    throw new CwipcException("cwipc.from_certh: returned null without setting error message");
-                }
-                throw new CwipcException($"cwipc_from_certh: {Marshal.PtrToStringAnsi(errorPtr)} ");
-            }
-            if (errorPtr != IntPtr.Zero)
-            {
-                UnityEngine.Debug.LogError($"cwipc_from_certh: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
-            }
-            return new pointcloud(rvPtr);
-        }
-
-        /// <summary>
         /// Read a pointcloud from a <c>.ply</c> file.
         /// As plyfiles do not contain a timestamp you pass in the timestamp on the call.
         /// </summary>
@@ -1480,14 +1526,14 @@ namespace Cwipc
         {
             public const string myDllName = "/opt/homebrew/lib/libcwipc_util.dylib";
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_synthetic(int fps, int npoints, ref IntPtr errorMessage, ulong apiVersion);
+            internal extern static IntPtr cwipc_get_version();
         }
 
         private class _API_cwipc_util_prober_standard_path
         {
             public const string myDllName = "cwipc_util";
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_synthetic(int fps, int npoints, ref IntPtr errorMessage, ulong apiVersion);
+            internal extern static IntPtr cwipc_get_version();
         }
 
         private class _API_cwipc_realsense2_prober_silicon
@@ -1495,7 +1541,7 @@ namespace Cwipc
             public const string myDllName = "/opt/homebrew/lib/libcwipc_realsense2.dylib";
 
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_realsense2([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
+            internal extern static IntPtr cwipc_get_version_realsense2();
         }
 
         private class _API_cwipc_realsense2_prober_standard_path
@@ -1503,7 +1549,7 @@ namespace Cwipc
             public const string myDllName = "cwipc_realsense2";
 
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_realsense2([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
+            internal extern static IntPtr cwipc_get_version_realsense2();
         }
 
         private class _API_cwipc_kinect_prober_silicon
@@ -1511,7 +1557,7 @@ namespace Cwipc
             public const string myDllName = "/opt/homebrew/lib/libcwipc_kinect.dylib";
 
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_kinect([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
+            internal extern static IntPtr cwipc_get_version_kinect();
         }
 
         private class _API_cwipc_kinect_prober_standard_path
@@ -1519,7 +1565,23 @@ namespace Cwipc
             public const string myDllName = "cwipc_kinect";
 
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_kinect([MarshalAs(UnmanagedType.LPStr)] string filename, ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
+            internal extern static IntPtr cwipc_get_version_kinect();
+        }
+
+        private class _API_cwipc_orbbec_prober_silicon
+        {
+            public const string myDllName = "/opt/homebrew/lib/libcwipc_orbbec.dylib";
+
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_get_version_orbbec();
+        }
+
+        private class _API_cwipc_orbbec_prober_standard_path
+        {
+            public const string myDllName = "cwipc_orbbec";
+
+            [DllImport(myDllName)]
+            internal extern static IntPtr cwipc_get_version_orbbec();
         }
 
         private class _API_cwipc_codec_prober_silicon
@@ -1527,7 +1589,7 @@ namespace Cwipc
             public const string myDllName = "/opt/homebrew/lib/libcwipc_codec.dylib";
             
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_new_decoder(ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
+            internal extern static IntPtr cwipc_get_version_codec();
         }
 
         private class _API_cwipc_codec_prober_standard_path
@@ -1535,14 +1597,11 @@ namespace Cwipc
             public const string myDllName = "cwipc_codec";
             
             [DllImport(myDllName)]
-            internal extern static IntPtr cwipc_new_decoder(ref IntPtr errorMessage, ulong apiVersion = _API_cwipc_util.CWIPC_API_VERSION);
+            internal extern static IntPtr cwipc_get_version_codec();
         }
 
 #endif
-        private delegate IntPtr delegate_cwipc_synthetic(int fps, int npoints, ref IntPtr errorMessage, ulong apiVersion);
-        private delegate IntPtr delegate_cwipc_realsense2(string filename, ref IntPtr errorMessage, ulong apiVersion);
-        private delegate IntPtr delegate_cwipc_kinect(string filename, ref IntPtr errorMessage, ulong apiVersion);
-        private delegate IntPtr delegate_cwipc_new_decoder(ref IntPtr errorMessage, ulong apiVersion);
+        private delegate IntPtr delegate_cwipc_get_version();
 
         static bool cwipc_util_load_attempted = false;
 
@@ -1557,24 +1616,24 @@ namespace Cwipc
             // It will most likely not work for a Silicon Unity (because /opt/homebrew/lib is not on the search path).
             try
             {
-                delegate_cwipc_synthetic tmp = _API_cwipc_util_prober_standard_path.cwipc_synthetic;
+                delegate_cwipc_get_version tmp = _API_cwipc_util_prober_standard_path.cwipc_get_version;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"cwipc._load_cwipc_util: loaded cwipc_synthetic from {_API_cwipc_util_prober_standard_path.myDllName} at 0x{tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_util: loaded cwipc_get_version from {_API_cwipc_util_prober_standard_path.myDllName} at 0x{tmp2:X}");
             }
             catch (System.DllNotFoundException)
             {
-                UnityEngine.Debug.Log($"cwipc._load_cwipc_util: could not load cwipc_synthetic from {_API_cwipc_util_prober_standard_path.myDllName}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_util: could not load cwipc_get_version from {_API_cwipc_util_prober_standard_path.myDllName}");
                 // Let's try and load from the silicon path.
                 try
                 {
-                    delegate_cwipc_synthetic tmp = _API_cwipc_util_prober_silicon.cwipc_synthetic;
+                    delegate_cwipc_get_version tmp = _API_cwipc_util_prober_silicon.cwipc_get_version;
                     IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                    UnityEngine.Debug.Log($"cwipc._load_cwipc_util: loaded cwipc_synthetic from {_API_cwipc_util_prober_silicon.myDllName} at 0x{tmp2:X}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_util: loaded cwipc_get_version from {_API_cwipc_util_prober_silicon.myDllName} at 0x{tmp2:X}");
                 }
                 catch (System.DllNotFoundException)
                 {
                     // Apparently we are not running on Silicon Mac.
-                    UnityEngine.Debug.Log($"cwipc._load_cwipc_util: could not load cwipc_synthetic from {_API_cwipc_util_prober_silicon.myDllName}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_util: could not load cwipc_get_version from {_API_cwipc_util_prober_silicon.myDllName}");
                 }
             }
             // We should now have loaded a working version of cwipc_util. On Mac, the dll name used in the "normal" _API_cwipc_util
@@ -1586,9 +1645,9 @@ namespace Cwipc
 #if UNITY_EDITOR || UNITY_STANDALONE
             try
             {
-                delegate_cwipc_synthetic tmp = _API_cwipc_util.cwipc_synthetic;
+                delegate_cwipc_get_version tmp = _API_cwipc_util.cwipc_get_version;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"cwipc._load_cwipc_util: loaded cwipc_synthetic from {_API_cwipc_util.myDllName} at 0x{tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_util: loaded cwipc_get_version from {_API_cwipc_util.myDllName} at 0x{tmp2:X}");
             }
             catch (System.TypeLoadException e)
             {
@@ -1612,25 +1671,25 @@ namespace Cwipc
             // It will most likely not work for a Silicon Unity (because /opt/homebrew/lib is not on the search path).
             try
             {
-                delegate_cwipc_realsense2 tmp = _API_cwipc_realsense2_prober_standard_path.cwipc_realsense2;
+                delegate_cwipc_get_version tmp = _API_cwipc_realsense2_prober_standard_path.cwipc_get_version_realsense2;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: loaded cwipc_realsense2 from {_API_cwipc_realsense2_prober_standard_path.myDllName} at 0x{tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: loaded cwipc_get_version_realsense2 from {_API_cwipc_realsense2_prober_standard_path.myDllName} at 0x{tmp2:X}");
             }
             catch (System.DllNotFoundException)
             {
                 // xxxjack removed: if (!required) return;
-                UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: could not load cwipc_realsense2 from {_API_cwipc_realsense2_prober_standard_path.myDllName}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: could not load cwipc_get_version_realsense2 from {_API_cwipc_realsense2_prober_standard_path.myDllName}");
                 // Let's try and load from the silicon path.
                 try
                 {
-                    delegate_cwipc_realsense2 tmp = _API_cwipc_realsense2_prober_silicon.cwipc_realsense2;
+                    delegate_cwipc_get_version tmp = _API_cwipc_realsense2_prober_silicon.cwipc_get_version_realsense2;
                     IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                    UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: loaded cwipc_realsense2 from {_API_cwipc_realsense2_prober_silicon.myDllName} at 0x{tmp2:X}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: loaded cwipc_get_version_realsense2 from {_API_cwipc_realsense2_prober_silicon.myDllName} at 0x{tmp2:X}");
                 }
                 catch (System.DllNotFoundException)
                 {
                     // Apparently we are not running on Silicon Mac.
-                    UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: could not load cwipc_realsense2 from {_API_cwipc_realsense2_prober_silicon.myDllName}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: could not load cwipc_get_version_realsense2 from {_API_cwipc_realsense2_prober_silicon.myDllName}");
                 }
             }
             // We should now have loaded a working version of cwipc_realsense2. On Mac, the dll name used in the "normal" _API_cwipc_realsense2
@@ -1642,9 +1701,9 @@ namespace Cwipc
 #if UNITY_EDITOR || UNITY_STANDALONE
             try
             {
-                delegate_cwipc_realsense2 tmp = _API_cwipc_realsense2.cwipc_realsense2;
+                delegate_cwipc_get_version tmp = _API_cwipc_realsense2.cwipc_get_version_realsense2;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: loaded cwipc_realsense2 from {_API_cwipc_realsense2.myDllName} at 0x{tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_realsense2: loaded cwipc_get_version_realsense2 from {_API_cwipc_realsense2.myDllName} at 0x{tmp2:X}");
             }
             catch (System.TypeLoadException e)
             {
@@ -1669,25 +1728,25 @@ namespace Cwipc
             // It will most likely not work for a Silicon Unity (because /opt/homebrew/lib is not on the search path).
             try
             {
-                delegate_cwipc_kinect tmp = _API_cwipc_kinect_prober_standard_path.cwipc_kinect;
+                delegate_cwipc_get_version tmp = _API_cwipc_kinect_prober_standard_path.cwipc_get_version_kinect;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: loaded cwipc_kinect from {_API_cwipc_kinect_prober_standard_path.myDllName} at 0x{tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: loaded cwipc_get_version_kinect from {_API_cwipc_kinect_prober_standard_path.myDllName} at 0x{tmp2:X}");
             }
             catch (System.DllNotFoundException)
             {
                 if (!required) return;
-                UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: could not load cwipc_kinect from {_API_cwipc_kinect_prober_standard_path.myDllName}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: could not load cwipc_get_version_kinect from {_API_cwipc_kinect_prober_standard_path.myDllName}");
                 // Let's try and load from the silicon path.
                 try
                 {
-                    delegate_cwipc_kinect tmp = _API_cwipc_kinect_prober_silicon.cwipc_kinect;
+                    delegate_cwipc_get_version tmp = _API_cwipc_kinect_prober_silicon.cwipc_get_version_kinect;
                     IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                    UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: loaded cwipc_kinect from {_API_cwipc_kinect_prober_silicon.myDllName} at 0x{tmp2:X}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: loaded cwipc_get_version_kinect from {_API_cwipc_kinect_prober_silicon.myDllName} at 0x{tmp2:X}");
                 }
                 catch (System.DllNotFoundException)
                 {
                     // Apparently we are not running on Silicon Mac.
-                    UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: could not load cwipc_kinect from {_API_cwipc_kinect_prober_silicon.myDllName}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: could not load cwipc_get_version_kinect from {_API_cwipc_kinect_prober_silicon.myDllName}");
                 }
             }
             // We should now have loaded a working version of cwipc_kinect. On Mac, the dll name used in the "normal" _API_cwipc_kinect
@@ -1699,15 +1758,72 @@ namespace Cwipc
 #if UNITY_EDITOR || UNITY_STANDALONE
             try
             {
-                delegate_cwipc_kinect tmp = _API_cwipc_kinect.cwipc_kinect;
+                delegate_cwipc_get_version tmp = _API_cwipc_kinect.cwipc_get_version_kinect;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: loaded cwipc_kinect from {_API_cwipc_kinect.myDllName} at 0x{tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_kinect: loaded cwipc_get_version_kinect from {_API_cwipc_kinect.myDllName} at 0x{tmp2:X}");
             }
             catch (System.TypeLoadException e)
             {
                 if (!required) return;
                 UnityEngine.Debug.Log($"cwipc: cannot load cwipc_kinect DLL.");
                 UnityEngine.Debug.Log($"cwipc: Exception while loading cwipc_kinect: {e.ToString()}");
+                throw new CwipcException("cwipc: Native DLLs not installed correctly. See https://github.com/cwi-dis/cwipc for instructions on installing the native cwipc package.");
+            }
+#endif
+        }
+        
+        static bool cwipc_orbbec_load_attempted = false;
+
+        private static void _load_cwipc_orbbec(bool required=true)
+        {
+            if (cwipc_orbbec_load_attempted) return;
+            cwipc_orbbec_load_attempted = required;
+
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            // We first try to load the cwipc_orbbec library fomr the standard DYLIB search path. This will
+            // work on Intel macs or under Rosetta (because /usr/local/lib is on the dylib search path.
+            // It will most likely not work for a Silicon Unity (because /opt/homebrew/lib is not on the search path).
+            try
+            {
+                delegate_cwipc_get_version tmp = _API_cwipc_orbbec_prober_standard_path.cwipc_get_version_orbbec;
+                IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_orbbec: loaded cwipc_get_version_orbbec from {_API_cwipc_orbbec_prober_standard_path.myDllName} at 0x{tmp2:X}");
+            }
+            catch (System.DllNotFoundException)
+            {
+                if (!required) return;
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_orbbec: could not load cwipc_get_version_orbbec from {_API_cwipc_orbbec_prober_standard_path.myDllName}");
+                // Let's try and load from the silicon path.
+                try
+                {
+                    delegate_cwipc_get_version tmp = _API_cwipc_orbbec_prober_silicon.cwipc_get_version_orbbec;
+                    IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_orbbec: loaded cwipc_get_version_orbbec from {_API_cwipc_orbbec_prober_silicon.myDllName} at 0x{tmp2:X}");
+                }
+                catch (System.DllNotFoundException)
+                {
+                    // Apparently we are not running on Silicon Mac.
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_orbbec: could not load cwipc_get_version_orbbec from {_API_cwipc_orbbec_prober_silicon.myDllName}");
+                }
+            }
+            // We should now have loaded a working version of cwipc_orbbec. On Mac, the dll name used in the "normal" _API_cwipc_orbbec
+            // is __Internal which causes DllImport to look for symbols that have already been loaded into this process.
+            //
+            // So we now continue with code that is used on all platforms.
+
+#endif
+#if UNITY_EDITOR || UNITY_STANDALONE
+            try
+            {
+                delegate_cwipc_get_version tmp = _API_cwipc_orbbec.cwipc_get_version_orbbec;
+                IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_orbbec: loaded cwipc_get_version_orbbec from {_API_cwipc_orbbec.myDllName} at 0x{tmp2:X}");
+            }
+            catch (System.TypeLoadException e)
+            {
+                if (!required) return;
+                UnityEngine.Debug.Log($"cwipc: cannot load cwipc_orbbec DLL.");
+                UnityEngine.Debug.Log($"cwipc: Exception while loading cwipc_orbbec: {e.ToString()}");
                 throw new CwipcException("cwipc: Native DLLs not installed correctly. See https://github.com/cwi-dis/cwipc for instructions on installing the native cwipc package.");
             }
 #endif
@@ -1726,24 +1842,24 @@ namespace Cwipc
             // It will most likely not work for a Silicon Unity (because /opt/homebrew/lib is not on the search path).
             try
             {
-                delegate_cwipc_new_decoder tmp = _API_cwipc_codec_prober_standard_path.cwipc_new_decoder;
+                delegate_cwipc_get_version tmp = _API_cwipc_codec_prober_standard_path.cwipc_get_version_codec;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: loaded cwipc_new_decoder from {_API_cwipc_codec_prober_standard_path.myDllName} at 0x{tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: loaded cwipc_get_version_codec from {_API_cwipc_codec_prober_standard_path.myDllName} at 0x{tmp2:X}");
             }
             catch (System.DllNotFoundException)
             {
-                UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: could not load cwipc_new_decoder from {_API_cwipc_codec_prober_standard_path.myDllName}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: could not load cwipc_get_version_codec from {_API_cwipc_codec_prober_standard_path.myDllName}");
                 // Let's try and load from the silicon path.
                 try
                 {
-                    delegate_cwipc_new_decoder tmp = _API_cwipc_codec_prober_silicon.cwipc_new_decoder;
+                    delegate_cwipc_get_version tmp = _API_cwipc_codec_prober_silicon.cwipc_get_version_codec;
                     IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                    UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: loaded cwipc_new_decoder from {_API_cwipc_codec_prober_silicon.myDllName} at 0x{tmp2:X}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: loaded cwipc_get_version_codec from {_API_cwipc_codec_prober_silicon.myDllName} at 0x{tmp2:X}");
                 }
                 catch (System.DllNotFoundException)
                 {
                     // Apparently we are not running on Silicon Mac.
-                    UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: could not load cwipc_new_decoder from {_API_cwipc_codec_prober_silicon.myDllName}");
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: could not load cwipc_get_version_codec from {_API_cwipc_codec_prober_silicon.myDllName}");
                 }
             }
             // We should now have loaded a working version of cwipc_codec. On Mac, the dll name used in the "normal" _API_cwipc_codec
@@ -1755,9 +1871,9 @@ namespace Cwipc
 #if UNITY_EDITOR || UNITY_STANDALONE
             try
             {
-                delegate_cwipc_new_decoder tmp = _API_cwipc_codec.cwipc_new_decoder;
+                delegate_cwipc_get_version tmp = _API_cwipc_codec.cwipc_get_version_codec;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
-                UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: loaded cwipc_new_decoder from {_API_cwipc_codec.myDllName} at 0x{tmp2:X}");
+                UnityEngine.Debug.Log($"cwipc._load_cwipc_codec: loaded cwipc_get_version_codec from {_API_cwipc_codec.myDllName} at 0x{tmp2:X}");
             }
             catch (System.TypeLoadException e)
             {
