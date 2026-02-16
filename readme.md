@@ -13,6 +13,10 @@ If you want to **develop** on the package (i.e. modify it) you should check out 
 
 Some of the samples in `cwipc_unity_develop` (specifically the prerecorded point cloud playback samples) use data from <https://github.com/cwi-dis/cwipc-test>, which should be cloned at the same directory level where `cwipc_unity` has been cloned. Or you can fix the pathnames or use different content.
 
+> *Note*: At the moment `cwipc-test` is a private repository, due to excessive downloads of the content by AI agents and bots and such, and _we_ have to pay for those downloads. Please complain to github.
+>
+>  In the mean time contact us (for example through an issue) and we will add you as a collaborator on the repo.
+
 ### Note for Windows users
 
 Before you check out this repository you should ensure that symbolic links are enabled on your Windows machine (they are not enabled by default) and that `git` knows this.
