@@ -51,7 +51,7 @@ namespace Cwipc
 #if VRT_WITH_STATS
                 Statistics.Output(Name(), "skeleton=1");
 #endif
-                bool result = reader.request_auxiliary_data("skeleton");
+                bool result = reader.request_metadata("skeleton");
                 if (!result) throw new System.Exception($"{Name()}: cwipc_kinect skeleton tracker could not be initialized");
                 Debug.Log($"{Name()}: Requested Skeletons.");
             }
@@ -61,7 +61,7 @@ namespace Cwipc
         {
             if (wantSkeleton)
             {
-                cwipc.cwipc_auxiliary_data pc_aux_data = pc.access_auxiliary_data();
+                cwipc.cwipc_metadata pc_aux_data = pc.access_metadata();
                 int n_auxdata = pc_aux_data.count();
                 //Debug.Log($"xxxnacho pc has {n_auxdata} auxdata elements. timestamp={pc.timestamp()}");
                 if (n_auxdata > 0)
