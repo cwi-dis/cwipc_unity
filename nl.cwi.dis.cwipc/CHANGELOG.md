@@ -1,5 +1,9 @@
 # Changelog
 
+## [unreleased]
+
+- Preparing for cwipc v8.0
+
 ## [7.7.6] - 2025-12-07
 
 - Minor change in logging output to make debugging easier.
