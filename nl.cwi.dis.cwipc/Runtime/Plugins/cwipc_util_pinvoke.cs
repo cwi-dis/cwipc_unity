@@ -113,8 +113,21 @@ namespace Cwipc
 #endif        
             public const ulong CWIPC_API_VERSION = 0x20260129;
 
+            public delegate void LogCallbackType(int level, [MarshalAs(UnmanagedType.LPStr)] string message);
+
+            public enum LogLevel
+            {
+                NONE=0,
+                ERROR=1,
+                WARNING=2,
+                TRACE=3,
+                DEBUG=4,
+            }
+
             [DllImport(myDllName)]
             internal extern static IntPtr cwipc_get_version();
+            [DllImport(myDllName)]
+            internal extern static void cwipc_log_configure(int level, LogCallbackType callback);
             [DllImport(myDllName)]
             internal extern static IntPtr cwipc_read([MarshalAs(UnmanagedType.LPStr)] string filename, Timestamp timestamp, ref IntPtr errorMessage, ulong apiVersion = CWIPC_API_VERSION);
             [DllImport(myDllName)]
@@ -1603,6 +1616,34 @@ namespace Cwipc
 #endif
         private delegate IntPtr delegate_cwipc_get_version();
 
+        private static bool logger_installed = false;
+
+        private static void _logger_callback(int level, string message)
+        {
+            switch ((_API_cwipc_util.LogLevel)level)
+            {
+                case _API_cwipc_util.LogLevel.ERROR:
+                    Debug.LogError($"cwipc: {message}");
+                    break;
+                case _API_cwipc_util.LogLevel.WARNING:
+                    Debug.LogWarning($"cwipc: {message}");
+                    break;
+                case _API_cwipc_util.LogLevel.DEBUG:
+                case _API_cwipc_util.LogLevel.TRACE:
+                    Debug.Log($"cwipc: {message}");
+                    break;
+                default:
+                    Debug.LogError($"cwipc: level {level}: {message}");
+                    break;
+            }
+        }
+        
+        private static void _install_logger()
+        {
+            if (logger_installed) return;
+            _API_cwipc_util.cwipc_log_configure(4, _logger_callback);
+        }
+
         static bool cwipc_util_load_attempted = false;
 
         private static void _load_cwipc_util()
@@ -1656,6 +1697,7 @@ namespace Cwipc
                 throw new CwipcException("cwipc: Native DLLs not installed correctly. See https://github.com/cwi-dis/cwipc for instructions on installing the native cwipc package.");
             }
 #endif
+            _install_logger();
         }
 
         static bool cwipc_realsense2_load_attempted = false;
