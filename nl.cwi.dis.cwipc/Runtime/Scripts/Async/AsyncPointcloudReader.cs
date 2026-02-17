@@ -79,6 +79,9 @@ namespace Cwipc
         public override void Stop()
         {
             base.Stop();
+            reader.stop();
+            reader.free();
+            reader = null;
             if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
             if (out2Queue != null && !out2Queue.IsClosed()) out2Queue.Close();
             lock (this)
