@@ -193,6 +193,10 @@ namespace Cwipc
             [DllImport(myDllName)]
             internal extern static bool cwipc_activesource_seek(IntPtr src, Timestamp timestamp);
             [DllImport(myDllName)]
+            internal extern static bool cwipc_activesource_start(IntPtr src);
+            [DllImport(myDllName)]
+            internal extern static void cwipc_activesource_stop(IntPtr src);
+            [DllImport(myDllName)]
             internal extern static int cwipc_activesource_maxtile(IntPtr src);
             [DllImport(myDllName)]
             internal extern static bool cwipc_activesource_get_tileinfo(IntPtr src, int tileNum, [Out] out tileinfo _tileinfo);
@@ -704,6 +708,70 @@ namespace Cwipc
                 _API_cwipc_util.cwipc_source_free(pointer);
             }
 
+            /// <summary>
+            /// Load configuration. Can be a filename (pointing to a cameraconfig.json file), a
+            /// JSON string or "auto".
+            /// </summary>
+            /// <param name="configFile"></param>
+            /// <returns>success indicator</returns>
+            /// <exception cref="CwipcException"></exception>
+            public bool reload_config(string configFile)
+            {
+                if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.source.reload_config called with NULL pointer argument");
+                bool rv = _API_cwipc_util.cwipc_activesource_reload_config(pointer, configFile);
+                return rv;
+            }
+
+            /// <summary>
+            /// Returns activesource JSON configuration.
+            /// </summary>
+            /// <returns>The configuration</returns>
+            /// <exception cref="CwipcException"></exception>
+            public string get_config()
+            {
+                if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.source.get_config called with NULL pointer argument");
+                IntPtr size_wanted = _API_cwipc_util.cwipc_activesource_get_config(pointer, IntPtr.Zero, IntPtr.Zero);
+                IntPtr buffer = Marshal.AllocHGlobal((int)size_wanted);
+                IntPtr size_gotten = _API_cwipc_util.cwipc_activesource_get_config(pointer, buffer, size_wanted);
+                if (size_gotten != size_wanted) throw new CwipcException("cwipc.source.get_config returned unexpected size");
+                var rv = Marshal.PtrToStringAnsi(buffer);
+                Marshal.FreeHGlobal(buffer);
+                return rv;
+            }
+
+            /// <summary>
+            /// Seek the a specific timestamp, if the source supports it.
+            /// </summary>
+            /// <param name="timestamp"></param>
+            /// <returns>Success indicator</returns>
+            /// <exception cref="CwipcException"></exception>
+            public bool seek(int timestamp)
+            {
+                if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.source.seek called with NULL pointer argument");
+                return _API_cwipc_util.cwipc_activesource_seek(pointer, timestamp);
+            }
+
+            /// <summary>
+            /// Start the source.
+            /// </summary>
+            /// <returns></returns>
+            /// <exception cref="CwipcException"></exception>
+            public bool start()
+            {
+                if (pointer == IntPtr.Zero) throw new CwipcException("cwipc.source.start called with NULL pointer argument");
+                return _API_cwipc_util.cwipc_activesource_start(pointer);
+            }
+
+            /// <summary>
+            /// Stops the source.
+            /// </summary>
+            /// <exception cref="CwipcException"></exception>
+            public void stop()
+            {
+                if(pointer == IntPtr.Zero) throw new CwipcException("cwipc.source.stop called with NULL pointer argument");
+                _API_cwipc_util.cwipc_activesource_stop(pointer);
+            }
+            
             /// <summary>
             /// Obtain a new pointcloud.
             /// This is a non-blocking call, it will not wait for a pointcloud to become available.
