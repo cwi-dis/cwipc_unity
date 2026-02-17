@@ -9,7 +9,7 @@ namespace Cwipc
     public class KinectPointCloudReader : AbstractPointCloudSource
     {
         [Header("Kinect reader specific fields")]
-        [Tooltip("Filename of cameraconfig.xml file")]
+        [Tooltip("Filename of cameraconfig.json file")]
         public string configFileName;
        
         override public void _AllocateReader()

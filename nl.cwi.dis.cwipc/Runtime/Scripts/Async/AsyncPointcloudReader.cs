@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Transactions;
 using UnityEngine;
 #if VRT_WITH_STATS
 using Statistics = Cwipc.Statistics;
@@ -31,6 +32,15 @@ namespace Cwipc
 #endif
         }
 
+        protected override void Start()
+        {
+            var ok = reader.start();
+            if (!ok)
+            {
+                Debug.LogError($"{Name()}: cannot start point cloud reader");
+            }
+            base.Start();
+        }
 
         public virtual PointCloudTileDescription[] getTiles()
         {

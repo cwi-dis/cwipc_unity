@@ -19,6 +19,7 @@ namespace Cwipc
             {
                 throw new System.Exception($"{Name()}: cwipc_capturer could not be created, but no CwipcException raised?"); // Should not happen, should throw exception
             }
+            
             Start();
             Debug.Log("{Name()}: Started.");
 

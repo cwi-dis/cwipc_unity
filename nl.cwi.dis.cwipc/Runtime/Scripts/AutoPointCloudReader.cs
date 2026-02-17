@@ -9,7 +9,7 @@ namespace Cwipc
     public class AutoPointCloudReader : AbstractPointCloudSource
     {
         [Header("Generic capturerer specific fields")]
-        [Tooltip("Filename of cameraconfig.xml file")]
+        [Tooltip("Filename of cameraconfig.json file")]
         public string configFileName;
        
         override public void _AllocateReader()
