@@ -385,7 +385,7 @@ namespace Cwipc
         {
             try
             {
-                delegate_cwipc_synthetic tmp = _API_cwipc_util.cwipc_get_version;
+                delegate_cwipc_get_version tmp = _API_cwipc_util.cwipc_get_version;
                 IntPtr tmp2 = Marshal.GetFunctionPointerForDelegate(tmp);
                 UnityEngine.Debug.Log($"GetCwipcDLLDirectory: loaded cwipc_get_version from {_API_cwipc_util.myDllName} at 0x{tmp2:X}");
             }
@@ -1146,7 +1146,7 @@ namespace Cwipc
         /// For details on the configuration file, how to create it and how to calibrate the fusion of multiple cameras
         /// please see the documentation at <see href="http://github.com/cwi-dis/cwipc"/>
         /// </summary>
-        /// <param name="filename">The <c>cameraconfig.xml</c> configuration file.</param>
+        /// <param name="filename">The <c>cameraconfig.json</c> configuration file.</param>
         /// <returns>the pointcloud source</returns>
         public static source realsense2(string filename)
         {
@@ -1178,7 +1178,7 @@ namespace Cwipc
         /// For details on the configuration file, how to create it and how to calibrate the fusion of multiple cameras
         /// please see the documentation at <see href="http://github.com/cwi-dis/cwipc"/>
         /// </summary>
-        /// <param name="filename">The <c>cameraconfig.xml</c> configuration file.</param>
+        /// <param name="filename">The <c>cameraconfig.json</c> configuration file.</param>
         /// <returns></returns>
         public static source kinect(string filename)
         {
@@ -1210,7 +1210,7 @@ namespace Cwipc
         /// For details on the configuration file, how to create it and how to calibrate the fusion of multiple cameras
         /// please see the documentation at <see href="http://github.com/cwi-dis/cwipc"/>
         /// </summary>
-        /// <param name="filename">The <c>cameraconfig.xml</c> configuration file.</param>
+        /// <param name="filename">The <c>cameraconfig.json</c> configuration file.</param>
         /// <returns></returns>
         public static source orbbec(string filename)
         {
@@ -1686,30 +1686,50 @@ namespace Cwipc
 
         private static bool logger_installed = false;
 
-        private static void _logger_callback(int level, string message)
+        public class LoggerKeeper
         {
-            switch ((_API_cwipc_util.LogLevel)level)
+            public LoggerKeeper()
             {
-                case _API_cwipc_util.LogLevel.ERROR:
-                    Debug.LogError($"cwipc: {message}");
-                    break;
-                case _API_cwipc_util.LogLevel.WARNING:
-                    Debug.LogWarning($"cwipc: {message}");
-                    break;
-                case _API_cwipc_util.LogLevel.DEBUG:
-                case _API_cwipc_util.LogLevel.TRACE:
-                    Debug.Log($"cwipc: {message}");
-                    break;
-                default:
-                    Debug.LogError($"cwipc: level {level}: {message}");
-                    break;
+                Debug.Log("xxxjack LoggerKeeper()");
+                _API_cwipc_util.cwipc_log_configure(4, _logger_callback);
             }
+
+            ~LoggerKeeper()
+            {
+                Debug.Log("xxxjack LoggerKeeper destructor()");
+                _API_cwipc_util.cwipc_log_configure(4, null);
+            }
+            
+            private static void _logger_callback(int level, string message)
+            {
+                switch ((_API_cwipc_util.LogLevel)level)
+                {
+                    case _API_cwipc_util.LogLevel.ERROR:
+                        Debug.LogError($"cwipc: {message}");
+                        break;
+                    case _API_cwipc_util.LogLevel.WARNING:
+                        Debug.LogWarning($"cwipc: {message}");
+                        break;
+                    case _API_cwipc_util.LogLevel.DEBUG:
+                    case _API_cwipc_util.LogLevel.TRACE:
+                        Debug.Log($"cwipc: {message}");
+                        break;
+                    default:
+                        Debug.LogError($"cwipc: level {level}: {message}");
+                        break;
+                }
+            }  
         }
+
+        private static LoggerKeeper logger_keeper;
         
         private static void _install_logger()
         {
-            if (logger_installed) return;
-            _API_cwipc_util.cwipc_log_configure(4, _logger_callback);
+            Debug.Log("xxxjack _install_logger called");
+            if (logger_keeper == null)
+            {
+                logger_keeper = new LoggerKeeper();
+            }
         }
 
         static bool cwipc_util_load_attempted = false;
@@ -1772,6 +1792,7 @@ namespace Cwipc
 
         private static void _load_cwipc_realsense2(bool required=true)
         {
+            _load_cwipc_util();
             if (cwipc_realsense2_load_attempted) return;
             cwipc_realsense2_load_attempted = required;
 
@@ -1829,6 +1850,7 @@ namespace Cwipc
 
         private static void _load_cwipc_kinect(bool required=true)
         {
+            _load_cwipc_util();
             if (cwipc_kinect_load_attempted) return;
             cwipc_kinect_load_attempted = required;
 
@@ -1886,6 +1908,7 @@ namespace Cwipc
 
         private static void _load_cwipc_orbbec(bool required=true)
         {
+            _load_cwipc_util();
             if (cwipc_orbbec_load_attempted) return;
             cwipc_orbbec_load_attempted = required;
 
