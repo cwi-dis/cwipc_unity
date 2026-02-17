@@ -66,19 +66,22 @@ namespace Cwipc
 
         public void Start()
         {
-            if (reader == null)
-            {
-                _AllocateReader();
-            }
-            else
+            if (reader != null)
             {
                 Debug.LogWarning("${Name()}: Start called twice");
+                return;
+            }
+            _AllocateReader();
+            bool ok = reader.start();
+            if (!ok)
+            {
+                Debug.LogWarning($"{Name()}: Failed to start reader");
             }
         }
-
        
         public void Stop()
         {
+            reader?.stop();
             reader?.free();
             reader = null;
 #if CWIPC_WITH_LOGGING
@@ -99,7 +102,11 @@ namespace Cwipc
                     return;
                 }
             }
-           
+
+            if (!reader.available(false))
+            {
+                return;
+            } 
             cwipc.pointcloud pc = reader.get();
             if (pc == null)
             {
