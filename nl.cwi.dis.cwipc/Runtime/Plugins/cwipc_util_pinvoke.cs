@@ -1139,7 +1139,7 @@ namespace Cwipc
             }
             return new source(rdr);
         }
-
+#if WITH_CWIPC_REALSENSE2
         /// <summary>
         /// Produce pointclouds from one or more Intel RealSense2 cameras.
         ///
@@ -1171,7 +1171,8 @@ namespace Cwipc
             }
             return new source(rdr);
         }
-
+#endif
+#if WITH_CWIPC_KINECT
         /// <summary>
         /// Produce pointclouds from one or more Microsoft Azure Kinect cameras.
         ///
@@ -1203,7 +1204,8 @@ namespace Cwipc
             }
             return new source(rdr);
         }
-        
+#endif
+#if WITH_CWIPC_ORBBEC
         /// <summary>
         /// Produce pointclouds from one or more Microsoft Azure Kinect cameras.
         ///
@@ -1235,7 +1237,7 @@ namespace Cwipc
             }
             return new source(rdr);
         }
-
+#endif
         /// <summary>
         /// Create a pointcloud decoder for the MPEG Anchor pointcloud codec.
         /// </summary>

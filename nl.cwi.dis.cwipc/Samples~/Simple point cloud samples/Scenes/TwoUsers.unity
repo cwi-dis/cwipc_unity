@@ -446,7 +446,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6953373715795954398, guid: d3e7c86ccc6324b40b67f231efc64bc0, type: 3}
       propertyPath: sourceType
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6953373715795954398, guid: d3e7c86ccc6324b40b67f231efc64bc0, type: 3}
       propertyPath: configFileName

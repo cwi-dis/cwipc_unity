@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace Cwipc
 {
-    public class AsyncAutoReader : AsyncPointCloudReader
+    public class AsyncCameraReader : AsyncPointCloudReader
     {
 
-        public AsyncAutoReader(string _configFilename, float _voxelSize, float _frameRate, QueueThreadSafe _outQueue, QueueThreadSafe _out2Queue = null) : base(_outQueue, _out2Queue)
+        public AsyncCameraReader(string _configFilename, float _voxelSize, float _frameRate, QueueThreadSafe _outQueue, QueueThreadSafe _out2Queue = null) : base(_outQueue, _out2Queue)
         {
             voxelSize = _voxelSize;
             if (_frameRate > 0)

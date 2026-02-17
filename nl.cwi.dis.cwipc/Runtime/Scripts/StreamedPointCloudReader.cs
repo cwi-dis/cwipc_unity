@@ -99,6 +99,7 @@ namespace Cwipc
             {
                 byteArray.Dispose();
             }
+            base.OnDestroy();
         }
 
         public override int GetComputeBuffer(ref ComputeBuffer computeBuffer)

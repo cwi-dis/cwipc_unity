@@ -16,9 +16,7 @@ namespace Cwipc
         public enum SourceType
         {
             Synthetic,
-            Auto,
-            Realsense,
-            Kinect,
+            Camera,
             Prerecorded,
             Networked,
             // The following shouldn't be used as capturer
@@ -42,7 +40,7 @@ namespace Cwipc
         [Tooltip("Number of points per cloud")]
         [SerializeField] protected int Synthetic_NPoints = 8000;
 
-        [Header("Source type: Realsense/Kinect/Auto settings")]
+        [Header("Source type: Camera settings")]
         [Tooltip("Camera configuration filename")]
         [SerializeField] protected string configFileName;
         [Tooltip("If non-zero: voxelize captured pointclouds to this cellsize")]
@@ -181,14 +179,8 @@ namespace Cwipc
                 case SourceType.Synthetic:
                     PCcapturer = new AsyncSyntheticReader(framerate, Synthetic_NPoints, ReaderRenderQueue, ReaderEncoderQueue);
                     break;
-                case SourceType.Auto:
-                    PCcapturer = new AsyncAutoReader(configFileName, voxelSize, framerate, ReaderRenderQueue, ReaderEncoderQueue);
-                    break;
-                case SourceType.Realsense:
-                    PCcapturer = new AsyncRealsenseReader(configFileName, voxelSize, framerate, ReaderRenderQueue, ReaderEncoderQueue);
-                    break;
-                case SourceType.Kinect:
-                    PCcapturer = new AsyncKinectReader(configFileName, voxelSize, framerate, ReaderRenderQueue, ReaderEncoderQueue);
+                case SourceType.Camera:
+                    PCcapturer = new AsyncCameraReader(configFileName, voxelSize, framerate, ReaderRenderQueue, ReaderEncoderQueue);
                     break;
                 case SourceType.Prerecorded:
                     //PCreceiver = new AsyncPrerecordedReader(directoryPath, voxelSize, framerate, ReaderOutputQueue, ReaderEncoderQueue);
