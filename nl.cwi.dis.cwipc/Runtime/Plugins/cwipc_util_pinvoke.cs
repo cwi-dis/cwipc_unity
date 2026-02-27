@@ -32,6 +32,17 @@ namespace Cwipc
     public class cwipc
     {
         /// <summary>
+        /// Logging level.
+        /// </summary>
+        public enum LogLevel
+        {
+            NONE=0,
+            ERROR=1,
+            WARNING=2,
+            TRACE=3,
+            DEBUG=4,
+        }
+        /// <summary>
         /// Structure describing a point within a point cloud.
         /// Note that unpacking a cwipc.pointcloud to a vector of points is a very
         /// expensive operation.
@@ -115,14 +126,6 @@ namespace Cwipc
 
             public delegate void LogCallbackType(int level, [MarshalAs(UnmanagedType.LPStr)] string message);
 
-            public enum LogLevel
-            {
-                NONE=0,
-                ERROR=1,
-                WARNING=2,
-                TRACE=3,
-                DEBUG=4,
-            }
 
             [DllImport(myDllName)]
             internal extern static IntPtr cwipc_get_version();
@@ -1685,35 +1688,38 @@ namespace Cwipc
 
 #endif
         private delegate IntPtr delegate_cwipc_get_version();
-
-        private static bool logger_installed = false;
-
+        
         public class LoggerKeeper
         {
             public LoggerKeeper()
             {
                 Debug.Log("xxxjack LoggerKeeper()");
-                _API_cwipc_util.cwipc_log_configure(4, _logger_callback);
+                install_logger(LogLevel.WARNING);
+            }
+            
+            public void install_logger(LogLevel level) {
+                Debug.Log($"xxxjack loggerKeeper.install_logger: {level}");
+                _API_cwipc_util.cwipc_log_configure((int)level, _logger_callback);
             }
 
             ~LoggerKeeper()
             {
                 Debug.Log("xxxjack LoggerKeeper destructor()");
-                _API_cwipc_util.cwipc_log_configure(4, null);
+                _API_cwipc_util.cwipc_log_configure((int)LogLevel.WARNING, null);
             }
             
             private static void _logger_callback(int level, string message)
             {
-                switch ((_API_cwipc_util.LogLevel)level)
+                switch ((LogLevel)level)
                 {
-                    case _API_cwipc_util.LogLevel.ERROR:
+                    case LogLevel.ERROR:
                         Debug.LogError($"cwipc: {message}");
                         break;
-                    case _API_cwipc_util.LogLevel.WARNING:
+                    case LogLevel.WARNING:
                         Debug.LogWarning($"cwipc: {message}");
                         break;
-                    case _API_cwipc_util.LogLevel.DEBUG:
-                    case _API_cwipc_util.LogLevel.TRACE:
+                    case LogLevel.DEBUG:
+                    case LogLevel.TRACE:
                         Debug.Log($"cwipc: {message}");
                         break;
                     default:
@@ -1725,13 +1731,15 @@ namespace Cwipc
 
         private static LoggerKeeper logger_keeper;
         
-        private static void _install_logger()
+        public static void install_logger(LogLevel level=LogLevel.WARNING)
         {
             Debug.Log("xxxjack _install_logger called");
+            _load_cwipc_util();
             if (logger_keeper == null)
             {
                 logger_keeper = new LoggerKeeper();
             }
+            logger_keeper.install_logger(level);
         }
 
         static bool cwipc_util_load_attempted = false;
@@ -1787,7 +1795,7 @@ namespace Cwipc
                 throw new CwipcException("cwipc: Native DLLs not installed correctly. See https://github.com/cwi-dis/cwipc for instructions on installing the native cwipc package.");
             }
 #endif
-            _install_logger();
+            install_logger();
         }
 
         static bool cwipc_realsense2_load_attempted = false;
