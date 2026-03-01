@@ -444,6 +444,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   logLevel: 4
+  overrideFromConfiguration: 0
 --- !u!4 &2064135918
 Transform:
   m_ObjectHideFlags: 0

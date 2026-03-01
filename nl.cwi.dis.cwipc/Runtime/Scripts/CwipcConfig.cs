@@ -10,6 +10,10 @@ namespace Cwipc
     public class CwipcConfig
     {
         /// <summary>
+        /// Log level for cwipc. ERROR=1, WARNING=2, TRACE=3, DEBUG=4.
+        /// </summary>
+        public int logLevel = (int)cwipc.LogLevel.WARNING;
+        /// <summary>
         /// Codec for pointclouds. cwi1 is MPEG Anchor codec, cwi0 is uncompressed
         /// </summary>
         public string Codec = "cwi1";
