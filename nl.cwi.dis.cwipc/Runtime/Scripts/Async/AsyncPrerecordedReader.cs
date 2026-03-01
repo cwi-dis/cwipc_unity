@@ -17,7 +17,6 @@ namespace Cwipc
             {
                 Debug.LogError($"{Name()}: Directory {_dirname} has per-tile pointclouds, incompatible with this reader");
             }
-            Start();
         }
 
         public override void ReportCurrentTimestamp(long curIndex)
