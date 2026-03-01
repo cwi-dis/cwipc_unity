@@ -201,7 +201,7 @@ namespace Cwipc
             {
                 if (!reader.available(false)) return null;
             }
-            return reader.get();
+            return reader?.get();
         }
 
         public Vector3? GetPosition()
