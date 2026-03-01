@@ -60,10 +60,12 @@ namespace Cwipc
             {
                 throw new System.Exception($"{Name()}: from_packet did not return a pointcloud");
             }
+
+            int pointCount = pc.count();
             Timedelta queuedDuration = outQueue.QueuedDuration();
             bool dropped = !outQueue.Enqueue(pc);
 #if VRT_WITH_STATS
-            stats.statsUpdate(pc.count(), dropped, inQueue.QueuedDuration(), decodeDuration, queuedDuration);
+            stats.statsUpdate(pointCount, dropped, inQueue.QueuedDuration(), decodeDuration, queuedDuration);
 #endif
         }
 
