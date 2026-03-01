@@ -649,7 +649,7 @@ MonoBehaviour:
   voxelSize: 0
   defaultCellSize: 0.01
   cellSizeFactor: 1
-  url: tcp://192.16.197.145:8089/
+  url: tcp://virtnuc-dis.spin-off.cwi.nl:8089/
   defaultPointSize: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
