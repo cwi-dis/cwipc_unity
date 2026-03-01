@@ -800,7 +800,7 @@ MonoBehaviour:
   cellSizeFactor: 1
   frameRate: 15
   loopCount: 0
-  _dirName: ../Samples/TestPattern/cwipcdump
+  _dirName: ../../cwipc_test/Samples/TestPattern/cwipcdump
   defaultPointSize: 0
 --- !u!1001 &4860176229106756649
 PrefabInstance:
