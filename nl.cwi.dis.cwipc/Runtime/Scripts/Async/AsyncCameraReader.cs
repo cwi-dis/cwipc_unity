@@ -21,7 +21,7 @@ namespace Cwipc
             }
             
             Start();
-            Debug.Log("{Name()}: Started.");
+            Debug.Log($"{Name()}: Started.");
 
         }
     }
