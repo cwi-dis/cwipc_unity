@@ -1748,7 +1748,22 @@ namespace Cwipc
         {
             if (cwipc_util_load_attempted) return;
             cwipc_util_load_attempted = true;
+            string overrideNativeLoadPath = CwipcConfig.Instance.overrideNativeLoadPath;
+            if (!string.IsNullOrEmpty(overrideNativeLoadPath))
+            {
+                if (!System.IO.Directory.Exists(overrideNativeLoadPath))
+                {
+                    UnityEngine.Debug.LogWarning($"cwipc._load_cwipc_util: overrideNativeLoadPath does not exist: {overrideNativeLoadPath}");
+                }
+                else
+                {
+                    string pathvar = System.Environment.GetEnvironmentVariable("PATH");
+                    System.Environment.SetEnvironmentVariable("PATH", $"{overrideNativeLoadPath};{pathvar}",  EnvironmentVariableTarget.Process);
+                    UnityEngine.Debug.Log($"cwipc._load_cwipc_util: prepended to PATH: {overrideNativeLoadPath}");
+                }
+                
 
+            }
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             // We first try to load the cwipc_util library fomr the standard DYLIB search path. This will
             // work on Intel macs or under Rosetta (because /usr/local/lib is on the dylib search path.
