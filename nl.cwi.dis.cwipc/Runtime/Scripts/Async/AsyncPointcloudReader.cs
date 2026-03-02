@@ -81,9 +81,10 @@ namespace Cwipc
             base.Stop();
             if (reader != null)
             {
-                reader.stop();
-                reader.free();
+                var tmpReader = reader;
                 reader = null;
+                tmpReader.stop();
+                tmpReader.free();
             }
             if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
             if (out2Queue != null && !out2Queue.IsClosed()) out2Queue.Close();
