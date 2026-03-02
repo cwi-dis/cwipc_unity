@@ -151,7 +151,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1937a1c18d8b4bcab507acd605e829f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  logLevel: 4
+  config:
+    logLevel: 2
+    overrideNativeLoadPath: 
+    Codec: cwi1
+    defaultCellSize: 0
+    cellSizeFactor: 0
+    debugColorize: 0
+    timeoutBeforeGhosting: 5
+    decoderQueueSizeOverride: 0
+    preparerQueueSizeOverride: 0
+    encoderParallelism: 0
+    decoderParallelism: 0
 --- !u!4 &6389889
 Transform:
   m_ObjectHideFlags: 0

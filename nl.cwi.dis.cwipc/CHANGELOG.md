@@ -3,6 +3,9 @@
 ## [unreleased]
 
 - Preparing for cwipc v8.0
+- Rationalized the way cwipc native log messages are forwarded to Unity
+- Rationalized the way cwipc configuration parameters can be set
+- Allow overriding cwipc native loader path (enables native debugging)
 
 ## [7.7.6] - 2025-12-07
 

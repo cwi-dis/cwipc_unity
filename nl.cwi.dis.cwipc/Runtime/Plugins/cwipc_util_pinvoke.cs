@@ -1693,18 +1693,15 @@ namespace Cwipc
         {
             public LoggerKeeper()
             {
-                Debug.Log("xxxjack LoggerKeeper()");
-                install_logger(LogLevel.WARNING);
             }
             
             public void install_logger(LogLevel level) {
-                Debug.Log($"xxxjack loggerKeeper.install_logger: {level}");
+                Debug.Log($"cwipc: native logLevel={level}");
                 _API_cwipc_util.cwipc_log_configure((int)level, _logger_callback);
             }
 
             ~LoggerKeeper()
             {
-                Debug.Log("xxxjack LoggerKeeper destructor()");
                 _API_cwipc_util.cwipc_log_configure((int)LogLevel.WARNING, null);
             }
             
@@ -1731,10 +1728,8 @@ namespace Cwipc
 
         private static LoggerKeeper logger_keeper;
         
-        public static void install_logger(LogLevel level=LogLevel.WARNING)
+        public static void _install_logger(LogLevel level=LogLevel.WARNING)
         {
-            Debug.Log("xxxjack _install_logger called");
-            _load_cwipc_util();
             if (logger_keeper == null)
             {
                 logger_keeper = new LoggerKeeper();
@@ -1810,7 +1805,8 @@ namespace Cwipc
                 throw new CwipcException("cwipc: Native DLLs not installed correctly. See https://github.com/cwi-dis/cwipc for instructions on installing the native cwipc package.");
             }
 #endif
-            install_logger();
+            var logLevel = (cwipc.LogLevel)CwipcConfig.Instance.logLevel;
+            _install_logger((cwipc.LogLevel)logLevel);
         }
 
         static bool cwipc_realsense2_load_attempted = false;
