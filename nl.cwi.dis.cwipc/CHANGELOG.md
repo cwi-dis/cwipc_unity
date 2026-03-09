@@ -1,8 +1,8 @@
 # Changelog
 
-## [unreleased]
+## [8.0.0] - 2026-03-09
 
-- Preparing for cwipc v8.0
+- Use native cwipc v8.0 package
 - Rationalized the way cwipc native log messages are forwarded to Unity
 - Rationalized the way cwipc configuration parameters can be set
 - Allow overriding cwipc native loader path (enables native debugging)
