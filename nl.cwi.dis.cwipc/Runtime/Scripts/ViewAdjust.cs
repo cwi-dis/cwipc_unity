@@ -7,10 +7,10 @@ using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.XR;
-using UnityEngine.XR.Interaction.Toolkit;
+
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 
-public class ViewAdjust : LocomotionProvider
+public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.LocomotionProvider
 {
     
 
