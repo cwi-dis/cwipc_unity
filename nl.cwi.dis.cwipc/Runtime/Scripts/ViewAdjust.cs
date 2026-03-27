@@ -101,13 +101,13 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
         optionalHideIndicators();
         Vector2 heightInput = m_ViewHeightAction.action?.ReadValue<Vector2>() ?? Vector2.zero;
         float deltaHeight = heightInput.y * heightFactor;
-        if (deltaHeight != 0 && BeginLocomotion())
+        if (deltaHeight != 0 && TryStartLocomotionImmediately())
         {
             ShowPositionIndicator();
             cameraOffset.transform.position += new Vector3(0, deltaHeight, 0);
             // Note: we don't save height changes. But if you reset view position
             // afterwards we do also save height changes.
-            EndLocomotion();
+            TryEndLocomotion();
         }
         if (m_resetOriginAction != null)
         {
@@ -314,7 +314,7 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
 
         }
 
-        if (BeginLocomotion())
+        if (TryStartLocomotionImmediately())
         {
             Debug.Log("ViewAdjust: ResetOrigin");
             // Rotation of camera relative to the player
@@ -354,7 +354,11 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
                 cameraOffset.transform.position += fudgeVector;
             }
             viewAdjusted.Invoke();
-            EndLocomotion();
+            TryEndLocomotion();
+        }
+        else
+        {
+            Debug.LogWarning($"ViewAdjust: TryStartLocomotionImmediately failed");
         }
         ShowPositionIndicator(stage: "");
         ViewAdjustInProgress = false;
