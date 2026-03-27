@@ -364,13 +364,21 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
     public void HigherView(float deltaHeight = 0.02f)
     {
         ShowPositionIndicator();
-        if (deltaHeight != 0 && BeginLocomotion())
+        if (deltaHeight == 0)
+        {
+            return;
+        }
+        if (TryStartLocomotionImmediately())
         {
             ShowPositionIndicator();
             cameraOffset.transform.position += new Vector3(0, deltaHeight, 0);
             if (debug) Debug.Log($"ViewAdjust: new height={cameraOffset.transform.position.y}");
             viewAdjusted.Invoke();
-            EndLocomotion();
+            TryEndLocomotion();
+        }
+        else
+        {
+            Debug.LogWarning($"ViewAdjust: TryStartLocomotionImmediately failed");
         }
     }
 
