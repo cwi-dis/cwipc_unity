@@ -1,5 +1,10 @@
 # Changelog
 
+## [8.1.0] - 2026-03-27
+
+- Require Unity 6000.3.
+- Require XRI Toolkit 3.3.
+
 ## [8.0.0] - 2026-03-09
 
 - Use native cwipc v8.0 package
