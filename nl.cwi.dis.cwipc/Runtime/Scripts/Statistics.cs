@@ -166,7 +166,7 @@ namespace Cwipc
             lock (lockObj)
             {
                 seq++;
-                string statsLine = $"stats: seq={seq}, ts={System.DateTime.Now.TimeOfDay.TotalSeconds:F3}, component={name}, {s}";
+                string statsLine = string.Format(System.Globalization.CultureInfo.InvariantCulture, "stats: seq={0}, ts={1:F3}, component={2}, {3}", seq, System.DateTime.Now.TimeOfDay.TotalSeconds, name, s);
                 if (statsStream == null)
                 {
                     Debug.Log(statsLine);
