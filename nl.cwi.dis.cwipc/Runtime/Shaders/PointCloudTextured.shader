@@ -22,6 +22,219 @@ Shader "cwipc/PointCloudTextured"{
 		_Cutoff("Alpha cutoff", Range(0,1)) = 0.5
 		_OverridePointSize("Override Point Size", Float) = 0.0
 	}
+	//
+	// There are 4 subshaders in this file. Only one of them will be used, chosen automatically by
+	// Unity: the first one whose "RenderPipeline" tag matches the currently active render pipeline
+	// (a subshader with no "RenderPipeline" tag at all only matches the legacy Built-in pipeline)
+	// and that uses only features supported on the current hardware.
+	//
+	// The two subshaders directly below are the URP versions: one that uses the geometry engine,
+	// and a fallback for hardware/APIs that don't support geometry shaders (e.g. Metal). They are
+	// followed by the pre-existing Built-in-pipeline subshaders (see the comments over there for a
+	// detailed, per-line explanation of what this code does). Each URP subshader is functionally
+	// identical to its Built-in counterpart, just written in a different HLSL dialect
+	// (HLSLPROGRAM/Core.hlsl instead of CGPROGRAM/UnityCG.cginc).
+	//
+	SubShader {
+		// URP version of the subshader that uses the geometry engine.
+		Tags {
+			"RenderPipeline" = "UniversalPipeline"
+			"Queue" = "AlphaTest"
+			"IgnoreProjector" = "True"
+			"RenderType" = "TransparentCutout"
+		}
+		Lighting Off
+		LOD 100
+		Cull Off
+
+		Pass {
+			Name "PointCloudBufferAsTexture"
+			Tags {
+				"LightMode" = "SRPDefaultUnlit"
+			}
+			HLSLPROGRAM
+
+			#pragma target 5.0
+			#pragma vertex Vertex
+			#pragma geometry Geometry
+			#pragma fragment Fragment
+
+			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+
+			half3 PcxDecodeColor(uint data) {
+				half r = (data >> 0) & 0xff;
+				half g = (data >> 8) & 0xff;
+				half b = (data >> 16) & 0xff;
+				return half3(r, g, b) / 255;
+			}
+
+			struct Varyings {
+				float4	position : SV_Position;
+				half4	color : COLOR;
+				half2	uv : TEXCOORD0;
+			};
+
+			half4		_Tint;
+			float4x4	_Transform;
+			half		_PointSize;
+			half		_PointSizeFactor;
+			sampler2D	_MainTex;
+			fixed		_Cutoff;
+			half		_OverridePointSize;
+
+			StructuredBuffer<float4> _PointBuffer;
+
+			Varyings Vertex(uint vid : SV_VertexID) {
+				float4 pt = _PointBuffer[vid];
+				float4 pos = mul(_Transform, float4(pt.xyz, 1));
+				half4  col = half4(PcxDecodeColor(asuint(pt.w)), _Tint.a);
+
+#if UNITY_COLORSPACE_GAMMA
+				col.rgb *= _Tint.rgb * 2;
+#else
+				col.rgb *= LinearToSRGB(_Tint.rgb) * 2;
+				col.rgb = SRGBToLinear(col.rgb);
+#endif
+				Varyings o;
+				o.position = TransformObjectToHClip(pos.xyz);
+				o.color = col;
+				o.uv = half2(0.5, 0.5);
+				return o;
+			}
+
+			[maxvertexcount(4)]
+			void Geometry(point Varyings input[1], inout TriangleStream<Varyings> outStream) {
+				float4 origin = input[0].position;
+				float2 extent = abs(UNITY_MATRIX_P._11_22  * _PointSize * _PointSizeFactor);
+				if (_OverridePointSize != 0) {
+					extent = abs(UNITY_MATRIX_P._11_22 * _OverridePointSize);
+				}
+#if SHADER_API_GLCORE || SHADER_API_METAL
+				extent.x *= -1;
+#endif
+				// Copy the basic information.
+				Varyings o = input[0];
+				o.position.xzw = origin.xzw;
+
+				// Bottom-Left side vertex
+				o.position.x = origin.x + extent.x;
+				o.position.y = origin.y + extent.y;
+				o.uv = half2(1, 1);
+				outStream.Append(o);
+
+				// Up-Left vertex
+				o.position.x = origin.x - extent.x;
+				o.position.y = origin.y + extent.y;
+				o.uv = half2(0, 1);
+				outStream.Append(o);
+
+				// Up-Right side vertex
+				o.position.x = origin.x + extent.x;
+				o.position.y = origin.y - extent.y;
+				o.uv = half2(1, 0);
+				outStream.Append(o);
+
+				// Bottom-Right vertex
+				o.position.x = origin.x - extent.x;
+				o.position.y = origin.y - extent.y;
+				o.uv = half2(0, 0);
+				outStream.Append(o);
+
+				outStream.RestartStrip();
+			}
+
+			half4 Fragment(Varyings input) : SV_Target{
+				half4 c = input.color;
+				half4 tc = tex2D(_MainTex, input.uv);
+				c.a *= tc.a;
+				clip(c.a - _Cutoff);
+				return c;
+			}
+
+			ENDHLSL
+		}
+	}
+
+	SubShader {
+		// URP version of the fallback subshader (no geometry engine, PSIZE-based point sprites).
+		Lighting Off
+		LOD 100
+		Cull Off
+		Blend SrcAlpha OneMinusSrcAlpha
+		Tags {
+			"RenderPipeline" = "UniversalPipeline"
+			"Queue" = "Transparent"
+			"IgnoreProjector" = "True"
+			"RenderType" = "Transparent"
+		}
+
+		Pass {
+			Name "PointCloudBufferAsPoints"
+			Tags {
+				"LightMode" = "SRPDefaultUnlit"
+			}
+			HLSLPROGRAM
+
+			#pragma vertex Vertex
+			#pragma fragment Fragment
+
+			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+
+			half3 PcxDecodeColor(uint data) {
+				half r = (data >> 0) & 0xff;
+				half g = (data >> 8) & 0xff;
+				half b = (data >> 16) & 0xff;
+				return half3(r, g, b) / 255;
+			}
+
+			struct Varyings {
+				float4	position : SV_Position;
+				half4	color : COLOR;
+				half  size : PSIZE;
+			};
+
+			half4		_Tint;
+			float4x4	_Transform;
+			half		_PointSize;
+			half		_PointSizeFactor;
+			half		_OverridePointSize;
+
+			StructuredBuffer<float4> _PointBuffer;
+
+			Varyings Vertex(uint vid : SV_VertexID) {
+				float4 pt = _PointBuffer[vid];
+				float4 pos = mul(_Transform, float4(pt.xyz, 1));
+				half4  col = half4(PcxDecodeColor(asuint(pt.w)), _Tint.a);
+
+#if UNITY_COLORSPACE_GAMMA
+				col.rgb *= _Tint.rgb * 2;
+#else
+				col.rgb *= LinearToSRGB(_Tint.rgb) * 2;
+				col.rgb = SRGBToLinear(col.rgb);
+#endif
+				Varyings o;
+				o.position = TransformObjectToHClip(pos.xyz);
+				o.color = col;
+				if (_OverridePointSize == 0) {
+					float pixelsPerMeter = _ScreenParams.y / o.position.w;
+					o.size = _PointSize * _PointSizeFactor * pixelsPerMeter;
+				}
+				else
+				{
+					o.size = _OverridePointSize;
+				}
+				return o;
+			}
+
+			half4 Fragment(Varyings input) : SV_Target{
+				half4 c = input.color;
+				return c;
+			}
+			ENDHLSL
+		}
+	}
 
 	//
 	// Each shader can consist of a number of subshaders. Only one of the subshaders will be used:
