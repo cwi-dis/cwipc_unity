@@ -30,6 +30,16 @@ git config --local core.symlinks true
 
 (the `--local` command may not be needed in all cases, don't worry if it fails).
 
+### Testing under URP
+
+`cwipc_unity_develop` is set up to test both the Built-in Render Pipeline (BIRP, the project default) and URP without needing a separate project. To switch which one the Editor is using:
+
+- Open `Edit > Project Settings > Quality`.
+- Click the `"URP Test"` card in the Levels list — this immediately makes it the Editor's active quality level (its Render Pipeline Asset is `Assets/Settings/URPSettings.asset`).
+- To switch back to BIRP, click any other level (e.g. `Ultra`) — a level only counts as BIRP if its Render Pipeline Asset is `None`.
+
+This click only changes the live Editor session. To also change what Play mode / a build uses by default on a given platform, set that platform's row in the table below the Levels list to point at `"URP Test"` (or back to the BIRP level).
+
 ### Note for creating a new release
 
 - Update `nl.cwi.dis.cwipc/CHANGELOG.md`

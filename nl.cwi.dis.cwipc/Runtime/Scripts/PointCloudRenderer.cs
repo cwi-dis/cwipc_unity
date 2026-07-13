@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Rendering;
 #if VRT_WITH_STATS
 using Statistics = Cwipc.Statistics;
 #endif
@@ -107,6 +108,9 @@ namespace Cwipc
             block = new MaterialPropertyBlock();
 #if VRT_WITH_STATS
             stats = new Stats(Name());
+            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
+            string pipelineName = pipelineAsset == null ? "BuiltIn" : pipelineAsset.GetType().Name;
+            Statistics.Output(Name(), $"renderPipeline={pipelineName}");
 #endif
             pointBuffer = new ComputeBuffer(1, sizeof(float) * 4);
             if (pointcloudSource != null)
