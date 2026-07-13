@@ -80,7 +80,7 @@ Shader "cwipc/PointCloudTextured"{
 			half		_PointSize;
 			half		_PointSizeFactor;
 			sampler2D	_MainTex;
-			fixed		_Cutoff;
+			half		_Cutoff;
 			half		_OverridePointSize;
 
 			StructuredBuffer<float4> _PointBuffer;
