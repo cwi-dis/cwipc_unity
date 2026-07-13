@@ -1,5 +1,18 @@
 # Changelog
 
+## [8.2.0] - 2026-07-13
+
+- Added URP (Universal Render Pipeline) support alongside the existing Built-in Render Pipeline
+  (BIRP) support - `PointCloudTextured.shader` now has URP subshaders (geometry-shader and
+  point-sprite fallback), selected automatically by Unity based on the active pipeline. No
+  project setup or separate package version needed.
+- Added `cwipc/SimpleColor`, a small unlit (optionally textured) dual-pipeline shader, used to
+  make the samples' placeholder/backdrop geometry (demo floor, avatar body-part colors) work
+  under both pipelines too. See the package README for using it in your own project.
+- Removed `PointCloudUniform.shader`/`.mat`, which turned out to be dead code duplicating the
+  fallback subshader already in `PointCloudTextured.shader`.
+- Stats now record which render pipeline is active.
+
 ## [8.1.0] - 2026-03-27
 
 - Require Unity 6000.3.

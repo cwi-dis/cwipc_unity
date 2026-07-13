@@ -44,6 +44,20 @@ point clouds in VR) the VR Samples:
 - Documentation for [Simple Samples](Samples~/Simple point cloud samples/readme.md)
 - Documentation for [VR Samples](Samples~/VR point cloud extensions/readme.md)
 
+## Render pipeline compatibility
+
+`cwipc_unity` and its samples work unchanged under both Unity's Built-in Render Pipeline (BIRP)
+and the Universal Render Pipeline (URP) - no separate package version or sample set needed. This
+works because the shipped shaders (`PointCloudTextured.shader`, and `SimpleColor.shader` used by
+placeholder/backdrop geometry in the samples) each contain a subshader for both pipelines; Unity
+automatically picks the right one based on your project's active render pipeline.
+
+If you have an existing BIRP project and want to make it (or parts of it) URP-compatible too,
+`cwipc/SimpleColor` (`Runtime/Shaders/SimpleColor.shader`) may be a useful starting point for
+simple, unlit, flat-or-textured materials (e.g. placeholder geometry) - it is not a general
+replacement for `Standard`, since it has no lighting response and none of `Standard`'s PBR
+features (normal maps, metallic/smoothness, emission, etc.).
+
 ## Documentation
 
 See [documentation.](Documentation~/nl.cwi.dis.cwipc.md)
