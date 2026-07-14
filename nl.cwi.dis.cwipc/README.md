@@ -58,6 +58,13 @@ simple, unlit, flat-or-textured materials (e.g. placeholder geometry) - it is no
 replacement for `Standard`, since it has no lighting response and none of `Standard`'s PBR
 features (normal maps, metallic/smoothness, emission, etc.).
 
+> *Note*: if your project has no URP packages installed at all (not just inactive, but genuinely
+> absent), the Unity Editor will log a shader compile error for `PointCloudTextured`'s URP
+> subshaders (`Couldn't open include file '.../Core.hlsl'`), because Unity's shader importer
+> compiles every subshader regardless of which render pipeline is active. If you hit this, add
+> `com.unity.render-pipelines.universal` to your project (via Package Manager) even if you don't
+> intend to use URP - that resolves the include and clears the error.
+
 ## Documentation
 
 See [documentation.](Documentation~/nl.cwi.dis.cwipc.md)
