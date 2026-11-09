@@ -114,16 +114,28 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
             bool doResetOrigin = m_resetOriginAction.action.WasPerformedThisFrame();
             if (doResetOrigin)
             {
-                ResetOrigin(true);
+                ResetOrigin(true, "manual");
             }
         }
-        if (m_hmdTrackingAction != null && m_hmdTrackingAction.action != null && m_hmdTrackingAction.action.WasPerformedThisFrame()) 
+        if (m_hmdTrackingAction != null && m_hmdTrackingAction.action != null)
         {
-            if (debug)
+            if (m_hmdTrackingAction.action.WasPerformedThisFrame())
             {
-                Debug.Log("ViewAdjust: HMD started tracking. Adjust view.");
+                if (debug)
+                {
+                    Debug.Log("ViewAdjust: HMD started tracking. Adjust view.");
+                }
+                Statistics.Output(Name(), "hmd_tracking=1");
+                ResetOrigin(false, "hmd");
             }
-            ResetOrigin(false);
+            else if (m_hmdTrackingAction.action.WasReleasedThisFrame())
+            {
+                if (debug)
+                {
+                    Debug.Log("ViewAdjust: HMD stopped tracking.");
+                }
+                Statistics.Output(Name(), "hmd_tracking=0");
+            }
         }
     }
 
@@ -153,7 +165,16 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
     /// <summary>
     /// The user wants the current head position, (X,Z) only, to be the (0, Y, 0), right above the XROrigin.
     /// </summary>
+    /// <param name="canStop">If a reset view is already in progress: true stops it, false ignores this call.</param>
     public void ResetOrigin(bool canStop=true)
+    {
+        // Kept with this signature for existing callers, including UnityEvents wired in the Inspector.
+        ResetOrigin(canStop, "api");
+    }
+
+    /// <param name="canStop">If a reset view is already in progress: true stops it, false ignores this call.</param>
+    /// <param name="trigger">What started it, for the stats record: "manual" (controller), "hmd" (HMD started tracking) or "api" (anything else, such as a HUD command).</param>
+    public void ResetOrigin(bool canStop, string trigger)
     {
         if (!ViewAdjustInProgress)
         {
@@ -161,6 +182,7 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
             {
                 Debug.Log("ViewAdjust: ResetOrigin: starting");
             }
+            Statistics.Output(Name(), $"reset_view=started, trigger={trigger}");
             // If we are not adjusting the view we start adjusting the view
             StartCoroutine(_ResetOrigin());
         }
@@ -190,6 +212,9 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
         //
         ViewAdjustInProgress = true;
         ViewAdjustDone = false;
+        // To report the view correction: the camera offset relative to the player, before and after.
+        Vector3 startOffsetPosition = cameraOffset.transform.localPosition;
+        float startOffsetRotationY = cameraOffset.transform.localEulerAngles.y;
         IPointCloudPositionProvider pointCloudPipeline = null;
         if (pointCloudGO != null) pointCloudPipeline = pointCloudGO.GetComponentInChildren<IPointCloudPositionProvider>();
 
@@ -355,10 +380,16 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
             }
             viewAdjusted.Invoke();
             TryEndLocomotion();
+            Vector3 endOffsetPosition = cameraOffset.transform.localPosition;
+            Vector3 delta = endOffsetPosition - startOffsetPosition;
+            float correctionXZ = new Vector2(delta.x, delta.z).magnitude;
+            float correctionRotation = Mathf.DeltaAngle(startOffsetRotationY, cameraOffset.transform.localEulerAngles.y);
+            Statistics.Output(Name(), $"reset_view=done, correction_xz_m={correctionXZ:F3}, correction_y_m={delta.y:F3}, correction_rot_deg={correctionRotation:F1}");
         }
         else
         {
             Debug.LogWarning($"ViewAdjust: TryStartLocomotionImmediately failed");
+            Statistics.Output(Name(), "reset_view=failed");
         }
         ShowPositionIndicator(stage: "");
         ViewAdjustInProgress = false;
@@ -395,11 +426,18 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
     {
         m_ViewHeightAction.EnableDirectAction();
         m_resetOriginAction.EnableDirectAction();
+        m_hmdTrackingAction.EnableDirectAction();
     }
 
     protected void OnDisable()
     {
         m_ViewHeightAction.DisableDirectAction();
         m_resetOriginAction.DisableDirectAction();
+        m_hmdTrackingAction.DisableDirectAction();
+    }
+
+    string Name()
+    {
+        return $"{GetType().Name}";
     }
 }

@@ -3,6 +3,7 @@
 ## [unreleased]
 
 - Fixed an intermittent native crash when a point cloud reader is stopped (#60)
+- `ViewAdjust` writes stats records for HMD tracking lost/regained and for reset view started/done, with the view correction (cwi-dis/VR2Gather#392)
 
 ## [8.2.0] - 2026-07-13
 
