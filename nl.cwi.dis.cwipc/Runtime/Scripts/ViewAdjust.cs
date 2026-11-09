@@ -117,9 +117,21 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
                 ResetOrigin(true, "manual");
             }
         }
-        if (m_hmdTrackingAction != null && m_hmdTrackingAction.action != null)
+        if (m_hmdTrackingAction != null && m_hmdTrackingAction.action != null && !m_hmdTrackingAction.action.enabled)
         {
-            if (m_hmdTrackingAction.action.WasPerformedThisFrame())
+            // Not enabled (yet) by whoever manages the action asset: its value means nothing.
+            hmdTrackedState = -1;
+        }
+        else if (m_hmdTrackingAction != null && m_hmdTrackingAction.action != null)
+        {
+            // Detect changes in the value ourselves instead of using the action's performed/released events:
+            // when OpenXR stops and restarts its session (headset taken off and put on) the HMD device can be
+            // replaced by a new one that is already tracking, and then the action never sees a 0 -> 1 change.
+            // A missing device reads as not tracking. The first value after enabling only sets the start state.
+            int tracked = m_hmdTrackingAction.action.IsPressed() ? 1 : 0;
+            int previous = hmdTrackedState;
+            hmdTrackedState = tracked;
+            if (previous == 0 && tracked == 1)
             {
                 if (debug)
                 {
@@ -128,7 +140,7 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
                 Statistics.Output(Name(), "hmd_tracking=1");
                 ResetOrigin(false, "hmd");
             }
-            else if (m_hmdTrackingAction.action.WasReleasedThisFrame())
+            else if (previous == 1 && tracked == 0)
             {
                 if (debug)
                 {
@@ -422,8 +434,12 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
         HigherView(-0.02f);
     }
 
+    // HMD tracking state as last seen: -1 unknown (just enabled), 0 not tracking, 1 tracking.
+    int hmdTrackedState = -1;
+
     protected void OnEnable()
     {
+        hmdTrackedState = -1;
         m_ViewHeightAction.EnableDirectAction();
         m_resetOriginAction.EnableDirectAction();
         m_hmdTrackingAction.EnableDirectAction();
