@@ -4,6 +4,7 @@
 
 - Fixed an intermittent native crash when a point cloud reader is stopped (#60)
 - `ViewAdjust` writes stats records for HMD tracking lost/regained and for reset view started/done, with the view correction (cwi-dis/VR2Gather#392)
+- `ViewAdjust` detects the headset being put on and taken off from the head device's tracking state; the `m_hmdTrackingAction` input action is replaced by a *Reset view when headset is put on* checkbox (cwi-dis/VR2Gather#393)
 
 ## [8.2.0] - 2026-07-13
 

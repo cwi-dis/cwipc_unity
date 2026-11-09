@@ -53,8 +53,8 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
     [Tooltip("The Input System Action that will be used to reset view origin.")]
     [SerializeField] InputActionProperty m_resetOriginAction;
 
-    [Tooltip("The Input System Action that determines whether the HMD is tracking. Set this if putting on the HMD should start a ViewAdjust action.")]
-    [SerializeField] InputActionProperty m_hmdTrackingAction;
+    [Tooltip("Start a reset view when the headset is put on (detected from the head device's tracking state)")]
+    [SerializeField] bool resetViewWhenHeadsetPutOn = true;
 
 
     [Tooltip("Position indicator, visible while adjusting position")]
@@ -117,37 +117,33 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
                 ResetOrigin(true, "manual");
             }
         }
-        if (m_hmdTrackingAction != null && m_hmdTrackingAction.action != null && !m_hmdTrackingAction.action.enabled)
+        // Headset worn or not. Tested on Quest via Link with OpenXR (2026-11-09, cwi-dis/VR2Gather#393): the head
+        // device's tracking state includes Velocity exactly while the headset is on (OpenXR session FOCUSED) and
+        // loses it when the headset is taken off. isTracked and userPresence are useless for this: while the
+        // headset is off they keep their last value, and isTracked only drops after the headset has gone to
+        // standby (about 20-30 s off the head). The first value after enabling only sets the start state.
+        int worn = HeadsetWorn() ? 1 : 0;
+        int previous = hmdTrackedState;
+        hmdTrackedState = worn;
+        if (previous == 0 && worn == 1)
         {
-            // Not enabled (yet) by whoever manages the action asset: its value means nothing.
-            hmdTrackedState = -1;
-        }
-        else if (m_hmdTrackingAction != null && m_hmdTrackingAction.action != null)
-        {
-            // Detect changes in the value ourselves instead of using the action's performed/released events:
-            // when OpenXR stops and restarts its session (headset taken off and put on) the HMD device can be
-            // replaced by a new one that is already tracking, and then the action never sees a 0 -> 1 change.
-            // A missing device reads as not tracking. The first value after enabling only sets the start state.
-            int tracked = m_hmdTrackingAction.action.IsPressed() ? 1 : 0;
-            int previous = hmdTrackedState;
-            hmdTrackedState = tracked;
-            if (previous == 0 && tracked == 1)
+            if (debug)
             {
-                if (debug)
-                {
-                    Debug.Log("ViewAdjust: HMD started tracking. Adjust view.");
-                }
-                Statistics.Output(Name(), "hmd_tracking=1");
+                Debug.Log("ViewAdjust: headset put on.");
+            }
+            Statistics.Output(Name(), "hmd_tracking=1");
+            if (resetViewWhenHeadsetPutOn)
+            {
                 ResetOrigin(false, "hmd");
             }
-            else if (previous == 1 && tracked == 0)
+        }
+        else if (previous == 1 && worn == 0)
+        {
+            if (debug)
             {
-                if (debug)
-                {
-                    Debug.Log("ViewAdjust: HMD stopped tracking.");
-                }
-                Statistics.Output(Name(), "hmd_tracking=0");
+                Debug.Log("ViewAdjust: headset taken off.");
             }
+            Statistics.Output(Name(), "hmd_tracking=0");
         }
     }
 
@@ -442,14 +438,20 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
         hmdTrackedState = -1;
         m_ViewHeightAction.EnableDirectAction();
         m_resetOriginAction.EnableDirectAction();
-        m_hmdTrackingAction.EnableDirectAction();
     }
 
     protected void OnDisable()
     {
         m_ViewHeightAction.DisableDirectAction();
         m_resetOriginAction.DisableDirectAction();
-        m_hmdTrackingAction.DisableDirectAction();
+    }
+
+    static bool HeadsetWorn()
+    {
+        var head = UnityEngine.XR.InputDevices.GetDeviceAtXRNode(UnityEngine.XR.XRNode.Head);
+        if (!head.isValid) return false;
+        if (!head.TryGetFeatureValue(UnityEngine.XR.CommonUsages.trackingState, out UnityEngine.XR.InputTrackingState state)) return false;
+        return (state & UnityEngine.XR.InputTrackingState.Velocity) != 0;
     }
 
     string Name()

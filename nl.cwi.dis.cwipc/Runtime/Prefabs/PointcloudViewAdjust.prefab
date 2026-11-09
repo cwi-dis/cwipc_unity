@@ -83,18 +83,6 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 3394203030425760146, guid: d348712bda248c246b8c49b3db54643f, type: 3}
-  m_hmdTrackingAction:
-    m_UseReference: 1
-    m_Action:
-      m_Name: Hmd Tracking
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: 5c3516a3-20ed-41fb-96ff-87d74c0fbb64
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings: []
-      m_Flags: 0
-    m_Reference: {fileID: -831106814531524825, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   positionIndicator: {fileID: 0}
   forwardIndicator: {fileID: 1407771290052758145}
   forwardIndicatorInstructions: {fileID: 4216309024837527477}
