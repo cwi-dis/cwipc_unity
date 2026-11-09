@@ -1,5 +1,9 @@
 # Changelog
 
+## [unreleased]
+
+- Fixed an intermittent native crash when a point cloud reader is stopped (#60)
+
 ## [8.2.0] - 2026-07-13
 
 - Experimental URP (Universal Render Pipeline) support, alongside the existing BIRP support (#40)

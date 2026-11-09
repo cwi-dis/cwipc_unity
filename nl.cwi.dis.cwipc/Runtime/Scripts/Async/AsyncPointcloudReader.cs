@@ -78,13 +78,25 @@ namespace Cwipc
 
         public override void Stop()
         {
+            // Runs on the calling (main) thread. Only signal the worker thread: it may be inside
+            // reader.get() right now (the synthetic reader sleeps there until the next frame is due),
+            // and stopping or freeing the native reader under it crashes in native code (#60).
+            // AsyncOnStop() cleans up on the worker thread, once its loop has ended.
             base.Stop();
+            // Closing the queues does belong here: a worker blocked in Enqueue on a full,
+            // non-dropping queue needs it to wake up.
+            if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
+            if (out2Queue != null && !out2Queue.IsClosed()) out2Queue.Close();
+        }
+
+        public override void AsyncOnStop()
+        {
+            // Runs on the worker thread, after its loop has ended: nobody else uses the native reader now.
             if (reader != null)
             {
-                var tmpReader = reader;
+                reader.stop();
+                reader.free();
                 reader = null;
-                tmpReader.stop();
-                tmpReader.free();
             }
             if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
             if (out2Queue != null && !out2Queue.IsClosed()) out2Queue.Close();
@@ -96,14 +108,6 @@ namespace Cwipc
                     mostRecentPC = null;
                 }
             }
-        }
-
-        public override void AsyncOnStop()
-        {
-            reader?.free();
-            reader = null;
-            if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
-            if (out2Queue != null && !out2Queue.IsClosed()) out2Queue.Close();
             base.AsyncOnStop();
         }
 
@@ -128,6 +132,12 @@ namespace Cwipc
             cwipc.pointcloud pc = GetOnePointcloud();
            
             if (pc == null) return;
+            if (!isRunning)
+            {
+                // Stopped while we were capturing: the queues are (being) closed, don't enqueue (#60).
+                pc.free();
+                return;
+            }
            
             OptionalProcessing(pc);
             Timedelta downsampleDuration = 0;
