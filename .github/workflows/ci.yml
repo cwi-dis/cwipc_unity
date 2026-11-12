@@ -1,0 +1,61 @@
+# CI for cwipc_unity: run the EditMode tests of the package (nl.cwi.dis.cwipc/Tests)
+# in cwipc_unity_develop, against an installed cwipc. See cwi-dis/cwipc_unity#63.
+#
+# Why game-ci's unity-builder and not its unity-test-runner: the test runner only
+# runs Unity in Docker (Linux, Windows), where the cwipc installed on the runner
+# isn't visible. The builder runs Unity directly on macOS runners; it calls
+# CiTestRunner.RunEditModeTests (cwipc_unity_develop/Assets/Editor) instead of a build.
+#
+# Secrets (same as VRTApp-Trolley, Unity Personal): UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD.
+
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      cwipc-version:
+        description: 'cwipc release to test against'
+        required: false
+        default: 'v8.1.0'
+
+jobs:
+  test-macos:
+    name: EditMode tests (macOS arm64)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/cache@v4
+        with:
+          path: cwipc_unity_develop/Library
+          key: Library-macOS-${{ hashFiles('cwipc_unity_develop/Packages/**', 'cwipc_unity_develop/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
+          restore-keys: |
+            Library-macOS-
+
+      # Pinned to a commit until cwipc 8.3.0 is released (cwi-dis/cwipc#353), then @v8.3.0.
+      - id: cwipc
+        uses: cwi-dis/cwipc/.github/actions/install-cwipc@00faa8a123502b7bda565094ebc36929cb9ef49b
+        with:
+          version: ${{ inputs.cwipc-version || 'v8.1.0' }}
+
+      - uses: game-ci/unity-builder@v5
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          CWIPC_TEST_RESULTS: ${{ github.workspace }}/test-results/editmode.xml
+        with:
+          projectPath: cwipc_unity_develop
+          targetPlatform: StandaloneOSX
+          unityVersion: auto
+          buildMethod: CiTestRunner.RunEditModeTests
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-macos
+          path: test-results/
+          if-no-files-found: warn

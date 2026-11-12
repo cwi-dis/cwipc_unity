@@ -79,3 +79,6 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Results of the CI test runner (cwipc_unity_develop/Assets/Editor/CiTestRunner.cs)
+[Tt]est-results/
