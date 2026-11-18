@@ -62,3 +62,54 @@ jobs:
           name: test-results-macos
           path: test-results/
           if-no-files-found: warn
+
+  # Linux: game-ci runs Unity in a Docker container. cwipc comes in through a custom image,
+  # game-ci's image plus cwipc's -built- archive (.github/docker/linux/Dockerfile, #71).
+  test-linux:
+    name: EditMode tests (Linux)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/cache@v4
+        with:
+          path: cwipc_unity_develop/Library
+          key: Library-Linux-${{ hashFiles('cwipc_unity_develop/Packages/**', 'cwipc_unity_develop/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
+          restore-keys: |
+            Library-Linux-
+
+      - id: unity
+        name: Unity version of the project
+        run: |
+          echo "version=$(sed -n 's/^m_EditorVersion: //p' cwipc_unity_develop/ProjectSettings/ProjectVersion.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Build the image with cwipc
+        run: |
+          docker build \
+            --build-arg UNITY_VERSION=${{ steps.unity.outputs.version }} \
+            --build-arg CWIPC_VERSION=${{ inputs.cwipc-version == 'master' && 'nightly' || inputs.cwipc-version || 'nightly' }} \
+            -t cwipc-unity-ci:linux .github/docker/linux
+
+      - uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: cwipc_unity_develop
+          testMode: editmode
+          customImage: cwipc-unity-ci:linux
+          artifactsPath: test-results-linux
+          checkName: EditMode tests (Linux)
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-linux
+          path: test-results-linux/
+          if-no-files-found: warn
