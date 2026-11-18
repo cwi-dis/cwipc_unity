@@ -15,9 +15,9 @@ on:
   workflow_dispatch:
     inputs:
       cwipc-version:
-        description: 'cwipc release to test against'
+        description: 'cwipc version to test against: a release tag, or master (macOS: brew --HEAD)'
         required: false
-        default: 'v8.1.0'
+        default: 'master'
 
 jobs:
   test-macos:
@@ -35,11 +35,14 @@ jobs:
           restore-keys: |
             Library-macOS-
 
-      # Pinned to a commit until cwipc 8.3.0 is released (cwi-dis/cwipc#353), then @v8.3.0.
+      # The action from the cwipc nightly, and cwipc master, while cwipc_unity 8.3.0 is
+      # developed against the nightly (cwi-dis/cwipc#363); both v8.3.0 once that is
+      # released. version: master, not nightly: on macOS the action's brew method only
+      # knows master (brew --HEAD); any other value installs the released formula.
       - id: cwipc
-        uses: cwi-dis/cwipc/.github/actions/install-cwipc@00faa8a123502b7bda565094ebc36929cb9ef49b
+        uses: cwi-dis/cwipc/.github/actions/install-cwipc@nightly
         with:
-          version: ${{ inputs.cwipc-version || 'v8.1.0' }}
+          version: ${{ inputs.cwipc-version || 'master' }}
 
       - uses: game-ci/unity-builder@v5
         env:
