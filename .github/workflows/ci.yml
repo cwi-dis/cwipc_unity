@@ -20,6 +20,17 @@ on:
         default: 'master'
 
 jobs:
+  # Cheap checks without Unity, on every push.
+  checks:
+    name: Static checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      # Every URP SubShader must have PackageRequirements, or projects without URP get
+      # shader compile errors (#55). Unity itself only reports that with a graphics device.
+      - name: URP SubShaders can be skipped without URP
+        run: python3 .github/scripts/check_urp_subshaders.py nl.cwi.dis.cwipc
+
   test-macos:
     name: EditMode tests (macOS ${{ matrix.arch }})
     # macOS runners are scarce: only on master, or when started by hand (workflow_dispatch,
