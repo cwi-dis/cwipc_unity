@@ -2,7 +2,9 @@
 using System;
 using System.IO;
 using NUnit.Framework;
+using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Cwipc.Tests
 {
@@ -33,6 +35,26 @@ namespace Cwipc.Tests
         {
             string path = Statistics.StatsFilename("stats-{host}-{ts}.log", When);
             Assert.AreEqual($"stats-{Environment.MachineName}-20261118-1430.log", Path.GetFileName(path));
+        }
+
+        [Test]
+        public void InitializeAfterOutputIsAnError()
+        {
+            // Statistics state is static and can't be reset: this leaves Statistics initialized and
+            // writing to a temporary file for the rest of the test run (#59).
+            string statsFile = Path.Combine(Path.GetTempPath(), $"cwipc-stats-test-{Guid.NewGuid()}.log");
+            Statistics.Output("StatisticsTests", "test=1");
+            LogAssert.Expect(LogType.Error, new Regex("Statistics.Initialize\\(\\) should be called before outputting statistics"));
+            Statistics.Initialize(10, statsFile);
+            // The start line of the stats file says that records went to the Unity log.
+            // FileShare.ReadWrite: Statistics keeps the file open.
+            using (var stream = new FileStream(statsFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var reader = new StreamReader(stream))
+            {
+                string firstLine = reader.ReadLine();
+                StringAssert.Contains("component=stats, starting=1", firstLine);
+                StringAssert.Contains("records_before_initialize=", firstLine);
+            }
         }
     }
 }

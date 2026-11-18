@@ -33,22 +33,32 @@ namespace Cwipc
         private static System.IO.StreamWriter statsStream;
         private bool usesDefaultInterval;
         private static bool muted = false;
+        private static bool explicitlyInitialized = false;
 
         /// <summary>
         /// Call this static method early during initialization to configure Statistics logger.
+        /// Without it, Statistics initializes itself with the defaults (records to the Unity log)
+        /// on first use. Calling it with arguments after records have been output is an error:
+        /// those records went to the Unity log, not to the stats file (#59).
         /// </summary>
         /// <param name="_defaultStatsInterval">Number of seconds over which statistics are aggregated</param>
         /// <param name="statsOutputFile">Output file name</param>
         /// <param name="append">If true append to the output file, otherwise overwrite</param>
         public static void Initialize(double _defaultStatsInterval = -1, string statsOutputFile = null, bool append = false)
         {
-            if (initialized)
+            bool configuring = _defaultStatsInterval >= 0 || statsOutputFile != null;
+            if (initialized && configuring)
             {
-                if (_defaultStatsInterval >= 0 || statsOutputFile != null)
+                if (seq > 0)
                 {
-                    Debug.LogWarning("BaseStats: call to Initialize() is too late");
+                    Debug.LogError($"Statistics: Statistics.Initialize() should be called before outputting statistics: {seq} records were already output to the Unity log, not to the stats file");
+                }
+                else if (explicitlyInitialized)
+                {
+                    Debug.LogWarning("Statistics: Initialize() called more than once");
                 }
             }
+            if (configuring) explicitlyInitialized = true;
             if (_defaultStatsInterval >= 0)
             {
                 defaultStatsInterval = _defaultStatsInterval;
@@ -70,6 +80,11 @@ namespace Cwipc
                 // Write an identifying line to both the statsfile (so we can split runs) and the console (so we can find the stats file)
                 //
                 string statsLine = $"stats: ts={System.DateTime.Now.TimeOfDay.TotalSeconds:F3}, component=stats, starting=1, wallClock={ts}, statsFilename={statsFilename}";
+                if (seq > 0)
+                {
+                    // Records output before this Initialize() went to the Unity log, not to this file (#59).
+                    statsLine += $", records_before_initialize={seq}";
+                }
                 statsStream.WriteLine(statsLine);
                 statsStream.Flush();
                 Debug.Log(statsLine);
@@ -145,7 +160,10 @@ namespace Cwipc
         /// <returns></returns>
         protected bool ShouldOutput()
         {
-            return System.DateTime.Now > statsLastTime + System.TimeSpan.FromSeconds(statsInterval);
+            // An object that uses the default interval reads it here, not in its constructor, so it
+            // gets the configured interval even when it was created before Initialize() (#59).
+            double interval = usesDefaultInterval ? defaultStatsInterval : statsInterval;
+            return System.DateTime.Now > statsLastTime + System.TimeSpan.FromSeconds(interval);
         }
 
         /// <summary>
