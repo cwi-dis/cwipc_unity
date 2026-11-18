@@ -116,3 +116,56 @@ jobs:
           name: test-results-linux
           path: test-results-linux/
           if-no-files-found: warn
+
+  # Windows: as Linux, with .github/docker/windows/Dockerfile (#71). game-ci's Windows images
+  # are Windows Server 2022, so this needs a windows-2022 runner.
+  test-windows:
+    name: EditMode tests (Windows)
+    runs-on: windows-2022
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/cache@v4
+        with:
+          path: cwipc_unity_develop/Library
+          key: Library-Windows-${{ hashFiles('cwipc_unity_develop/Packages/**', 'cwipc_unity_develop/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
+          restore-keys: |
+            Library-Windows-
+
+      - id: unity
+        name: Unity version of the project
+        shell: bash
+        run: |
+          echo "version=$(sed -n 's/^m_EditorVersion: //p' cwipc_unity_develop/ProjectSettings/ProjectVersion.txt | tr -d '\r')" >> "$GITHUB_OUTPUT"
+
+      - name: Build the image with cwipc
+        shell: bash
+        run: |
+          docker build \
+            --build-arg UNITY_VERSION=${{ steps.unity.outputs.version }} \
+            --build-arg CWIPC_VERSION=${{ inputs.cwipc-version == 'master' && 'nightly' || inputs.cwipc-version || 'nightly' }} \
+            -t cwipc-unity-ci:windows .github/docker/windows
+
+      - uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: cwipc_unity_develop
+          testMode: editmode
+          customImage: cwipc-unity-ci:windows
+          artifactsPath: test-results-windows
+          checkName: EditMode tests (Windows)
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-windows
+          path: test-results-windows/
+          if-no-files-found: warn
