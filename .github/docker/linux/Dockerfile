@@ -15,15 +15,9 @@ FROM unityci/editor:ubuntu-${UNITY_VERSION}-linux-il2cpp-${GAMECI_IMAGE_VERSION}
 
 ARG CWIPC_VERSION=nightly
 
-# Workarounds, blocked on cwi-dis/cwipc#383: cwipc's install-deps-ubuntu2404.sh calls sudo
-# unconditionally, also as root, and this image has no sudo; and it installs udev rules
-# for Orbbec cameras into /etc/udev/rules.d, which doesn't exist in a container. Remove
-# both once fixed.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends sudo curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /etc/udev/rules.d
-
+# No sudo and no /etc/udev in this image: cwipc's install-deps-ubuntu2404.sh copes with both
+# since cwi-dis/cwipc#383 (cwi-dis/cwipc@94d4567a, in the nightly since 12d6ac32). curl and
+# ca-certificates are in the image.
 RUN curl -sSfL "https://raw.githubusercontent.com/cwi-dis/cwipc/${CWIPC_VERSION}/scripts/get-cwipc.sh" -o /tmp/get-cwipc.sh \
     && bash /tmp/get-cwipc.sh --method archive --deps --no-python "${CWIPC_VERSION}" /opt/cwipc \
     && rm -f /tmp/get-cwipc.sh \
