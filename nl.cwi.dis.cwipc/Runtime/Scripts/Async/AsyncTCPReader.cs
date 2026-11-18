@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using UnityEngine;
 using Cwipc;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
 using Statistics = Cwipc.Statistics;
 #endif
 
@@ -59,7 +59,7 @@ namespace Cwipc
                 receiverInfo = _receiverInfo;
                 myThread = new System.Threading.Thread(run);
                 myThread.Name = Name();
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                 stats = new Stats(Name());
 #endif
                 Debug.Log($"{Name()}: connecting to tcp://{receiverInfo.host}:{receiverInfo.port} 4cc={receiverInfo.fourcc:X}");
@@ -126,7 +126,7 @@ namespace Cwipc
                             IPAddress ipAddress = all[0];
                             portOffset = receiverInfo.portOffset;
                             IPEndPoint remoteEndpoint = new IPEndPoint(ipAddress, receiverInfo.port + portOffset);
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                             Statistics.Output(Name(), $"connected=0, destination={remoteEndpoint.ToString()}, opening=1");
 #endif
                             socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -141,7 +141,7 @@ namespace Cwipc
                                 System.Threading.Thread.Sleep(1000);
                                 continue;
                             }
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                             Statistics.Output(Name(), $"connected=1, destination={remoteEndpoint.ToString()}, opening=1");
 #endif
                             Debug.Log($"{Name()}: Connect({remoteEndpoint}) succeeded (portoffset={portOffset})");
@@ -183,7 +183,7 @@ namespace Cwipc
                         var buf = new byte[mc.length];
                         System.Runtime.InteropServices.Marshal.Copy(mc.pointer, buf, 0, mc.length);
                         bool ok = receiverInfo.outQueue.Enqueue(mc);
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                         stats.statsUpdate(dataSize, receiveDuration, !ok);
 #endif
                         // Close the socket if the portOffset (the quality index) has been changed in the mean time
@@ -192,7 +192,7 @@ namespace Cwipc
                             Debug.Log($"{Name()}: closing socket for quality switch (from {portOffset} to {receiverInfo.portOffset})");
                             socket.Close();
                             socket = null;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                             Statistics.Output(Name(), $"connected=0, opening=0");
 #endif
                         }
@@ -214,7 +214,7 @@ namespace Cwipc
 
             }
 
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             protected class Stats : Statistics
             {
                 public Stats(string name) : base(name) { }
@@ -368,7 +368,7 @@ namespace Cwipc
                     {
                         msg += $", tile={receivers[i].tileNumber}";
                     }
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                     Statistics.Output(Name(), msg);
 #endif
                 }

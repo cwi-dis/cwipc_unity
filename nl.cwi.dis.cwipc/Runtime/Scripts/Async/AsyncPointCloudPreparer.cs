@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Cwipc;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
 using Statistics = Cwipc.Statistics;
 #endif
 
@@ -28,7 +28,7 @@ namespace Cwipc
 
         public AsyncPointCloudPreparer(QueueThreadSafe _InQueue, float _defaultCellSize = 0, float _cellSizeFactor = 0) : base(_InQueue)
         {
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             stats = new Stats(Name());
 #endif
             defaultCellSize = _defaultCellSize != 0 ? _defaultCellSize : 0.01f;
@@ -72,7 +72,7 @@ namespace Cwipc
                     {
                         Debug.Log($"{Name()}: no pointcloud available");
                     }
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                     stats.statsUpdate(0, true);
 #endif
                     return false;
@@ -113,7 +113,7 @@ namespace Cwipc
                     pc.free();
                     isReady = true;
                 }
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                 stats.statsUpdate(dropCount, false);
 #endif
             }
@@ -171,7 +171,7 @@ namespace Cwipc
             else return defaultCellSize * cellSizeFactor;
         }
 
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
         protected class Stats : Statistics
         {
             public Stats(string name) : base(name) { }

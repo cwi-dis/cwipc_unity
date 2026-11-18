@@ -131,7 +131,9 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
             {
                 Debug.Log("ViewAdjust: headset put on.");
             }
+#if !VRT_WITHOUT_STATS
             Statistics.Output(Name(), "hmd_tracking=1");
+#endif
             if (resetViewWhenHeadsetPutOn)
             {
                 ResetOrigin(false, "hmd");
@@ -143,7 +145,9 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
             {
                 Debug.Log("ViewAdjust: headset taken off.");
             }
+#if !VRT_WITHOUT_STATS
             Statistics.Output(Name(), "hmd_tracking=0");
+#endif
         }
     }
 
@@ -190,7 +194,9 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
             {
                 Debug.Log("ViewAdjust: ResetOrigin: starting");
             }
+#if !VRT_WITHOUT_STATS
             Statistics.Output(Name(), $"reset_view=started, trigger={trigger}");
+#endif
             // If we are not adjusting the view we start adjusting the view
             StartCoroutine(_ResetOrigin());
         }
@@ -392,12 +398,16 @@ public class ViewAdjust : UnityEngine.XR.Interaction.Toolkit.Locomotion.Locomoti
             Vector3 delta = endOffsetPosition - startOffsetPosition;
             float correctionXZ = new Vector2(delta.x, delta.z).magnitude;
             float correctionRotation = Mathf.DeltaAngle(startOffsetRotationY, cameraOffset.transform.localEulerAngles.y);
+#if !VRT_WITHOUT_STATS
             Statistics.Output(Name(), $"reset_view=done, correction_xz_m={correctionXZ:F3}, correction_y_m={delta.y:F3}, correction_rot_deg={correctionRotation:F1}");
+#endif
         }
         else
         {
             Debug.LogWarning($"ViewAdjust: TryStartLocomotionImmediately failed");
+#if !VRT_WITHOUT_STATS
             Statistics.Output(Name(), "reset_view=failed");
+#endif
         }
         ShowPositionIndicator(stage: "");
         ViewAdjustInProgress = false;

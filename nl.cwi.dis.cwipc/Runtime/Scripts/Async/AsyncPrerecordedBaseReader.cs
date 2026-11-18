@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
 using Statistics = Cwipc.Statistics;
 #endif
 
@@ -294,7 +294,7 @@ namespace Cwipc
             {
                 Debug.LogError($"{Name()}: Invalid framerate, the target framerate is set to 0, sync is disabled");
             }
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             stats = new Stats(Name());
 #endif
             Start();
@@ -485,13 +485,13 @@ namespace Cwipc
                 }
             }
 
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             stats.statsUpdate(pc.count(), pc.cellsize(), downsampleDuration, didDropEncoder, didDropSelfView, encoderQueuedDuration, pc.timestamp(), subdir);
 #endif
             pc.free();
         }
 
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
         protected class Stats : Statistics
         {
             public Stats(string name) : base(name) { }

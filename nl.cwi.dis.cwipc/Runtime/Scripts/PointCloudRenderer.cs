@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Rendering;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
 using Statistics = Cwipc.Statistics;
 #endif
 using Cwipc;
@@ -106,7 +106,7 @@ namespace Cwipc
             }
             material = new Material(baseMaterial);
             block = new MaterialPropertyBlock();
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             stats = new Stats(Name());
             var pipelineAsset = GraphicsSettings.currentRenderPipeline;
             string pipelineName = pipelineAsset == null ? "BuiltIn" : pipelineAsset.GetType().Name;
@@ -236,7 +236,7 @@ namespace Cwipc
             }
             block.SetMatrix("_Transform", pcMatrix);
             Graphics.DrawProcedural(material, new Bounds(transform.position, Vector3.one * 2), MeshTopology.Points, pointCount, 1, null, block);
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             stats.statsUpdate(pointCount, pointSize, preparer.currentTimestamp, preparer.getQueueDuration(), fresh);
 #endif
         }
@@ -248,7 +248,7 @@ namespace Cwipc
         }
 
 
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
         protected class Stats : Statistics
         {
             public Stats(string name) : base(name) { }

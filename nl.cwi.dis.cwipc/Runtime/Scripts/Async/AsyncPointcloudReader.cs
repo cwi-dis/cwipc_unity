@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Transactions;
 using UnityEngine;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
 using Statistics = Cwipc.Statistics;
 #endif
 
@@ -27,7 +27,7 @@ namespace Cwipc
         {
             outQueue = _outQueue;
             out2Queue = _out2Queue;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             stats = new Stats(Name());
 #endif
         }
@@ -196,7 +196,7 @@ namespace Cwipc
                     didDrop = true;
                 }
             }
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             stats.statsUpdate(pc.count(), pc.cellsize(), downsampleDuration, didDrop, didDropSelf, encoderQueuedDuration, pc.timestamp());
 #endif
             lock(this)
@@ -293,7 +293,7 @@ namespace Cwipc
             return pc.count() >= minPointsForAnalysis;
         }
 
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
         protected class Stats : Statistics
         {
             public Stats(string name) : base(name) { }

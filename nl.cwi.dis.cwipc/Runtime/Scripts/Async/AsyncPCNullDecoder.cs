@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
 using Statistics = Cwipc.Statistics;
 #endif
 using Cwipc;
@@ -18,7 +18,7 @@ namespace Cwipc
         public AsyncPCNullDecoder(QueueThreadSafe _inQueue, QueueThreadSafe _outQueue) : base(_inQueue, _outQueue)
         {
             Start();
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             stats = new Stats(Name());
 #endif
         }
@@ -64,12 +64,12 @@ namespace Cwipc
             int pointCount = pc.count();
             Timedelta queuedDuration = outQueue.QueuedDuration();
             bool dropped = !outQueue.Enqueue(pc);
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             stats.statsUpdate(pointCount, dropped, inQueue.QueuedDuration(), decodeDuration, queuedDuration);
 #endif
         }
 
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
         protected class Stats : Statistics
         {
             public Stats(string name) : base(name) { }

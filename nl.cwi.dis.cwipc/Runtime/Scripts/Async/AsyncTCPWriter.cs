@@ -4,7 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
 using Statistics = Cwipc.Statistics;
 #endif
 using Cwipc;
@@ -54,7 +54,7 @@ namespace Cwipc
                 description = _description;
                 myThread = new System.Threading.Thread(run);
                 myThread.Name = Name();
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                 stats = new Stats(Name());
 #endif
                 Debug.Log($"{Name()}: serving on tcp://{description.host}:{description.port} 4cc={description.fourcc:X}");
@@ -112,13 +112,13 @@ namespace Cwipc
                         // Accept incoming connection
                         if (sendSocket == null)
                         {
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                             Statistics.Output(Name(), $"open=0, listen=1");
 #endif
                             try
                             {
                                 sendSocket = listenSocket.Accept();
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                                 Statistics.Output(Name(), $"open=1, remote={sendSocket.RemoteEndPoint.ToString()}");
 #endif
                             }
@@ -133,7 +133,7 @@ namespace Cwipc
                         }
                         NativeMemoryChunk mc = (NativeMemoryChunk)queue.Dequeue();
                         if (mc == null) continue; // Probably closing...
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                         stats.statsUpdate(mc.length);
 #endif
                         byte[] hdr = new byte[16];
@@ -158,7 +158,7 @@ namespace Cwipc
                                 Debug.Log($"{Name()}: socket was closed by another thread");
                             }
                             sendSocket = null;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                             Statistics.Output(Name(), $"open=0");
 #endif
                         }
@@ -170,7 +170,7 @@ namespace Cwipc
                                 sendSocket.Close();
                                 sendSocket = null;
                             }
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                             Statistics.Output(Name(), $"open=0");
 #endif
                         }
@@ -190,7 +190,7 @@ namespace Cwipc
 
             }
 
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             protected class Stats : Statistics
             {
                 public Stats(string name) : base(name) { }
@@ -292,7 +292,7 @@ namespace Cwipc
                 // Note: we need to copy i to a new variable, otherwise the lambda expression capture will bite us
                 int stream_number = i;
                 pusherThreads[i] = new TCPPushThread(this, descriptions[i]);
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                 Statistics.Output(Name(), $"pusher={pusherThreads[i].Name()}, stream={i}, port={descriptions[i].port}");
 #endif
             }

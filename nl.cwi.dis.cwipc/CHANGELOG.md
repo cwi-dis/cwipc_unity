@@ -4,6 +4,7 @@
 
 - Native cwipc errors are no longer logged twice ("Attempting to continue"), and no longer lost when the codec is the first part of cwipc used (#67)
 - Prerecorded playback: fixed a possible native crash when stopping; the "excessive dropped frames" advice is logged once per reader (#58)
+- Statistics are compiled in by default: define `VRT_WITHOUT_STATS` to leave them out; `VRT_WITH_STATS` is no longer used (#68)
 
 ## [8.2.1] - 2026-11-11
 

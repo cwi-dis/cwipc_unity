@@ -3,7 +3,7 @@ using System;
 
 namespace Cwipc
 {
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
     /// <summary>
     /// Gathering statistics during a run to allow later analysis.
     /// All statistics records consist of lines starting with "stats:" followed by name=value pairs.

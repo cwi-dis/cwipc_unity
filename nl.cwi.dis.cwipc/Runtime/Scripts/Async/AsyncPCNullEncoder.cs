@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
 using Statistics = Cwipc.Statistics;
 #endif
 using Cwipc;
@@ -30,7 +30,7 @@ namespace Cwipc
             }
             inQueue = _inQueue;
             outputs = _outputs;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             stats = new Stats(Name());
 #endif
             Start();
@@ -78,14 +78,14 @@ namespace Cwipc
                 QueueThreadSafe queue = outputs[i].outQueue;
                 Timedelta queuedDuration = queue.QueuedDuration();
                 bool dropped = !queue.Enqueue(mc);
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                 stats.statsUpdate(dropped, encodeDuration, queuedDuration);
 #endif
             }
             pc.free();
         }
 
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
         protected class Stats : Statistics
         {
             public Stats(string name) : base(name) { }

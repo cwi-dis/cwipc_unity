@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
 using Statistics = Cwipc.Statistics;
 #endif
 
@@ -75,7 +75,7 @@ namespace Cwipc
                     if (curBuffer == null) return;
                     Timedelta queuedDuration = outQueue.QueuedDuration();
                     bool dropped = !outQueue.Enqueue(curBuffer);
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
                     parent.stats.statsUpdate(dropped, curEncodeDuration, queuedDuration);
 #endif
                     curBuffer = null;
@@ -95,7 +95,7 @@ namespace Cwipc
             outputs = _outputs;
             int nOutputs = outputs.Length;
             encoderOutputs = new cwipc.encoder[nOutputs];
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
             stats = new Stats(Name());
 #endif
             try
@@ -212,7 +212,7 @@ namespace Cwipc
         }
 
 
-#if VRT_WITH_STATS
+#if !VRT_WITHOUT_STATS
         protected class Stats : Statistics {
             public Stats(string name) : base(name) { }
 
