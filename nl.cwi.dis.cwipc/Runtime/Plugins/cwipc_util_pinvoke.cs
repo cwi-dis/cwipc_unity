@@ -1043,10 +1043,6 @@ namespace Cwipc
                     }
                     throw new CwipcException($"cwipc_encoder_addencoder: {Marshal.PtrToStringAnsi(errorPtr)} ");
                 }
-                if (errorPtr != IntPtr.Zero)
-                {
-                    UnityEngine.Debug.LogError($"cwipc_encoder_addencoder: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
-                }
                 return new encoder(enc);
 
             }
@@ -1076,10 +1072,6 @@ namespace Cwipc
                 }
                 throw new CwipcException($"cwipc.synthetic: {Marshal.PtrToStringAnsi(errorPtr)} ");
             }
-            if (errorPtr != IntPtr.Zero)
-            {
-                UnityEngine.Debug.LogError($"cwipc.synthetic: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
-            }
             return new source(rdr);
         }
 
@@ -1103,10 +1095,6 @@ namespace Cwipc
                     throw new CwipcException("cwipc.capturer: returned null without setting error message");
                 }
                 throw new CwipcException($"cwipc.capturer: {Marshal.PtrToStringAnsi(errorPtr)}. This may be a cwipc installation issue, see https://github.com/cwi-dis/cwipc .");
-            }
-            if (errorPtr != IntPtr.Zero)
-            {
-                UnityEngine.Debug.LogError($"cwipc.capturer: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
             }
             return new source(rdr);
         }
@@ -1136,10 +1124,6 @@ namespace Cwipc
                 }
                 throw new CwipcException($"cwipc.proxy: {Marshal.PtrToStringAnsi(errorPtr)} ");
             }
-            if (errorPtr != IntPtr.Zero)
-            {
-                UnityEngine.Debug.LogError($"cwipc.proxy: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
-            }
             return new source(rdr);
         }
 #if WITH_CWIPC_REALSENSE2
@@ -1167,10 +1151,6 @@ namespace Cwipc
                     throw new CwipcException("cwipc.realsense2: returned null without setting error message");
                 }
                 throw new CwipcException($"cwipc.realsense2: {Marshal.PtrToStringAnsi(errorPtr)}. This may be a cwipc installation issue, see https://github.com/cwi-dis/cwipc . ");
-            }
-            if (errorPtr != IntPtr.Zero)
-            {
-                UnityEngine.Debug.LogError($"cwipc.realsense2: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
             }
             return new source(rdr);
         }
@@ -1201,10 +1181,6 @@ namespace Cwipc
                 }
                 throw new CwipcException($"cwipc.kinect: {Marshal.PtrToStringAnsi(errorPtr)}. This may be a cwipc installation issue, see https://github.com/cwi-dis/cwipc . ");
             }
-            if (errorPtr != IntPtr.Zero)
-            {
-                UnityEngine.Debug.LogError($"cwipc.kinect: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
-            }
             return new source(rdr);
         }
 #endif
@@ -1234,10 +1210,6 @@ namespace Cwipc
                 }
                 throw new CwipcException($"cwipc.orbbec: {Marshal.PtrToStringAnsi(errorPtr)}. This may be a cwipc installation issue, see https://github.com/cwi-dis/cwipc . ");
             }
-            if (errorPtr != IntPtr.Zero)
-            {
-                UnityEngine.Debug.LogError($"cwipc.orbbec: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
-            }
             return new source(rdr);
         }
 #endif
@@ -1261,10 +1233,6 @@ namespace Cwipc
                     throw new CwipcException("cwipc.new_decoder: returned null without setting error message");
                 }
                 throw new CwipcException($"cwipc_new_decoder: {Marshal.PtrToStringAnsi(errorPtr)} ");
-            }
-            if (errorPtr != IntPtr.Zero)
-            {
-                UnityEngine.Debug.LogError($"cwipc_new_decoder: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
             }
             return new decoder(dec);
 
@@ -1292,10 +1260,6 @@ namespace Cwipc
                 }
                 throw new CwipcException($"cwipc_new_encoder: {Marshal.PtrToStringAnsi(errorPtr)} ");
             }
-            if (errorPtr != IntPtr.Zero)
-            {
-                UnityEngine.Debug.LogError($"cwipc_new_encoder: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
-            }
             return new encoder(enc);
 
         }
@@ -1321,10 +1285,6 @@ namespace Cwipc
                     throw new CwipcException("cwipc.new_encodergroup: returned null without setting error message");
                 }
                 throw new CwipcException($"cwipc_new_encodergroup: {Marshal.PtrToStringAnsi(errorPtr)} ");
-            }
-            if (errorPtr != IntPtr.Zero)
-            {
-                UnityEngine.Debug.LogError($"cwipc_new_encodergroup: {Marshal.PtrToStringAnsi(errorPtr)}. Attempting to continue.");
             }
             return new encodergroup(enc);
 
@@ -1986,6 +1946,8 @@ namespace Cwipc
         {
             if (cwipc_codec_load_attempted) return;
             cwipc_codec_load_attempted = true;
+            // cwipc_codec logs through cwipc_util: make sure our log callback is installed first (#67).
+            _load_cwipc_util();
 
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             // We first try to load the cwipc_codec library fomr the standard DYLIB search path. This will

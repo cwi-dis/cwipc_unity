@@ -1,5 +1,9 @@
 # Changelog
 
+## [unreleased]
+
+- Native cwipc errors are no longer logged twice ("Attempting to continue"), and no longer lost when the codec is the first part of cwipc used (#67)
+
 ## [8.2.1] - 2026-11-11
 
 - Fixed an intermittent native crash when a point cloud reader is stopped (#60)
