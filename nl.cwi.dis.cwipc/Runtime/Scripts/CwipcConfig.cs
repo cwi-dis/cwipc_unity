@@ -16,9 +16,9 @@ namespace Cwipc
         public int logLevel = (int)cwipc.LogLevel.WARNING;
         /// <summary>
         /// Set to non-empty absolute path to override load path for cwipc native libraries
-        /// (on most platforms by prepending to PATH or LD_LIBRARY_PATH).
+        /// (by prepending it to PATH). Windows only; ignored with a warning elsewhere.
         /// </summary>
-        [Tooltip("Set to non-empty absolute path to override load path for cwipc native libraries (on most platforms by prepending to PATH or LD_LIBRARY_PATH).")]
+        [Tooltip("Set to non-empty absolute path to override load path for cwipc native libraries (by prepending it to PATH). Windows only; ignored with a warning elsewhere.")]
         public string overrideNativeLoadPath = "";
         /// <summary>
         /// Codec for pointclouds. cwi1 is MPEG Anchor codec, cwi0 is uncompressed

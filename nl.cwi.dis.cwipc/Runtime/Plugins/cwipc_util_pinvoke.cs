@@ -1706,6 +1706,7 @@ namespace Cwipc
             string overrideNativeLoadPath = CwipcConfig.Instance.overrideNativeLoadPath;
             if (!string.IsNullOrEmpty(overrideNativeLoadPath))
             {
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
                 if (!System.IO.Directory.Exists(overrideNativeLoadPath))
                 {
                     UnityEngine.Debug.LogWarning($"cwipc._load_cwipc_util: overrideNativeLoadPath does not exist: {overrideNativeLoadPath}");
@@ -1713,9 +1714,14 @@ namespace Cwipc
                 else
                 {
                     string pathvar = System.Environment.GetEnvironmentVariable("PATH");
-                    System.Environment.SetEnvironmentVariable("PATH", $"{overrideNativeLoadPath};{pathvar}",  EnvironmentVariableTarget.Process);
+                    System.Environment.SetEnvironmentVariable("PATH", $"{overrideNativeLoadPath}{System.IO.Path.PathSeparator}{pathvar}",  EnvironmentVariableTarget.Process);
                     UnityEngine.Debug.Log($"cwipc._load_cwipc_util: prepended to PATH: {overrideNativeLoadPath}");
                 }
+#else
+                // Elsewhere the dynamic loader doesn't look at PATH, and reads LD_LIBRARY_PATH /
+                // DYLD_LIBRARY_PATH only at process start, so this can't work here (#61).
+                UnityEngine.Debug.LogWarning($"cwipc._load_cwipc_util: overrideNativeLoadPath is only supported on Windows, ignored: {overrideNativeLoadPath}");
+#endif
                 
 
             }
