@@ -7,6 +7,7 @@
 - Statistics are compiled in by default: define `VRT_WITHOUT_STATS` to leave them out; `VRT_WITH_STATS` is no longer used (#68)
 - The stats output file can be an absolute path (#61)
 - The package declares its dependencies on the XR Interaction Toolkit (3.3) and the Input System (#65)
+- Projects without the URP package no longer get shader compile errors (#55)
 
 ## [8.2.1] - 2026-11-11
 

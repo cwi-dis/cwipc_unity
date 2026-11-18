@@ -12,6 +12,11 @@ Shader "cwipc/SimpleColor"{
 	}
 
 	SubShader {
+		// Skipped when URP isn't installed: Unity compiles every SubShader, and the
+		// URP includes below would fail without the package (#55).
+		PackageRequirements {
+			"com.unity.render-pipelines.universal"
+		}
 		// URP version.
 		Tags {
 			"RenderPipeline" = "UniversalPipeline"

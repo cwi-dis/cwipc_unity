@@ -36,6 +36,11 @@ Shader "cwipc/PointCloudTextured"{
 	// (HLSLPROGRAM/Core.hlsl instead of CGPROGRAM/UnityCG.cginc).
 	//
 	SubShader {
+		// Skipped when URP isn't installed: Unity compiles every SubShader, and the
+		// URP includes below would fail without the package (#55).
+		PackageRequirements {
+			"com.unity.render-pipelines.universal"
+		}
 		// URP version of the subshader that uses the geometry engine.
 		Tags {
 			"RenderPipeline" = "UniversalPipeline"
@@ -157,6 +162,11 @@ Shader "cwipc/PointCloudTextured"{
 	}
 
 	SubShader {
+		// Skipped when URP isn't installed: Unity compiles every SubShader, and the
+		// URP includes below would fail without the package (#55).
+		PackageRequirements {
+			"com.unity.render-pipelines.universal"
+		}
 		// URP version of the fallback subshader (no geometry engine, PSIZE-based point sprites).
 		Lighting Off
 		LOD 100
