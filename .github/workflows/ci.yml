@@ -21,8 +21,21 @@ on:
 
 jobs:
   test-macos:
-    name: EditMode tests (macOS arm64)
-    runs-on: macos-15
+    name: EditMode tests (macOS ${{ matrix.arch }})
+    # macOS runners are scarce: only on master, or when started by hand (workflow_dispatch,
+    # also on a branch). Pushes to other branches run the Linux and Windows jobs only.
+    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+          # Intel: as long as cwipc and this package support Intel Macs. It is the only job
+          # that exercises the standard-library-path branch of _load_cwipc_util() on macOS.
+          - arch: intel
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,9 +44,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: cwipc_unity_develop/Library
-          key: Library-macOS-${{ hashFiles('cwipc_unity_develop/Packages/**', 'cwipc_unity_develop/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
+          key: Library-macOS-${{ matrix.arch }}-${{ hashFiles('cwipc_unity_develop/Packages/**', 'cwipc_unity_develop/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
           restore-keys: |
-            Library-macOS-
+            Library-macOS-${{ matrix.arch }}-
 
       # The action from the cwipc nightly, and cwipc master, while cwipc_unity 8.3.0 is
       # developed against the nightly (cwi-dis/cwipc#363); both v8.3.0 once that is
@@ -44,7 +57,9 @@ jobs:
         with:
           version: ${{ inputs.cwipc-version || 'master' }}
 
-      - uses: game-ci/unity-builder@v5
+      # Pinned to an exact version: @v5 may move to the CLI-based builder (game-ci/cli), and
+      # that switch should be a deliberate change here.
+      - uses: game-ci/unity-builder@v5.0.1
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -59,6 +74,157 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-macos
+          name: test-results-macos-${{ matrix.arch }}
           path: test-results/
+          if-no-files-found: warn
+
+  # Linux: game-ci runs Unity in a Docker container. cwipc comes in through a custom image,
+  # game-ci's image plus cwipc's -built- archive (.github/docker/linux/Dockerfile, #71).
+  test-linux:
+    name: EditMode tests (Linux)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/cache@v4
+        with:
+          path: cwipc_unity_develop/Library
+          key: Library-Linux-${{ hashFiles('cwipc_unity_develop/Packages/**', 'cwipc_unity_develop/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
+          restore-keys: |
+            Library-Linux-
+
+      - id: unity
+        name: Unity version of the project
+        run: |
+          echo "version=$(sed -n 's/^m_EditorVersion: //p' cwipc_unity_develop/ProjectSettings/ProjectVersion.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Build the image with cwipc
+        run: |
+          docker build \
+            --build-arg UNITY_VERSION=${{ steps.unity.outputs.version }} \
+            --build-arg CWIPC_VERSION=${{ inputs.cwipc-version == 'master' && 'nightly' || inputs.cwipc-version || 'nightly' }} \
+            -t cwipc-unity-ci:linux .github/docker/linux
+
+      - uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          # game-ci reads the token for its GitHub API calls from the environment, not from
+          # its githubToken input; anonymous calls hit the shared per-IP rate limit (403).
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          projectPath: cwipc_unity_develop
+          testMode: editmode
+          customImage: cwipc-unity-ci:linux
+          # Pinned: no "latest" lookup, reproducible runs. Update deliberately.
+          cliVersion: v0.1.76
+          artifactsPath: test-results-linux
+          checkName: EditMode tests (Linux)
+
+      # game-ci's test runner can report success without having run any test (seen on
+      # Windows: Unity failed to start, the step was green). So check the results ourselves.
+      - name: Check the test results
+        if: always()
+        shell: bash
+        run: |
+          f=test-results-linux/editmode-results.xml
+          if [ ! -f "$f" ]; then echo "::error::no test results ($f)"; exit 1; fi
+          run=$(grep -o '<test-run [^>]*>' "$f" | head -1)
+          total=$(echo "$run" | sed -n 's/.* total="\([0-9]*\)".*/\1/p')
+          failed=$(echo "$run" | sed -n 's/.* failed="\([0-9]*\)".*/\1/p')
+          echo "tests: total=$total failed=$failed"
+          if [ -z "$total" ] || [ "$total" -eq 0 ]; then echo "::error::no tests ran"; exit 1; fi
+          if [ "$failed" -ne 0 ]; then echo "::error::$failed test(s) failed"; exit 1; fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-linux
+          path: test-results-linux/
+          if-no-files-found: warn
+
+  # Windows: as Linux, with .github/docker/windows/Dockerfile (#71). game-ci's Windows images
+  # are Windows Server 2022, so this needs a windows-2022 runner.
+  test-windows:
+    name: EditMode tests (Windows)
+    runs-on: windows-2022
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/cache@v4
+        with:
+          path: cwipc_unity_develop/Library
+          key: Library-Windows-${{ hashFiles('cwipc_unity_develop/Packages/**', 'cwipc_unity_develop/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
+          restore-keys: |
+            Library-Windows-
+
+      - id: unity
+        name: Unity version of the project
+        shell: bash
+        run: |
+          echo "version=$(sed -n 's/^m_EditorVersion: //p' cwipc_unity_develop/ProjectSettings/ProjectVersion.txt | tr -d '\r')" >> "$GITHUB_OUTPUT"
+
+      - name: Build the image with cwipc
+        shell: bash
+        run: |
+          docker build \
+            --build-arg UNITY_VERSION=${{ steps.unity.outputs.version }} \
+            --build-arg CWIPC_VERSION=${{ inputs.cwipc-version == 'master' && 'nightly' || inputs.cwipc-version || 'nightly' }} \
+            -t cwipc-unity-ci:windows .github/docker/windows
+
+      # Temporary workaround: unity-builder (with CiTestRunner, as on macOS) instead of
+      # unity-test-runner, whose Windows script (game-ci/cli v0.1.76) doesn't wait for Unity:
+      # it reports success at once and stops the container mid-import. Blocked on
+      # game-ci/cli#318: back to the test runner once that is fixed. The builder starts Unity with
+      # -nographics and -silent-crashes and waits for it (dist/platforms/windows/build.ps1).
+      - uses: game-ci/unity-builder@v5.0.1
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: cwipc_unity_develop
+          targetPlatform: StandaloneWindows64
+          unityVersion: auto
+          customImage: cwipc-unity-ci:windows
+          buildMethod: CiTestRunner.RunEditModeTests
+
+      # CiTestRunner writes test-results/editmode.xml relative to Unity's working directory
+      # (CWIPC_TEST_RESULTS isn't passed into the container): the project directory, or the
+      # workspace. Look in both; fail unless there are tests and none failed.
+      - name: Check the test results
+        if: always()
+        shell: bash
+        run: |
+          f=""
+          for c in cwipc_unity_develop/test-results/editmode.xml test-results/editmode.xml; do
+            if [ -f "$c" ]; then f="$c"; break; fi
+          done
+          if [ -z "$f" ]; then echo "::error::no test results"; exit 1; fi
+          echo "results: $f"
+          run=$(grep -o '<test-run [^>]*>' "$f" | head -1)
+          total=$(echo "$run" | sed -n 's/.* total="\([0-9]*\)".*/\1/p')
+          failed=$(echo "$run" | sed -n 's/.* failed="\([0-9]*\)".*/\1/p')
+          echo "tests: total=$total failed=$failed"
+          if [ -z "$total" ] || [ "$total" -eq 0 ]; then echo "::error::no tests ran"; exit 1; fi
+          if [ "$failed" -ne 0 ]; then echo "::error::$failed test(s) failed"; exit 1; fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-windows
+          path: |
+            cwipc_unity_develop/test-results/
+            test-results/
           if-no-files-found: warn
