@@ -6,8 +6,12 @@
 # CWIPC_VERSION: a cwipc release tag, or "nightly". The -built- archive of that release is
 # installed with cwipc's get-cwipc.sh, with its runtime dependencies (apt), without Python.
 
+# Image version 4 (game-ci/docker v4.0.0) is Ubuntu 24.04, as cwipc's Linux archive needs;
+# version 3 is Ubuntu 22.04. Version 4 images exist only for recent Unity versions
+# (for example 6000.3.26f1, not 6000.3.10f1).
 ARG UNITY_VERSION
-FROM unityci/editor:ubuntu-${UNITY_VERSION}-linux-il2cpp-3
+ARG GAMECI_IMAGE_VERSION=4
+FROM unityci/editor:ubuntu-${UNITY_VERSION}-linux-il2cpp-${GAMECI_IMAGE_VERSION}
 
 ARG CWIPC_VERSION=nightly
 
