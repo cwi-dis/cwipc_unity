@@ -63,12 +63,8 @@ namespace Cwipc
             }
             if (statsOutputFile != null && statsOutputFile != "")
             {
-                string sfn = statsOutputFile;
-                string host = Environment.MachineName;
                 string ts = now.ToString("yyyyMMdd-HHmm");
-                sfn = sfn.Replace("{host}", host);
-                sfn = sfn.Replace("{ts}", ts);
-                string statsFilename = $"{Application.persistentDataPath}/{sfn}";
+                string statsFilename = StatsFilename(statsOutputFile, now);
                 statsStream = new System.IO.StreamWriter(statsFilename, append);
                 //
                 // Write an identifying line to both the statsfile (so we can split runs) and the console (so we can find the stats file)
@@ -79,6 +75,19 @@ namespace Cwipc
                 Debug.Log(statsLine);
             }
             initialized = true;
+        }
+
+        /// <summary>
+        /// The full path of the stats file for a configured statsOutputFile: {host} and {ts} are
+        /// replaced by the machine name and the time, and a relative name is relative to
+        /// Application.persistentDataPath. An absolute name is used as is (#61).
+        /// </summary>
+        public static string StatsFilename(string statsOutputFile, DateTime now)
+        {
+            string sfn = statsOutputFile;
+            sfn = sfn.Replace("{host}", Environment.MachineName);
+            sfn = sfn.Replace("{ts}", now.ToString("yyyyMMdd-HHmm"));
+            return System.IO.Path.Combine(Application.persistentDataPath, sfn);
         }
 
         static void Flush()
