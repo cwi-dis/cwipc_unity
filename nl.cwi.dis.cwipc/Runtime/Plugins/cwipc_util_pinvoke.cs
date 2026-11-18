@@ -488,7 +488,9 @@ namespace Cwipc
 
             ~pointcloud()
             {
-                if (pointer != IntPtr.Zero) {
+                // _pointer, not pointer: the property throws once the point cloud has been freed,
+                // which is the normal state here (#74).
+                if (_pointer != IntPtr.Zero) {
                     free();
                 }
             }
