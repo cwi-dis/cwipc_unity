@@ -195,9 +195,12 @@ jobs:
           customImage: cwipc-unity-ci:windows
           # Pinned: no "latest" lookup, reproducible runs. Update deliberately.
           cliVersion: v0.1.76
-          # No graphics device in the container: without this Unity stops with
+          # No graphics device in the container: without -nographics Unity stops with
           # "Failed to initialize graphics" (d3d11/d3d12 device creation fails).
-          customParameters: -nographics
+          # Workaround: at least two parameters. game-ci's Windows test script (game-ci/cli
+          # v0.1.76, dist/platforms/windows/steps/test.ps1) passes a single custom parameter
+          # to Unity character by character ("-", "n", "o", ...).
+          customParameters: -nographics -silent-crashes
           artifactsPath: test-results-windows
           checkName: EditMode tests (Windows)
 
