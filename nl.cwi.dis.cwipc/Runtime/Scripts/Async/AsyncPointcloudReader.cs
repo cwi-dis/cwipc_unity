@@ -298,6 +298,7 @@ namespace Cwipc
         {
             public Stats(string name) : base(name) { }
 
+            bool warnedExcessiveDrops = false;
             double statsTotalPoints = 0;
             double statsTotalPointclouds = 0;
             double statsTotalPointSize = 0;
@@ -322,8 +323,10 @@ namespace Cwipc
                 if (ShouldOutput())
                 {
                     Output($"fps={statsTotalPointclouds / Interval():F2}, points_per_cloud={(int)(statsTotalPoints / statsTotalPointclouds)}, avg_pointsize={(statsTotalPointSize / statsTotalPointclouds):G4}, fps_dropped={statsDrops / Interval():F2}, selfdrop_fps={statsSelfDrops / Interval():F2},  encoder_queue_ms={(int)(statsQueuedDuration / statsTotalPointclouds)}, downsample_ms={statsDownsampleDuration/statsTotalPointclouds:F2}, pc_timestamp={timestamp}, aggregate_packets={statsAggregatePackets}");
-                    if (statsDrops > 1 + 3 * Interval())
+                    if (statsDrops > 1 + 3 * Interval() && !warnedExcessiveDrops)
                     {
+                        // Once per reader: the condition tends to last, and the advice doesn't change (#58).
+                        warnedExcessiveDrops = true;
                         double ok_fps = (statsTotalPointclouds - statsDrops) / Interval();
                         Debug.LogWarning($"{name}: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= {ok_fps:F2}  in config.json.");
                     }

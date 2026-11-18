@@ -332,11 +332,14 @@ namespace Cwipc
             outQueue = null;
             if (out2Queue != null && !out2Queue.IsClosed()) out2Queue.Close();
             out2Queue = null;
-            decoder?.free();
-            decoder = null;
+            // Don't free the native decoder here: this runs on the calling (main) thread, and the
+            // worker thread may be using the decoder right now. AsyncOnStop() frees it (#58, as #60).
         }
 
         public override void AsyncOnStop() {
+            // Runs on the worker thread, after its loop has ended: nobody else uses the decoder now.
+            decoder?.free();
+            decoder = null;
             filenames = null;
             if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
             outQueue = null;
@@ -419,6 +422,12 @@ namespace Cwipc
                 break;
             }
             if (pc == null) return;
+            if (!isRunning)
+            {
+                // Stopped while we were reading: the queues are (being) closed, don't enqueue (#58).
+                pc.free();
+                return;
+            }
             pc.metadata.filename = nextFilename;
             if (parent.newTimestamps) {
                 System.TimeSpan sinceEpoch = System.DateTime.UtcNow - new System.DateTime(1970, 1, 1);
@@ -446,27 +455,30 @@ namespace Cwipc
             bool didDropEncoder = false;
 #pragma warning restore CS0219 // Variable is assigned but its value is never used
             Timedelta encoderQueuedDuration = 0;
-            if (outQueue == null || outQueue.IsClosed())
+            // Read the queue fields once: Stop() sets them to null from another thread (#58).
+            QueueThreadSafe myOutQueue = outQueue;
+            QueueThreadSafe myOut2Queue = out2Queue;
+            if (myOutQueue == null || myOutQueue.IsClosed())
             {
                 // This is not an error, we are probably closing. Debug.LogError($"{Name()}: no outQueue, dropping pointcloud");
                 didDropSelfView = true;
             }
             else
             {
-                bool ok = outQueue.Enqueue(pc.AddRef());
+                bool ok = myOutQueue.Enqueue(pc.AddRef());
                 if (!ok)
                 {
                     didDropSelfView = true;
                 }
             }
-            if (out2Queue == null || out2Queue.IsClosed())
+            if (myOut2Queue == null || myOut2Queue.IsClosed())
             {
                 // This is not an error. Debug.LogError($"{Name()}: no outQueue2, dropping pointcloud");
             }
             else
             {
-                encoderQueuedDuration = out2Queue.QueuedDuration();
-                bool ok = out2Queue.Enqueue(pc.AddRef());
+                encoderQueuedDuration = myOut2Queue.QueuedDuration();
+                bool ok = myOut2Queue.Enqueue(pc.AddRef());
                 if (!ok)
                 {
                     didDropEncoder = true;
@@ -484,6 +496,7 @@ namespace Cwipc
         {
             public Stats(string name) : base(name) { }
 
+            bool warnedExcessiveDrops = false;
             double statsTotalPoints = 0;
             double statsTotalPointclouds = 0;
             double statsTotalPointSize = 0;
@@ -513,8 +526,10 @@ namespace Cwipc
                         msg += $", quality={subdir}";
                     }
                     Output(msg);
-                    if (statsDrops > 1 + 3 * Interval())
+                    if (statsDrops > 1 + 3 * Interval() && !warnedExcessiveDrops)
                     {
+                        // Once per reader: the condition tends to last, and the advice doesn't change (#58).
+                        warnedExcessiveDrops = true;
                         double ok_fps = (statsTotalPointclouds - statsDrops) / Interval();
                         Debug.LogWarning($"{name}: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= {ok_fps:F2}  in config.json.");
                     }
