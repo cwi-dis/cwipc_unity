@@ -6,6 +6,7 @@
 - Prerecorded playback: fixed a possible native crash when stopping; the "excessive dropped frames" advice is logged once per reader (#58)
 - Statistics are compiled in by default: define `VRT_WITHOUT_STATS` to leave them out; `VRT_WITH_STATS` is no longer used (#68)
 - The stats output file can be an absolute path (#61)
+- The package declares its dependencies on the XR Interaction Toolkit (3.3) and the Input System (#65)
 
 ## [8.2.1] - 2026-11-11
 

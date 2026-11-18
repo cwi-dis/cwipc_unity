@@ -6,6 +6,10 @@
 	"documentationUrl" : "https://github.com/cwi-dis/cwipc_unity/blob/master/nl.cwi.dis.cwipc/README.md",
 	"changelogUrl" : "https://github.com/cwi-dis/cwipc_unity/blob/master/nl.cwi.dis.cwipc/CHANGELOG.md",
 	"unity" : "6000.3",
+	"dependencies" : {
+		"com.unity.inputsystem" : "1.8.1",
+		"com.unity.xr.interaction.toolkit" : "3.3.0"
+	},
 	"samples" : [
 		{
 			"displayName": "Simple point cloud samples",

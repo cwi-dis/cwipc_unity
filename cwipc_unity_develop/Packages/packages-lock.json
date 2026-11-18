@@ -283,7 +283,10 @@
       "version": "file:nl.cwi.dis.cwipc",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.unity.inputsystem": "1.8.1",
+        "com.unity.xr.interaction.toolkit": "3.3.0"
+      }
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
