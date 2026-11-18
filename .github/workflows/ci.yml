@@ -18,6 +18,11 @@ on:
         description: 'cwipc version to test against: a release tag, or master (macOS: brew --HEAD)'
         required: false
         default: 'master'
+      gpu:
+        description: 'macOS: run Unity with a graphics device (unity-builder enableGpu), to find out whether the runners have one (#72)'
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   # Cheap checks without Unity, on every push.
@@ -79,6 +84,8 @@ jobs:
         with:
           projectPath: cwipc_unity_develop
           targetPlatform: StandaloneOSX
+          # Without -nographics when started by hand with gpu=true (experiment, #72).
+          enableGpu: ${{ inputs.gpu && 'true' || '' }}
           unityVersion: auto
           buildMethod: CiTestRunner.RunEditModeTests
 
