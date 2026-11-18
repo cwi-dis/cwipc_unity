@@ -1655,9 +1655,13 @@ namespace Cwipc
             {
             }
             
+            // The delegate passed to native code. Kept in a static field: native code keeps its
+            // function pointer, so the delegate must not be garbage collected (#73).
+            private static readonly _API_cwipc_util.LogCallbackType _logger_callback_delegate = _logger_callback;
+
             public void install_logger(LogLevel level) {
                 Debug.Log($"cwipc: native logLevel={level}");
-                _API_cwipc_util.cwipc_log_configure((int)level, _logger_callback);
+                _API_cwipc_util.cwipc_log_configure((int)level, _logger_callback_delegate);
             }
 
             ~LoggerKeeper()
@@ -1665,6 +1669,9 @@ namespace Cwipc
                 _API_cwipc_util.cwipc_log_configure((int)LogLevel.WARNING, null);
             }
             
+            // IL2CPP (Android, IL2CPP desktop builds) can only call back into static methods with
+            // this attribute; without it the first cwipc call fails (#73).
+            [AOT.MonoPInvokeCallback(typeof(_API_cwipc_util.LogCallbackType))]
             private static void _logger_callback(int level, string message)
             {
                 switch ((LogLevel)level)
