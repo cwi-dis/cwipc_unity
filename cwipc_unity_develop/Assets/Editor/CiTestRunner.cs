@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using UnityEditor;
 using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
@@ -72,29 +71,6 @@ public static class CiTestRunner
         {
             Debug.LogError($"CiTestRunner: {e}");
         }
-        ExitWithoutStaticDestructors(status);
-    }
-
-#if UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX
-    [DllImport("libc", EntryPoint = "_exit")]
-    static extern void _exit(int status);
-#endif
-
-    /// <summary>
-    /// Workaround, blocked on cwi-dis/cwipc#357: cwipc's native libraries link VTK, whose static
-    /// destructors sometimes crash the process at exit (SIGSEGV after the tests passed), which
-    /// would make CI fail at random. _exit skips the static destructors. Remove when CI tests
-    /// against a cwipc without VTK (8.3.0).
-    /// </summary>
-    static void ExitWithoutStaticDestructors(int status)
-    {
-#if UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX
-        Debug.Log($"CiTestRunner: exiting with status {status} (_exit, see cwi-dis/cwipc#357)");
-        Console.Out.Flush();
-        Console.Error.Flush();
-        _exit(status);
-#else
         EditorApplication.Exit(status);
-#endif
     }
 }
