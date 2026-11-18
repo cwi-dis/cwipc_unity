@@ -21,11 +21,21 @@ on:
 
 jobs:
   test-macos:
-    name: EditMode tests (macOS arm64)
-    # macOS arm64 runners are scarce: only on master, or when started by hand (workflow_dispatch,
-    # also on a branch). Pushes to other branches run the Linux job only.
+    name: EditMode tests (macOS ${{ matrix.arch }})
+    # macOS runners are scarce: only on master, or when started by hand (workflow_dispatch,
+    # also on a branch). Pushes to other branches run the Linux and Windows jobs only.
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
-    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+          # Intel: as long as cwipc and this package support Intel Macs. It is the only job
+          # that exercises the standard-library-path branch of _load_cwipc_util() on macOS.
+          - arch: intel
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,9 +44,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: cwipc_unity_develop/Library
-          key: Library-macOS-${{ hashFiles('cwipc_unity_develop/Packages/**', 'cwipc_unity_develop/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
+          key: Library-macOS-${{ matrix.arch }}-${{ hashFiles('cwipc_unity_develop/Packages/**', 'cwipc_unity_develop/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
           restore-keys: |
-            Library-macOS-
+            Library-macOS-${{ matrix.arch }}-
 
       # The action from the cwipc nightly, and cwipc master, while cwipc_unity 8.3.0 is
       # developed against the nightly (cwi-dis/cwipc#363); both v8.3.0 once that is
@@ -62,7 +72,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-macos
+          name: test-results-macos-${{ matrix.arch }}
           path: test-results/
           if-no-files-found: warn
 
