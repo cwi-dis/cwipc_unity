@@ -9,6 +9,8 @@
 [Bb]uilds/
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
+# Unity's temporary build folder for Android (Gradle/CMake)
+.utmp/
 
 # We want to include the Samples directory
 !Samples~
