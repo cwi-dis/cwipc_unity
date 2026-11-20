@@ -3,7 +3,7 @@
 # (cwi-dis/cwipc_unity#71). Built in the CI job and passed to game-ci/unity-test-runner
 # as customImage. The Windows counterpart of ../linux/Dockerfile.
 #
-# UNITY_VERSION: the project's Unity version (cwipc_unity_develop/ProjectSettings/ProjectVersion.txt).
+# UNITY_VERSION: the project's Unity version (cwipc_unity_develop_urp/ProjectSettings/ProjectVersion.txt).
 # CWIPC_VERSION: a cwipc release tag, or "nightly". The -built- zip of that release is
 # unpacked and its bin directory put on the machine PATH; that zip has all of cwipc's
 # DLLs, but not the Microsoft C++ runtime.

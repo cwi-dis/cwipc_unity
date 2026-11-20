@@ -1,10 +1,12 @@
 # CI for cwipc_unity: run the EditMode tests of the package (nl.cwi.dis.cwipc/Tests)
-# in cwipc_unity_develop, against an installed cwipc. See cwi-dis/cwipc_unity#63.
+# in the development projects, against an installed cwipc. See cwi-dis/cwipc_unity#63.
+# cwipc_unity_develop_urp on all platforms; cwipc_unity_develop_birp (no URP) on macOS
+# arm64 with a graphics device, so the shaders really compile there (#72, #55).
 #
 # Why game-ci's unity-builder and not its unity-test-runner: the test runner only
 # runs Unity in Docker (Linux, Windows), where the cwipc installed on the runner
 # isn't visible. The builder runs Unity directly on macOS runners; it calls
-# CiTestRunner.RunEditModeTests (cwipc_unity_develop/Assets/Editor) instead of a build.
+# Cwipc.Tests.CiTestRunner.RunEditModeTests (nl.cwi.dis.cwipc/Tests/Editor) instead of a build.
 #
 # Secrets (same as VRTApp-Trolley, Unity Personal): UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD.
 
@@ -19,7 +21,7 @@ on:
         required: false
         default: 'v8.3.0'
       gpu:
-        description: 'macOS: run Unity with a graphics device (unity-builder enableGpu), to find out whether the runners have one (#72)'
+        description: 'macOS: also run the URP jobs with a graphics device (unity-builder enableGpu); the BIRP job always has one'
         type: boolean
         required: false
         default: false
@@ -37,7 +39,7 @@ jobs:
         run: python3 .github/scripts/check_urp_subshaders.py nl.cwi.dis.cwipc
 
   test-macos:
-    name: EditMode tests (macOS ${{ matrix.arch }})
+    name: EditMode tests (macOS ${{ matrix.arch }}, ${{ matrix.project }})
     # macOS runners are scarce: only on master, or when started by hand (workflow_dispatch,
     # also on a branch). Pushes to other branches run the Linux and Windows jobs only.
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
@@ -47,12 +49,23 @@ jobs:
         include:
           - arch: arm64
             runner: macos-15
+            project: urp
+            hub-arch: arm64
+            hub-sha256: e04d0320daf5df3d460435320222d8f4981f1388ecb0b5b22482ad98a9bbbf85
+          # The BIRP project, without URP: with a graphics device Unity compiles the
+          # shaders, so ShaderTests catches a URP SubShader without PackageRequirements
+          # (#55); the macOS runners have a Metal device (seen in run 44416168334).
+          - arch: arm64
+            runner: macos-15
+            project: birp
+            gpu: true
             hub-arch: arm64
             hub-sha256: e04d0320daf5df3d460435320222d8f4981f1388ecb0b5b22482ad98a9bbbf85
           # Intel: as long as cwipc and this package support Intel Macs. It is the only job
           # that exercises the standard-library-path branch of _load_cwipc_util() on macOS.
           - arch: intel
             runner: macos-15-intel
+            project: urp
             hub-arch: x64
             hub-sha256: ec2b1cea97ba8c418cd87c9e216294224ac7cee393fa84c6d6b1d98d1f963b92
     runs-on: ${{ matrix.runner }}
@@ -63,10 +76,10 @@ jobs:
 
       - uses: actions/cache@v4
         with:
-          path: cwipc_unity_develop/Library
-          key: Library-macOS-${{ matrix.arch }}-${{ hashFiles('cwipc_unity_develop/Packages/**', 'cwipc_unity_develop/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
+          path: cwipc_unity_develop_${{ matrix.project }}/Library
+          key: Library-macOS-${{ matrix.arch }}-${{ matrix.project }}-${{ hashFiles(format('cwipc_unity_develop_{0}/Packages/**', matrix.project), format('cwipc_unity_develop_{0}/ProjectSettings/**', matrix.project), 'nl.cwi.dis.cwipc/package.json') }}
           restore-keys: |
-            Library-macOS-${{ matrix.arch }}-
+            Library-macOS-${{ matrix.arch }}-${{ matrix.project }}-
 
       # The action and cwipc both from the v8.3.0 release (cwi-dis/cwipc#354). To test
       # against cwipc master, run the workflow by hand with cwipc-version: master (not
@@ -100,17 +113,17 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           CWIPC_TEST_RESULTS: ${{ github.workspace }}/test-results/editmode.xml
         with:
-          projectPath: cwipc_unity_develop
+          projectPath: cwipc_unity_develop_${{ matrix.project }}
           targetPlatform: StandaloneOSX
-          # Without -nographics when started by hand with gpu=true (experiment, #72).
-          enableGpu: ${{ inputs.gpu && 'true' || '' }}
+          # Without -nographics for the BIRP job, and for all when started by hand with gpu=true.
+          enableGpu: ${{ (matrix.gpu || inputs.gpu) && 'true' || '' }}
           unityVersion: auto
-          buildMethod: CiTestRunner.RunEditModeTests
+          buildMethod: Cwipc.Tests.CiTestRunner.RunEditModeTests
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-macos-${{ matrix.arch }}
+          name: test-results-macos-${{ matrix.arch }}-${{ matrix.project }}
           path: test-results/
           if-no-files-found: warn
 
@@ -129,15 +142,15 @@ jobs:
 
       - uses: actions/cache@v4
         with:
-          path: cwipc_unity_develop/Library
-          key: Library-Linux-${{ hashFiles('cwipc_unity_develop/Packages/**', 'cwipc_unity_develop/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
+          path: cwipc_unity_develop_urp/Library
+          key: Library-Linux-${{ hashFiles('cwipc_unity_develop_urp/Packages/**', 'cwipc_unity_develop_urp/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
           restore-keys: |
             Library-Linux-
 
       - id: unity
         name: Unity version of the project
         run: |
-          echo "version=$(sed -n 's/^m_EditorVersion: //p' cwipc_unity_develop/ProjectSettings/ProjectVersion.txt)" >> "$GITHUB_OUTPUT"
+          echo "version=$(sed -n 's/^m_EditorVersion: //p' cwipc_unity_develop_urp/ProjectSettings/ProjectVersion.txt)" >> "$GITHUB_OUTPUT"
 
       - name: Build the image with cwipc
         run: |
@@ -155,7 +168,7 @@ jobs:
           # its githubToken input; anonymous calls hit the shared per-IP rate limit (403).
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          projectPath: cwipc_unity_develop
+          projectPath: cwipc_unity_develop_urp
           testMode: editmode
           customImage: cwipc-unity-ci:linux
           # Pinned: no "latest" lookup, reproducible runs. Update deliberately.
@@ -200,8 +213,8 @@ jobs:
 
       - uses: actions/cache@v4
         with:
-          path: cwipc_unity_develop/Library
-          key: Library-Windows-${{ hashFiles('cwipc_unity_develop/Packages/**', 'cwipc_unity_develop/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
+          path: cwipc_unity_develop_urp/Library
+          key: Library-Windows-${{ hashFiles('cwipc_unity_develop_urp/Packages/**', 'cwipc_unity_develop_urp/ProjectSettings/**', 'nl.cwi.dis.cwipc/package.json') }}
           restore-keys: |
             Library-Windows-
 
@@ -209,7 +222,7 @@ jobs:
         name: Unity version of the project
         shell: bash
         run: |
-          echo "version=$(sed -n 's/^m_EditorVersion: //p' cwipc_unity_develop/ProjectSettings/ProjectVersion.txt | tr -d '\r')" >> "$GITHUB_OUTPUT"
+          echo "version=$(sed -n 's/^m_EditorVersion: //p' cwipc_unity_develop_urp/ProjectSettings/ProjectVersion.txt | tr -d '\r')" >> "$GITHUB_OUTPUT"
 
       - name: Build the image with cwipc
         shell: bash
@@ -230,11 +243,11 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          projectPath: cwipc_unity_develop
+          projectPath: cwipc_unity_develop_urp
           targetPlatform: StandaloneWindows64
           unityVersion: auto
           customImage: cwipc-unity-ci:windows
-          buildMethod: CiTestRunner.RunEditModeTests
+          buildMethod: Cwipc.Tests.CiTestRunner.RunEditModeTests
 
       # CiTestRunner writes test-results/editmode.xml relative to Unity's working directory
       # (CWIPC_TEST_RESULTS isn't passed into the container): the project directory, or the
@@ -244,7 +257,7 @@ jobs:
         shell: bash
         run: |
           f=""
-          for c in cwipc_unity_develop/test-results/editmode.xml test-results/editmode.xml; do
+          for c in cwipc_unity_develop_urp/test-results/editmode.xml test-results/editmode.xml; do
             if [ -f "$c" ]; then f="$c"; break; fi
           done
           if [ -z "$f" ]; then echo "::error::no test results"; exit 1; fi
@@ -261,6 +274,6 @@ jobs:
         with:
           name: test-results-windows
           path: |
-            cwipc_unity_develop/test-results/
+            cwipc_unity_develop_urp/test-results/
             test-results/
           if-no-files-found: warn

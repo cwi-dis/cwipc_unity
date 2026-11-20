@@ -2,7 +2,7 @@
 # (cwi-dis/cwipc_unity#71). Built in the CI job and passed to game-ci/unity-test-runner
 # as customImage.
 #
-# UNITY_VERSION: the project's Unity version (cwipc_unity_develop/ProjectSettings/ProjectVersion.txt).
+# UNITY_VERSION: the project's Unity version (cwipc_unity_develop_urp/ProjectSettings/ProjectVersion.txt).
 # CWIPC_VERSION: a cwipc release tag, or "nightly". The -built- archive of that release is
 # installed with cwipc's get-cwipc.sh, with its runtime dependencies (apt), without Python.
 

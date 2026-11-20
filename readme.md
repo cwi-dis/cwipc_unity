@@ -9,9 +9,14 @@ Checking out this repository is only useful if you want to **modify** the `cwipc
 See the [README for nl.cwi.dis.cwipc](nl.cwi.dis.cwipc/README.md) for more details on **using** the cwipc package in your own Unity projects.
 But TL;DR: You could clone <https://github.com/cwi-dis/cwipc_unity_sample> to get started.
 
-If you want to **develop** on the package (i.e. modify it) you should check out this whole repository, and open the `cwipc_unity_develop` Unity project. That project includes the `nl.cwi.dis.cwipc` package using symbolic links, so any changes you make to it can be committed to git.
+If you want to **develop** on the package (i.e. modify it) you should check out this whole repository, and open one of the two development projects:
 
-Some of the samples in `cwipc_unity_develop` (specifically the prerecorded point cloud playback samples) use data from <https://github.com/cwi-dis/cwipc-test>, which should be cloned at the same directory level where `cwipc_unity` has been cloned. Or you can fix the pathnames or use different content.
+- `cwipc_unity_develop_urp`: uses the Universal Render Pipeline (URP). This is the normal case.
+- `cwipc_unity_develop_birp`: uses the Built-in Render Pipeline (BIRP), without the URP package installed. This is for backward compatibility, and it checks that the package works in a project without URP.
+
+Both projects include the `nl.cwi.dis.cwipc` package (and its samples) using symbolic links, so any changes you make in either of them land in the package and can be committed to git. Their own contents are otherwise the same: the XR Interaction Toolkit Starter Assets, the VR sample scenes in the build list, and the Unity Pipeline package (`com.unity.pipeline`) so the Editor can be inspected and driven from the command line (`unity command ...`).
+
+Some of the samples in the development projects (specifically the prerecorded point cloud playback samples) use data from <https://github.com/cwi-dis/cwipc-test>, which should be cloned at the same directory level where `cwipc_unity` has been cloned. Or you can fix the pathnames or use different content.
 
 > *Note*: At the moment `cwipc-test` is a private repository, due to excessive downloads of the content by AI agents and bots and such, and _we_ have to pay for those downloads. Please complain to github.
 >
@@ -30,15 +35,15 @@ git config --local core.symlinks true
 
 (the `--local` command may not be needed in all cases, don't worry if it fails).
 
-### Testing under URP
+### Tests and CI
 
-`cwipc_unity_develop` is set up to test both the Built-in Render Pipeline (BIRP, the project default) and URP without needing a separate project. To switch which one the Editor is using:
+The package has EditMode tests in `nl.cwi.dis.cwipc/Tests/Editor`. They show up in the development projects only (which list the package under `testables`): open `Window > General > Test Runner`, tab `EditMode`, and `Run All`. They need the native `cwipc` libraries installed.
 
-- Open `Edit > Project Settings > Quality`.
-- Click the `"URP Test"` card in the Levels list — this immediately makes it the Editor's active quality level (its Render Pipeline Asset is `Assets/Settings/URPSettings.asset`).
-- To switch back to BIRP, click any other level (e.g. `Ultra`) — a level only counts as BIRP if its Render Pipeline Asset is `None`.
+CI (`.github/workflows/ci.yml`) runs the same tests against the released `cwipc`: in `cwipc_unity_develop_urp` on Linux and Windows (in game-ci's Docker containers, with `cwipc` in a custom image) and on macOS arm64 and Intel, and in `cwipc_unity_develop_birp` on macOS arm64 with a graphics device, so the shaders are really compiled there. The macOS jobs run on `master` and when the workflow is started by hand. A static check (`.github/scripts/check_urp_subshaders.py`) also verifies that every URP SubShader can be skipped in a project without URP.
 
-This click only changes the live Editor session. To also change what Play mode / a build uses by default on a given platform, set that platform's row in the table below the Levels list to point at `"URP Test"` (or back to the BIRP level).
+### Switching between the VR samples in a build
+
+The VR sample scenes each contain a small scene switcher (`cwipc_scene_switcher` prefab): point at one of its buttons with a controller (or click it with the mouse without a headset) to load another VR sample scene.
 
 ### Note for creating a new release
 
@@ -49,8 +54,8 @@ This click only changes the live Editor session. To also change what Play mode /
 
 The Android native plugins for `cwipc` are included in this package (unlike those for desktop). They need to be updated for a new release:
 
-- Download `cwipc_vX.Y.Z_android_arm64.tar.gz` from the current release of <https://github.com/cwi-dis/cwipc/releases>
+- Download `cwipc-android-arm64-package-vX.Y.Z.tar.gz` from the current release of <https://github.com/cwi-dis/cwipc/releases>
 - Unpack the tarball.
 - Copy the `.so` files from the `lib` folder into `./nl.cwi.dis.cwipc/Runtime/Plugins/android-arm64`
-- Open the `cwipc_unity_develop` package in the Unity Editor, navigate to `Plugins/android-arm64` and ensure that all the meta-information about the native plugins is correct.
+- Open the `cwipc_unity_develop_urp` project in the Unity Editor, navigate to `Plugins/android-arm64` and ensure that all the meta-information about the native plugins is correct.
 - `git commit`

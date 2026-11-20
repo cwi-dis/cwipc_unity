@@ -50,7 +50,8 @@ point clouds in VR) the VR Samples:
 and the Universal Render Pipeline (URP) - no separate package version or sample set needed. This
 works because the shipped shaders (`PointCloudTextured.shader`, and `SimpleColor.shader` used by
 placeholder/backdrop geometry in the samples) each contain a subshader for both pipelines; Unity
-automatically picks the right one based on your project's active render pipeline.
+automatically picks the right one based on your project's active render pipeline. A BIRP
+project doesn't need the URP package installed: the URP subshaders are skipped when it is missing.
 
 If you have an existing BIRP project and want to make it (or parts of it) URP-compatible too,
 `cwipc/SimpleColor` (`Runtime/Shaders/SimpleColor.shader`) may be a useful starting point for

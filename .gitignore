@@ -82,5 +82,5 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# Results of the CI test runner (cwipc_unity_develop/Assets/Editor/CiTestRunner.cs)
+# Results of the CI test runner (nl.cwi.dis.cwipc/Tests/Editor/CiTestRunner.cs)
 [Tt]est-results/

@@ -18,14 +18,22 @@ on this package for its point-cloud pipelines and renderers.
 
 - `nl.cwi.dis.cwipc/` — the actual Unity package. This is what gets published/consumed via UPM. Everything
   under here (`Runtime/`, `Editor/`, `Samples~/`, `Documentation~/`) is the deliverable.
-- `cwipc_unity_develop/` — a throwaway Unity project (6000.3.x / Unity 6) used only to edit and test the
-  package. It imports `nl.cwi.dis.cwipc` via a **symlink** in `cwipc_unity_develop/Packages/`, so edits made
-  in the Unity Editor land directly in `nl.cwi.dis.cwipc/` and are what you commit. Nothing meaningful lives
-  permanently in this project outside of that symlink and test scenes/samples.
+- `cwipc_unity_develop_urp/` and `cwipc_unity_develop_birp/` — two throwaway Unity projects (6000.3.x /
+  Unity 6) used only to edit and test the package: URP (the normal case) and BIRP without the URP package
+  (backward compatibility, and the check that the package works without URP, #55). Both import
+  `nl.cwi.dis.cwipc` via a **symlink** in `Packages/`, so edits made in either Editor land directly in
+  `nl.cwi.dis.cwipc/` and are what you commit. Nothing meaningful lives permanently in these projects
+  outside of that symlink and test scenes/samples. Both have the Unity Pipeline package
+  (`com.unity.pipeline`), so a running Editor can be inspected and driven with `unity command ...`.
   - Windows: symlinks must be enabled (Developer Mode) and `git config core.symlinks true` set, or the
     package import silently breaks.
-- No CI, no automated test suite in this repo. "Testing" a change means opening `cwipc_unity_develop` in the
-  Unity Editor and running one of the sample scenes.
+  - Don't `git commit -a` while an Editor may be open or building: Unity rewrites settings files
+    (e.g. `ProjectSettings.asset`'s `preloadedAssets` during a build). Stage files by name.
+- Tests: EditMode tests in `nl.cwi.dis.cwipc/Tests/Editor` (Test Runner in either development project, or
+  `unity command test run --mode editor`). CI (`.github/workflows/ci.yml`) runs them against released
+  cwipc on Linux and Windows (game-ci containers with cwipc in a custom image), macOS arm64 and Intel
+  (URP project), and macOS arm64 with a graphics device (BIRP project); plus a static URP SubShader check.
+  Anything beyond that — rendering, XR, networking — is still tested by running sample scenes.
 - Some prerecorded-playback samples expect a sibling checkout of the (private) `cwipc-test` repo — see
   `readme.md` for details.
 
