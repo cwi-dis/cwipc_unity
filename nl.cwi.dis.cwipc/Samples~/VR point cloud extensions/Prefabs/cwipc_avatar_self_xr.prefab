@@ -75,14 +75,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2391882678302957417}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6473800109377461743}
   - {fileID: 2761164448275226797}
-  m_Father: {fileID: 2942035106827000207}
+  m_Father: {fileID: 8511368928710340876}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1911508270948310340
 MonoBehaviour:
@@ -142,7 +142,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7018784957318502208}
   - {fileID: 412585988519733524}
   - {fileID: 7824105976847138353}
   m_Father: {fileID: 0}
@@ -206,6 +205,11 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -227,9 +231,11 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &5513145718767485457
 BoxCollider:
@@ -312,6 +318,11 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -333,9 +344,11 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!136 &2248409765004712271
 CapsuleCollider:
@@ -500,11 +513,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3518833792118639253, guid: 5553f6bccdc163740a900449b94a4183, type: 3}
+      insertIndex: 0
+      addedObject: {fileID: 7018784957318502208}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5553f6bccdc163740a900449b94a4183, type: 3}
 --- !u!4 &412585988519733524 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4860176230215406221, guid: 5553f6bccdc163740a900449b94a4183, type: 3}
+  m_PrefabInstance: {fileID: 5101202075787525017}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8511368928710340876 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3518833792118639253, guid: 5553f6bccdc163740a900449b94a4183, type: 3}
   m_PrefabInstance: {fileID: 5101202075787525017}
   m_PrefabAsset: {fileID: 0}
