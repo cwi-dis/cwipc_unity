@@ -394,7 +394,7 @@ namespace Cwipc
             }
             catch (System.TypeLoadException e)
             {
-                UnityEngine.Debug.LogWarning($"GetCwipcDLLDirectory: cannot load cwipc_util DLL.");
+                UnityEngine.Debug.LogWarning($"GetCwipcDLLDirectory: cannot load cwipc_util DLL: {e.Message}");
                 return null;
             }
             IntPtr hMod = API_kernel.GetModuleHandle(_API_cwipc_util.myDllName);
