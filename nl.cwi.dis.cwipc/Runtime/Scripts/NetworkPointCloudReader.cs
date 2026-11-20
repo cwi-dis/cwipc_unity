@@ -31,7 +31,7 @@ namespace Cwipc
             }
         }
 
-        public override FrameMetadata? currentMetadata
+        public override FrameMetadata currentMetadata
         {
             get
             {
@@ -81,13 +81,14 @@ namespace Cwipc
             }
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             Stop();
             if (byteArray.IsCreated)
             {
                 byteArray.Dispose();
             }
+            base.OnDestroy();
         }
 
         public override int GetComputeBuffer(ref ComputeBuffer computeBuffer)

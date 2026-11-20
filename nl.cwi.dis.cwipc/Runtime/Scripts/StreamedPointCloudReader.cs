@@ -33,7 +33,7 @@ namespace Cwipc
             }
         }
 
-        public override FrameMetadata? currentMetadata
+        public override FrameMetadata currentMetadata
         {
             get
             {
@@ -92,7 +92,7 @@ namespace Cwipc
             decoder = new AsyncPCDecoder(myReaderQueue, myDecoderQueue);
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             Stop();
             if (byteArray.IsCreated)

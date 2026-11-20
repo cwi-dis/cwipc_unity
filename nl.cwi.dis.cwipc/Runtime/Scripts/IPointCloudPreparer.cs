@@ -57,5 +57,11 @@ namespace Cwipc
         abstract public Timestamp currentTimestamp { get; }
         abstract public FrameMetadata currentMetadata { get; }
         abstract public string Name();
+
+        /// <summary>
+        /// Unity message. Subclasses that need cleanup override it and call base.OnDestroy():
+        /// Unity only calls the most derived one (#80).
+        /// </summary>
+        protected virtual void OnDestroy() { }
     }
 }

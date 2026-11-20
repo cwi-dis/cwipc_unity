@@ -52,7 +52,7 @@ namespace Cwipc
             throw new System.Exception($"{Name()}: _AllocateReader must be overridden");
         }
 
-        public void OnDestroy()
+        protected override void OnDestroy()
         {
             currentPointcloud?.free();
             currentPointcloud = null;
@@ -62,6 +62,7 @@ namespace Cwipc
             {
                 currentByteArray.Dispose();
             }
+            base.OnDestroy();
         }
 
         public void Start()

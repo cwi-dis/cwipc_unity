@@ -61,7 +61,7 @@ namespace Cwipc
         [Tooltip("Timestamp of most recent pointcloud (system clock)")]
         [SerializeField] public Timestamp timestampMostRecentReception;
         [Tooltip("Metadata of most recent pointcloud")]
-        [SerializeField] public FrameMetadata? metadataMostRecentReception;
+        [SerializeField] public FrameMetadata metadataMostRecentReception;
         [Tooltip("Number of points in most recent pointcloud")]
         [SerializeField] int pointCountMostRecentReception;
         [Tooltip("Number of points in most recent pointcloud")]
@@ -241,7 +241,7 @@ namespace Cwipc
 #endif
         }
 
-        public void OnDestroy()
+        protected virtual void OnDestroy()
         {
             if (pointBuffer != null) { pointBuffer.Release(); pointBuffer = null; }
             material = null;

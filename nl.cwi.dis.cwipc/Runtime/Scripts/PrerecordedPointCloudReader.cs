@@ -44,7 +44,7 @@ namespace Cwipc
             }
         }
 
-        public override FrameMetadata? currentMetadata
+        public override FrameMetadata currentMetadata
         {
             get
             {
@@ -80,13 +80,14 @@ namespace Cwipc
             reader = new AsyncPrerecordedReader(dirName, voxelSize, frameRate, myQueue, loopCount: loopCount);
         }
 
-        new private void OnDestroy()
+        protected override void OnDestroy()
         {
             Stop();
             if (byteArray.IsCreated)
             {
                 byteArray.Dispose();
             }
+            base.OnDestroy();
         }
 
         public override int GetComputeBuffer(ref ComputeBuffer computeBuffer)

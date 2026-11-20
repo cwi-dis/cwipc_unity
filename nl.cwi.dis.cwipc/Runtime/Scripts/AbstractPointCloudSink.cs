@@ -43,7 +43,7 @@ namespace Cwipc
         abstract public void InitializeTransmitter(PointCloudTileDescription[] tileDescriptions);
 
 
-        protected void OnDestroy()
+        protected virtual void OnDestroy()
         {
             PCencoder?.StopAndWait();
             PCtransmitter?.StopAndWait();
