@@ -142,7 +142,11 @@ namespace Cwipc
                             {
                                 Debug.LogWarning($"{Name()}: Connect({remoteEndpoint}) failed: {e.ToString()}. Sleep 1 second.");
                                 socket = null;
-                                System.Threading.Thread.Sleep(1000);
+                                // Wait a second before retrying, but in steps, so Stop() takes effect at once (#82, rule 2).
+                                for (int i = 0; i < 10 && !stopping; i++)
+                                {
+                                    System.Threading.Thread.Sleep(AsyncWorker.DequeueTimeoutMs);
+                                }
                                 continue;
                             }
 #if !VRT_WITHOUT_STATS

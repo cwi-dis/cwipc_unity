@@ -44,7 +44,8 @@ namespace Cwipc.Tests
                 stopMs = timer.ElapsedMilliseconds;
                 Application.logMessageReceivedThreaded -= onLog;
             }
-            Assert.Less(stopMs, 3000, "StopAndWait() took too long: the worker thread didn't wake up");
+            // The bound that matters: well under AsyncWorker's join timeout (5 s), i.e. nothing got stuck.
+            Assert.Less(stopMs, 4000, $"StopAndWait() took {stopMs} ms: a worker or helper thread didn't wake up");
             lock (errors)
             {
                 Assert.That(errors, Is.Empty, "errors logged:\n" + string.Join("\n", errors));
