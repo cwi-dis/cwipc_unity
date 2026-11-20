@@ -124,7 +124,7 @@ jobs:
         run: |
           docker build \
             --build-arg UNITY_VERSION=${{ steps.unity.outputs.version }} \
-            --build-arg CWIPC_VERSION=${{ inputs.cwipc-version == 'master' && 'nightly' || inputs.cwipc-version || 'nightly' }} \
+            --build-arg CWIPC_VERSION=${{ inputs.cwipc-version == 'master' && 'nightly' || inputs.cwipc-version || 'v8.3.0' }} \
             -t cwipc-unity-ci:linux .github/docker/linux
 
       - uses: game-ci/unity-test-runner@v4
@@ -197,7 +197,7 @@ jobs:
         run: |
           docker build \
             --build-arg UNITY_VERSION=${{ steps.unity.outputs.version }} \
-            --build-arg CWIPC_VERSION=${{ inputs.cwipc-version == 'master' && 'nightly' || inputs.cwipc-version || 'nightly' }} \
+            --build-arg CWIPC_VERSION=${{ inputs.cwipc-version == 'master' && 'nightly' || inputs.cwipc-version || 'v8.3.0' }} \
             -t cwipc-unity-ci:windows .github/docker/windows
 
       # Temporary workaround: unity-builder (with CiTestRunner, as on macOS) instead of

@@ -14,7 +14,7 @@ ARG UNITY_VERSION
 ARG GAMECI_IMAGE_VERSION=4
 FROM unityci/editor:windows-${UNITY_VERSION}-windows-il2cpp-${GAMECI_IMAGE_VERSION}
 
-ARG CWIPC_VERSION=nightly
+ARG CWIPC_VERSION=v8.3.0
 
 SHELL ["powershell", "-NoProfile", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 

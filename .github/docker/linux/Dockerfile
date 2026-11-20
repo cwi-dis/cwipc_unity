@@ -13,7 +13,7 @@ ARG UNITY_VERSION
 ARG GAMECI_IMAGE_VERSION=4
 FROM unityci/editor:ubuntu-${UNITY_VERSION}-linux-il2cpp-${GAMECI_IMAGE_VERSION}
 
-ARG CWIPC_VERSION=nightly
+ARG CWIPC_VERSION=v8.3.0
 
 # No sudo and no /etc/udev in this image: cwipc's install-deps-ubuntu2404.sh copes with both
 # since cwi-dis/cwipc#383 (cwi-dis/cwipc@94d4567a, in the nightly since 12d6ac32). curl and
