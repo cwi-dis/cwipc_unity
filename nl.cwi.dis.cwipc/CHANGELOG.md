@@ -1,28 +1,15 @@
 # Changelog
 
-## [unreleased]
+## [8.3.0] - 2026-11-20
 
-- Point cloud workers stop promptly and cleanly: no blocking waits or thread aborts, cleanup also after errors, and prerecorded tile readers no longer wait for each other for ever (#82)
-- Sample prefabs no longer default to the unsupported `cameraconfig.xml`; small fixes in the async classes (#86)
-- Closing a point cloud queue frees what is still in it, so tearing down a pipeline no longer leaks memory (#84)
-- Reloading a scene with a TCP sender (such as `VRTwoUsers`) no longer fails with "Address already in use" (#85)
-- The Networked point cloud source works again; it threw at construction since 8.1.0 (#83)
-- A camera that is configured but not connected gives one exception instead of an error per frame, so fallbacks (VR2Gather's developer mode) work (#81)
-- No more decoder exception ("refCount=0") when a scene with a streamed point cloud is unloaded (#79)
-- URP is a first-class render pipeline, no longer experimental; BIRP is tested in CI for backward compatibility (#72)
-- VR samples: a scene switcher to go between the four VR sample scenes in the headset (#78)
-- VR samples: the ground is teleportable again with the XRI 3 Starter Assets rig (#75)
-- Supports cwipc 8.3.0; Android native libraries updated to 8.3.0 (#64)
-- cwipc works in IL2CPP builds (Android/Quest) again: the log callback was missing `MonoPInvokeCallback` since 8.0.0 (#73)
-- No more exception for every point cloud the garbage collector finalizes (#74)
-- Native cwipc errors are no longer logged twice ("Attempting to continue"), and no longer lost when the codec is the first part of cwipc used (#67)
-- Prerecorded playback: fixed a possible native crash when stopping; the "excessive dropped frames" advice is logged once per reader (#58)
-- Statistics are compiled in by default: define `VRT_WITHOUT_STATS` to leave them out; `VRT_WITH_STATS` is no longer used (#68)
-- The stats output file can be an absolute path (#61)
-- `Statistics.Initialize()` with arguments after records were already output is an error, and the stats file says how many went to the Unity log; early `Statistics` objects get the configured interval (#59)
-- `overrideNativeLoadPath` is Windows-only; elsewhere it is ignored with a warning instead of mangling `PATH` (#61)
-- The package declares its dependencies on the XR Interaction Toolkit (3.3) and the Input System (#65)
-- Projects without the URP package no longer get shader compile errors (#55)
+- Supports cwipc 8.3.0; Android native libraries updated, and IL2CPP builds (Quest) work again (#64, #73)
+- Statistics: compiled in by default (`VRT_WITHOUT_STATS` to leave them out), absolute output paths, and an error when configured too late (#59, #61, #68)
+- URP is a first-class render pipeline, no longer experimental; projects without URP are supported and tested (#72, #55)
+- Stopping pipelines and switching scenes no longer crash, hang, throw or leak (#58, #74, #79, #82, #84, #85)
+- Errors are reported once and clearly: no doubled native errors, a disconnected camera gives one exception so fallbacks work, and the Networked source works again (#67, #81, #83)
+- VR samples: teleporting works with the XRI 3 rig, and a scene switcher to move between the samples in the headset (#75, #78)
+- The package declares its dependencies on the XR Interaction Toolkit and the Input System (#65)
+- Various minor fixes (#61, #80, #86)
 
 ## [8.2.1] - 2026-11-11
 
