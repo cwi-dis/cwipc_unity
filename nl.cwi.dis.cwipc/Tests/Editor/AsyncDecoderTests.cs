@@ -84,6 +84,7 @@ namespace Cwipc.Tests
             finally
             {
                 decoder?.StopAndWait();
+                inQueue.Close();
                 Application.logMessageReceivedThreaded -= onLog;
             }
             lock (errors)
