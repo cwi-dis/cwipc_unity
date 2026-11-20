@@ -84,3 +84,6 @@ crashlytics-build.properties
 
 # Results of the CI test runner (nl.cwi.dis.cwipc/Tests/Editor/CiTestRunner.cs)
 [Tt]est-results/
+
+# Mono crash dumps that Unity writes into the project directory after a native crash
+mono_crash.*
