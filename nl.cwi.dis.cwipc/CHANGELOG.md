@@ -2,6 +2,7 @@
 
 ## [unreleased]
 
+- Requires cwipc 8.3.0; Android native libraries updated to 8.3.0 (#64)
 - cwipc works in IL2CPP builds (Android/Quest) again: the log callback was missing `MonoPInvokeCallback` since 8.0.0 (#73)
 - No more exception for every point cloud the garbage collector finalizes (#74)
 - Native cwipc errors are no longer logged twice ("Attempting to continue"), and no longer lost when the codec is the first part of cwipc used (#67)
