@@ -157,6 +157,9 @@ public class SampleOrchestration : MonoBehaviour
             {
                 mySendQueue.Close();
             }
+            // Without this the writer's worker thread never ends, and its listening socket
+            // stays open: the next scene can't bind the port ("Address already in use", #85).
+            base.Stop();
         }
 
         public void Send(string message)

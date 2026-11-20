@@ -63,6 +63,9 @@ namespace Cwipc
                 IPAddress ipAddress = all[0];
                 IPEndPoint localEndpoint = new IPEndPoint(ipAddress, description.port);
                 listenSocket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                // Allow binding while a previous connection on this port is still in TIME_WAIT,
+                // for example right after a scene with a sender is reloaded (#85).
+                listenSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 listenSocket.Bind(localEndpoint);
                 listenSocket.Listen(4);
 #if CWIPC_WITH_LOGGING
@@ -187,7 +190,12 @@ namespace Cwipc
                     Debug.LogError("Error while sending visual representation or audio to other participants");
 #endif
                 }
-
+                finally
+                {
+                    // However this thread ends (input queue closed, exception), its sockets go with
+                    // it: a listening socket that outlives its thread keeps the port bound (#85).
+                    Stop();
+                }
             }
 
 #if !VRT_WITHOUT_STATS
