@@ -2,6 +2,8 @@
 
 ## [unreleased]
 
+- The Networked point cloud source works again; it threw at construction since 8.1.0 (#83)
+- A camera that is configured but not connected gives one exception instead of an error per frame, so fallbacks (VR2Gather's developer mode) work (#81)
 - No more decoder exception ("refCount=0") when a scene with a streamed point cloud is unloaded (#79)
 - URP is a first-class render pipeline, no longer experimental; BIRP is tested in CI for backward compatibility (#72)
 - VR samples: a scene switcher to go between the four VR sample scenes in the headset (#78)

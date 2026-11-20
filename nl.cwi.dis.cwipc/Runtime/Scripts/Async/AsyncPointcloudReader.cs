@@ -32,12 +32,20 @@ namespace Cwipc
 #endif
         }
 
+        /// <summary>
+        /// Start the native reader (if this class uses one: subclasses that get their point clouds
+        /// elsewhere leave reader null, #83) and then the worker thread.
+        /// Throws if the native reader can't be started (for example a camera that is configured but
+        /// not connected), instead of running a worker thread that polls a reader that isn't
+        /// playing (#81). The queues are left open: the caller may pass them to a fallback reader.
+        /// </summary>
         protected override void Start()
         {
-            var ok = reader.start();
-            if (!ok)
+            if (reader != null && !reader.start())
             {
-                Debug.LogError($"{Name()}: cannot start point cloud reader");
+                reader.free();
+                reader = null;
+                throw new System.Exception($"{Name()}: cannot start point cloud reader");
             }
             base.Start();
         }
