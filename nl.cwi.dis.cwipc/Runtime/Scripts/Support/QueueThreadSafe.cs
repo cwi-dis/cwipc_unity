@@ -83,11 +83,15 @@ namespace Cwipc
             UnityEngine.Debug.Log($"{Name()}: closing");
 #endif
             isClosed.Cancel();
-            while (true)
+            // Drain straight from the queue, under its lock. Not with TryDequeue(): its semaphore
+            // wait throws at once for the cancelled token, so the items would stay unfreed (#84).
+            // Enqueue() checks IsClosed() under the same lock, so nothing is added after this.
+            lock (queue)
             {
-                BaseMemoryChunk item = TryDequeue(0);
-                if (item == null) break;
-                item.free();
+                while (queue.Count > 0)
+                {
+                    queue.Dequeue().free();
+                }
             }
         }
 
@@ -316,6 +320,8 @@ namespace Cwipc
                 empty.Wait(isClosed.Token);
                 lock (queue)
                 {
+                    // Closed between our Wait() and here: Close() has drained already (#84).
+                    if (IsClosed()) throw new System.OperationCanceledException();
                     latestTimestamp = item.metadata.timestamp;
                     if (latestTimestamp == 0)
                     {
@@ -365,6 +371,8 @@ namespace Cwipc
                         }
                         empty.Wait(isClosed.Token);
                     }
+                    // Closed meanwhile: Close() has drained already (#84).
+                    if (IsClosed()) throw new System.OperationCanceledException();
                     latestTimestamp = item.metadata.timestamp;
                     if (latestTimestamp == 0)
                     {

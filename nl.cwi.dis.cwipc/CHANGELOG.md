@@ -2,6 +2,7 @@
 
 ## [unreleased]
 
+- Closing a point cloud queue frees what is still in it, so tearing down a pipeline no longer leaks memory (#84)
 - Reloading a scene with a TCP sender (such as `VRTwoUsers`) no longer fails with "Address already in use" (#85)
 - The Networked point cloud source works again; it threw at construction since 8.1.0 (#83)
 - A camera that is configured but not connected gives one exception instead of an error per frame, so fallbacks (VR2Gather's developer mode) work (#81)
