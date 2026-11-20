@@ -46,7 +46,7 @@ namespace Cwipc
 
             public void Close()
             {
-                if (outQueue != null) outQueue.Close();
+                if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
                 outQueue = null;
                 encoder = null;
             }
@@ -131,14 +131,23 @@ namespace Cwipc
       
         protected override void Start()
         {
-            base.Start();
             int nPushers = encoderOutputs.Length;
             pushers = new PCEncoderOutputPusher[nPushers];
             for (int i = 0; i < nPushers; i++)
             {
-                // Note: we need to copy i to a new variable, otherwise the lambda expression capture will bite us
-                int stream_number = i;
-                pushers[i] = new PCEncoderOutputPusher(this, stream_number);
+                pushers[i] = new PCEncoderOutputPusher(this, i);
+            }
+            // Last: the worker thread uses the pushers (#82, rule 3).
+            base.Start();
+        }
+
+        public override void Stop()
+        {
+            base.Stop();
+            // Close our output queues at once, so their consumers wake up (#82, rule 1).
+            foreach (var o in outputs)
+            {
+                if (o.outQueue != null && !o.outQueue.IsClosed()) o.outQueue.Close();
             }
         }
 
@@ -195,7 +204,7 @@ namespace Cwipc
             if (!encodersAreBusy || nParallel > 1)
             {
                 // See if we can start encoding.
-                cwipc.pointcloud pc = (cwipc.pointcloud)inQueue.Dequeue();
+                cwipc.pointcloud pc = (cwipc.pointcloud)inQueue.TryDequeue(DequeueTimeoutMs);
                 if (pc != null)
                 {
                     if (encoderGroup != null)

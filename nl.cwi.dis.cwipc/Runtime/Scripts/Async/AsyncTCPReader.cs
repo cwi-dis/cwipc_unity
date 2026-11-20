@@ -47,7 +47,7 @@ namespace Cwipc
         {
             AsyncTCPReader parent;
             Socket socket = null;
-            bool stopping = false;
+            volatile bool stopping = false; // set by Stop() on the worker thread, read by run()
             int thread_index;
             ReceiverInfo receiverInfo;
             System.Threading.Thread myThread;
@@ -59,6 +59,7 @@ namespace Cwipc
                 receiverInfo = _receiverInfo;
                 myThread = new System.Threading.Thread(run);
                 myThread.Name = Name();
+                myThread.IsBackground = true; // #82, rule 5
 #if !VRT_WITHOUT_STATS
                 stats = new Stats(Name());
 #endif
@@ -85,9 +86,12 @@ namespace Cwipc
 
             }
 
-            public void Join()
+            /// <summary>
+            /// Wait at most timeoutMs for the thread to end; false if it didn't (#82, rule 4).
+            /// </summary>
+            public bool Join(int timeoutMs)
             {
-                myThread.Join();
+                return myThread.Join(timeoutMs);
             }
 
             protected int _ReceiveAll(Socket sock, byte[] buffer)
@@ -196,18 +200,18 @@ namespace Cwipc
                         }
                     }
                 }
-#pragma warning disable CS0168
                 catch (System.Exception e)
                 {
                     if (!stopping)
                     {
-#if UNITY_EDITOR
-                        throw;
-#else
                         Debug.Log($"{Name()}: Exception: {e.Message} Stack: {e.StackTrace}");
                         Debug.LogError("Error while receiving visual representation or audio from another participant");
-#endif
                     }
+                }
+                finally
+                {
+                    // However this thread ends, its socket goes with it (#82, rule 4).
+                    Stop();
                 }
 
             }
@@ -333,8 +337,9 @@ namespace Cwipc
 
         protected override void Start()
         {
-            base.Start();
             InitThreads();
+            // Last: AsyncOnStop() uses the pull threads (#82, rule 3).
+            base.Start();
         }
 
         public override void AsyncOnStop()
@@ -343,7 +348,13 @@ namespace Cwipc
             foreach(var t in threads)
             {
                 t.Stop();
-                t.Join();
+            }
+            foreach(var t in threads)
+            {
+                if (!t.Join(joinTimeout))
+                {
+                    Debug.LogError($"{t.Name()}: thread did not stop in {joinTimeout} ms; leaving it running");
+                }
             }
             base.AsyncOnStop();
         }

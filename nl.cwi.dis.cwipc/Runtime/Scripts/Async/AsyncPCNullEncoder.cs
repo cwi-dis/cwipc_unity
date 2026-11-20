@@ -36,10 +36,20 @@ namespace Cwipc
             Start();
         }
 
+        public override void Stop()
+        {
+            base.Stop();
+            // Close our output queues at once, so their consumers wake up (#82, rule 1).
+            foreach (var o in outputs)
+            {
+                if (o.outQueue != null && !o.outQueue.IsClosed()) o.outQueue.Close();
+            }
+        }
+
         public override void AsyncOnStop()
         {
             for (int i=0; i<outputs.Length; i++) {
-                outputs[i].outQueue.Close();
+                if (outputs[i].outQueue != null && !outputs[i].outQueue.IsClosed()) outputs[i].outQueue.Close();
                 outputs[i].outQueue = null;
             }
             base.AsyncOnStop();

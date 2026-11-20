@@ -52,7 +52,13 @@ namespace Cwipc
 
         public virtual PointCloudTileDescription[] getTiles()
         {
-            cwipc.tileinfo[] origTileInfo = reader.get_tileinfo();
+            cwipc.tileinfo[] origTileInfo;
+            // Called on the main thread; AsyncOnStop() frees the reader on the worker thread (#82).
+            lock (this)
+            {
+                if (reader == null) return null;
+                origTileInfo = reader.get_tileinfo();
+            }
             if (origTileInfo == null || origTileInfo.Length == 0) return null;
             int nTile = origTileInfo.Length;
             PointCloudTileDescription[] rv = new PointCloudTileDescription[nTile];
@@ -99,12 +105,16 @@ namespace Cwipc
 
         public override void AsyncOnStop()
         {
-            // Runs on the worker thread, after its loop has ended: nobody else uses the native reader now.
-            if (reader != null)
+            // Runs on the worker thread, after its loop has ended. The main thread may still call
+            // getTiles() or GetCameraCount(), so free the reader under the same lock (#82).
+            lock (this)
             {
-                reader.stop();
-                reader.free();
-                reader = null;
+                if (reader != null)
+                {
+                    reader.stop();
+                    reader.free();
+                    reader = null;
+                }
             }
             if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
             if (out2Queue != null && !out2Queue.IsClosed()) out2Queue.Close();
@@ -241,7 +251,13 @@ namespace Cwipc
 
         public int GetCameraCount()
         {
-            cwipc.tileinfo[] origTileInfo = reader.get_tileinfo();
+            cwipc.tileinfo[] origTileInfo;
+            // Called on the main thread; AsyncOnStop() frees the reader on the worker thread (#82).
+            lock (this)
+            {
+                if (reader == null) return 0;
+                origTileInfo = reader.get_tileinfo();
+            }
             if (origTileInfo == null) return 0;
             return origTileInfo.Length;
         }

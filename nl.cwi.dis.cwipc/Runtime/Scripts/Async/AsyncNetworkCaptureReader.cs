@@ -64,8 +64,8 @@ namespace Cwipc
         public override void Stop()
         {
             base.Stop();
-            // Our worker thread may be waiting in myQueue.Dequeue(): stopping the decoder closes
-            // myQueue, which wakes it. Otherwise StopAndWait() runs into its timeout (#83, #82).
+            // Stop our TCP reader and decoder too: stopping the decoder closes myQueue, so our worker
+            // thread sees the end of the stream at once (#83, #82).
             tcpPCReader?.Stop();
             decoder?.Stop();
         }
@@ -86,7 +86,7 @@ namespace Cwipc
             } 
             else
             {
-                pc = (cwipc.pointcloud)myQueue.Dequeue();
+                pc = (cwipc.pointcloud)myQueue.TryDequeue(DequeueTimeoutMs);
             }
             return pc;
         }

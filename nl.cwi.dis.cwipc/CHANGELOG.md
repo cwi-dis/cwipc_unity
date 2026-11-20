@@ -2,6 +2,7 @@
 
 ## [unreleased]
 
+- Point cloud workers stop promptly and cleanly: no blocking waits or thread aborts, cleanup also after errors, and prerecorded tile readers no longer wait for each other for ever (#82)
 - Sample prefabs no longer default to the unsupported `cameraconfig.xml`; small fixes in the async classes (#86)
 - Closing a point cloud queue frees what is still in it, so tearing down a pipeline no longer leaks memory (#84)
 - Reloading a scene with a TCP sender (such as `VRTwoUsers`) no longer fails with "Address already in use" (#85)

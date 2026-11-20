@@ -54,6 +54,7 @@ namespace Cwipc
                 description = _description;
                 myThread = new System.Threading.Thread(run);
                 myThread.Name = Name();
+                myThread.IsBackground = true; // #82, rule 5
 #if !VRT_WITHOUT_STATS
                 stats = new Stats(Name());
 #endif
@@ -99,9 +100,12 @@ namespace Cwipc
                 }
             }
 
-            public void Join()
+            /// <summary>
+            /// Wait at most timeoutMs for the thread to end; false if it didn't (#82, rule 4).
+            /// </summary>
+            public bool Join(int timeoutMs)
             {
-                myThread.Join();
+                return myThread.Join(timeoutMs);
             }
 
             protected void run()
@@ -134,8 +138,9 @@ namespace Cwipc
                                 continue;
                             }
                         }
-                        NativeMemoryChunk mc = (NativeMemoryChunk)queue.Dequeue();
-                        if (mc == null) continue; // Probably closing...
+                        // Not a blocking Dequeue(): the loop re-checks its condition every time (#82, rule 2).
+                        NativeMemoryChunk mc = (NativeMemoryChunk)queue.TryDequeue(AsyncWorker.DequeueTimeoutMs);
+                        if (mc == null) continue; // Nothing yet, or closing
 #if !VRT_WITHOUT_STATS
                         stats.statsUpdate(mc.length);
 #endif
@@ -180,15 +185,10 @@ namespace Cwipc
                     }
                     Debug.Log($"{Name()}: thread stopped");
                 }
-#pragma warning disable CS0168
                 catch (System.Exception e)
                 {
-#if UNITY_EDITOR
-                    throw;
-#else
                     Debug.Log($"{Name()}: Exception: {e.Message} Stack: {e.StackTrace}");
                     Debug.LogError("Error while sending visual representation or audio to other participants");
-#endif
                 }
                 finally
                 {
@@ -292,42 +292,50 @@ namespace Cwipc
 
         protected override void Start()
         {
-            base.Start();
             int nThreads = descriptions.Length;
             pusherThreads = new TCPPushThread[nThreads];
-            for (int i = 0; i < nThreads; i++)
+            try
             {
-                // Note: we need to copy i to a new variable, otherwise the lambda expression capture will bite us
-                int stream_number = i;
-                pusherThreads[i] = new TCPPushThread(this, descriptions[i]);
+                for (int i = 0; i < nThreads; i++)
+                {
+                    pusherThreads[i] = new TCPPushThread(this, descriptions[i]);
 #if !VRT_WITHOUT_STATS
-                Statistics.Output(Name(), $"pusher={pusherThreads[i].Name()}, stream={i}, port={descriptions[i].port}");
+                    Statistics.Output(Name(), $"pusher={pusherThreads[i].Name()}, stream={i}, port={descriptions[i].port}");
 #endif
+                }
+            }
+            catch
+            {
+                // A bind failed (for example "Address already in use"): close the sockets of the push
+                // threads created so far. There is no worker thread yet whose AsyncOnStop() would.
+                foreach (var t in pusherThreads) t?.Stop();
+                throw;
             }
             foreach (var t in pusherThreads)
             {
                 t.Start();
             }
+            // Last: AsyncOnStop() uses the push threads (#82, rule 3).
+            base.Start();
         }
 
         public override void AsyncOnStop()
         {
-            // Signal that no more data is forthcoming to every pusher
-            for (int i = 0; i < descriptions.Length; i++)
-            {
-                var d = descriptions[i];
-                if (!d.inQueue.IsClosed())
-                {
-                    Debug.LogWarning($"{Name()}.{i}: input queue not closed. Closing.");
-                    d.inQueue.Close();
-                }
-            }
+            // Our input queues belong to their producer, which closes them (#82, rule 1); the push
+            // threads stop on their own Stop() (sockets closed) and poll their queue (rule 2).
             // wait for pusherThreads to terminate
             foreach (var t in pusherThreads)
             {
                 t.Stop();
-                t.Join();
-            }base.AsyncOnStop();
+            }
+            foreach (var t in pusherThreads)
+            {
+                if (!t.Join(joinTimeout))
+                {
+                    Debug.LogError($"{t.Name()}: thread did not stop in {joinTimeout} ms; leaving it running");
+                }
+            }
+            base.AsyncOnStop();
         }
 
         protected override void AsyncUpdate()

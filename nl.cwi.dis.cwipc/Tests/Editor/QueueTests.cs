@@ -25,6 +25,38 @@ namespace Cwipc.Tests
         }
 
         /// <summary>
+        /// Close() racing with a consumer in TryDequeue(): the consumer may already have taken a slot when
+        /// Close() drains the queue. It must get null, not an exception from an empty queue. Probabilistic:
+        /// many rounds of enqueue, consume and close at the same time.
+        /// </summary>
+        [Test]
+        public void CloseWhileConsumerDequeuesIsSafe()
+        {
+            System.Exception failure = null;
+            for (int round = 0; round < 2000 && failure == null; round++)
+            {
+                var queue = new QueueThreadSafe("QueueTests.race", 4);
+                var consumer = new System.Threading.Thread(() =>
+                {
+                    try
+                    {
+                        while (!queue.IsClosed())
+                        {
+                            queue.TryDequeue(1)?.free();
+                        }
+                        queue.TryDequeue(0)?.free();
+                    }
+                    catch (System.Exception e) { failure = e; }
+                });
+                consumer.Start();
+                queue.Enqueue(new NativeMemoryChunk(16));
+                queue.Close();
+                consumer.Join();
+            }
+            Assert.IsNull(failure, "consumer got an exception: " + failure);
+        }
+
+        /// <summary>
         /// After Close(), Enqueue() takes ownership and frees the item at once.
         /// </summary>
         [TestCase(false)]

@@ -46,7 +46,6 @@ namespace Cwipc
                     decoders[i] = d;
                     mostRecentFeeds[i] = System.DateTime.MinValue;
                 }
-                Start();
                 Debug.Log($"{Name()} Inited");
 
             }
@@ -56,6 +55,8 @@ namespace Cwipc
                 throw;
             }
             debugColorize = CwipcConfig.Instance.debugColorize;
+            // Last: the worker thread uses everything set above (#82, rule 3).
+            Start();
         }
 
         public override string Name()

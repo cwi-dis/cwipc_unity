@@ -196,6 +196,12 @@ namespace Cwipc
         abstract public void ReportCurrentTimestamp(Timestamp curIndex);
     }
 
+    /// <summary>
+    /// Keeps the tile readers of one prerecorded reader in step: every reader waits for the others
+    /// before each frame, and all get the same frame index.
+    /// A reader that stops leaves (Unsubscribe), so the others don't wait for it for ever, and waiting
+    /// has a way out, so a reader can stop while others are slow (cwi-dis/cwipc_unity#82).
+    /// </summary>
     public class SharedCounter
     {
         System.Threading.Barrier barrier = null;
@@ -204,15 +210,34 @@ namespace Cwipc
         {
             barrier = new System.Threading.Barrier(0);
         }
+
         public void Subscribe()
         {
             barrier.AddParticipant();
         }
 
-        public long WaitAndGet()
+        public void Unsubscribe()
         {
-            barrier.SignalAndWait();
-            return barrier.CurrentPhaseNumber;
+            barrier.RemoveParticipant();
+        }
+
+        /// <summary>
+        /// Wait until all subscribed readers have arrived, and return the shared frame index.
+        /// Waits in steps of AsyncWorker.DequeueTimeoutMs, and gives up (returning false) as soon as
+        /// keepWaiting() is false. A timed-out step takes its arrival back, so giving up is safe.
+        /// </summary>
+        public bool TryWaitAndGet(System.Func<bool> keepWaiting, out long index)
+        {
+            while (keepWaiting())
+            {
+                if (barrier.SignalAndWait(AsyncWorker.DequeueTimeoutMs))
+                {
+                    index = barrier.CurrentPhaseNumber;
+                    return true;
+                }
+            }
+            index = 0;
+            return false;
         }
     }
 
@@ -259,7 +284,6 @@ namespace Cwipc
                 throw new System.Exception($"{Name()}: only single Add() allowed");
             }
             positionCounter = parent.sharedCounter;
-            positionCounter.Subscribe();
             thread_index = _index;
             outQueue = _outQueue;
             out2Queue = _out2Queue;
@@ -297,6 +321,8 @@ namespace Cwipc
 #if !VRT_WITHOUT_STATS
             stats = new Stats(Name());
 #endif
+            // Only now: if the constructor throws (no files), we must not be left in the barrier (#82).
+            positionCounter.Subscribe();
             Start();
         }
         public override string Name()
@@ -337,6 +363,8 @@ namespace Cwipc
         }
 
         public override void AsyncOnStop() {
+            // Leave the barrier, so the other tile readers don't wait for us any more (#82).
+            positionCounter.Unsubscribe();
             // Runs on the worker thread, after its loop has ended: nobody else uses the decoder now.
             decoder?.free();
             decoder = null;
@@ -365,7 +393,8 @@ namespace Cwipc
                 earliestNextCapture = System.DateTime.Now + frameInterval;
             }
             // Check whether we have to start from the top, or are done.
-            long curIndex = positionCounter.WaitAndGet();
+            long curIndex;
+            if (!positionCounter.TryWaitAndGet(() => isRunning, out curIndex)) return; // stopping
             if (filenames == null)
             {
                 Debug.Log($"{Name()}: xxxjack Update() called while already stopping");

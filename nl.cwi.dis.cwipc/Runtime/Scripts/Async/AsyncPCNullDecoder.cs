@@ -49,7 +49,7 @@ namespace Cwipc
             NativeMemoryChunk mc;
             lock (this)
             {
-                mc = (NativeMemoryChunk)inQueue.Dequeue();
+                mc = (NativeMemoryChunk)inQueue.TryDequeue(DequeueTimeoutMs);
                 if (mc == null) return;
             }
             System.DateTime decodeStartTime = System.DateTime.Now;

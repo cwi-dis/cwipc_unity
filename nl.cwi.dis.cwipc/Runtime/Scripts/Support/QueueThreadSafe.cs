@@ -76,7 +76,10 @@ namespace Cwipc
         {
             if (isClosed.Token.IsCancellationRequested)
             {
-                UnityEngine.Debug.LogWarning($"{Name()}: Close() on closed queue {name}");
+                // Normal: a worker closes its output queues in Stop() and again in AsyncOnStop() (#82, rule 1).
+#if CWIPC_WITH_LOGGING
+                UnityEngine.Debug.Log($"{Name()}: Close() on closed queue {name}");
+#endif
                 return;
             }
 #if CWIPC_WITH_LOGGING
@@ -243,6 +246,10 @@ namespace Cwipc
         /// Wait semantics: waits until something is available.
         /// The caller gets ownership of the returned object.
         /// If the queue was closed null will be returned.
+        ///
+        /// Note: this blocks until an item arrives or the queue is closed, and nothing else can wake it.
+        /// A worker loop should use TryDequeue(AsyncWorker.DequeueTimeoutMs) instead, so that Stop()
+        /// takes effect whoever closes the queue (cwi-dis/cwipc_unity#82, rule 2).
         /// </summary>
         /// <returns>A BaseMemoryChunk or null</returns>
         public virtual BaseMemoryChunk Dequeue()
@@ -253,6 +260,8 @@ namespace Cwipc
                 BaseMemoryChunk item;
                 lock (queue)
                 {
+                    // Close() may have drained the queue after we got our slot (#84): closed.
+                    if (queue.Count == 0) return null;
                     item = queue.Dequeue();
                     latestTimestampReturned = item.metadata.timestamp;
                 }
@@ -283,6 +292,8 @@ namespace Cwipc
                     BaseMemoryChunk item;
                     lock (queue)
                     {
+                        // Close() may have drained the queue after we got our slot (#84): closed.
+                        if (queue.Count == 0) return null;
                         item = queue.Dequeue();
                         latestTimestampReturned = item.metadata.timestamp;
                     }
@@ -336,7 +347,10 @@ namespace Cwipc
             }
             catch (System.OperationCanceledException)
             {
-                UnityEngine.Debug.LogWarning($"{Name()}: Enqueue on closed queue {name}");
+                // Normal during teardown: the consumer has closed the queue (#82, rule 1).
+#if CWIPC_WITH_LOGGING
+                UnityEngine.Debug.Log($"{Name()}: Enqueue on closed queue {name}");
+#endif
                 item.free();
             }
             return false;

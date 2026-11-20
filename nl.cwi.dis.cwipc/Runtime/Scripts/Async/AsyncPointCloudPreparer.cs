@@ -84,9 +84,13 @@ namespace Cwipc
                     // If there is no next queue entry, or it has no timestamp, or it is after bestTimestamp we break out of the loop
                     if (nextTimestamp == 0 || nextTimestamp > bestTimestamp) break;
                     // We know there is another pointcloud in the queue, and we know it is better than what we have now. Replace it.
+                    // TryDequeue(0), not Dequeue(): this runs on the main thread, which must never wait, and the
+                    // queue may have been closed since the peek (#82, rule 2).
+                    cwipc.pointcloud next = (cwipc.pointcloud)InQueue.TryDequeue(0);
+                    if (next == null) break;
                     dropCount++;
                     pc.free();
-                    pc = (cwipc.pointcloud)InQueue.Dequeue();
+                    pc = next;
                 }
                 unsafe
                 {
