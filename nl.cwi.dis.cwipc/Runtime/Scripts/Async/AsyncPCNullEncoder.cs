@@ -26,7 +26,7 @@ namespace Cwipc
         {
             if (_inQueue == null)
             {
-                throw new System.Exception("{Name()}: inQueue is null");
+                throw new System.Exception($"{Name()}: inQueue is null");
             }
             inQueue = _inQueue;
             outputs = _outputs;

@@ -17,10 +17,11 @@ namespace Cwipc
         int instanceNumber = instanceCounter++;
         public AsyncPCNullDecoder(QueueThreadSafe _inQueue, QueueThreadSafe _outQueue) : base(_inQueue, _outQueue)
         {
-            Start();
 #if !VRT_WITHOUT_STATS
             stats = new Stats(Name());
 #endif
+            // Last: the worker thread uses stats as soon as it runs (#86).
+            Start();
         }
 
         public override string Name()

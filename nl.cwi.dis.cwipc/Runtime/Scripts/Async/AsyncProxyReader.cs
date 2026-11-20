@@ -22,7 +22,7 @@ namespace Cwipc
                 if (reader != null)
                 {
                     Start();
-                    Debug.Log("{Name()}: Started.");
+                    Debug.Log($"{Name()}: Started.");
                 }
                 else
                     throw new System.Exception($"{Name()}: cwipc_proxy could not be created"); // Should not happen, should throw exception

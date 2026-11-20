@@ -89,7 +89,7 @@ namespace Cwipc
             if (nParallel > 0) Debug.LogWarning($"{Name()}: As of 2022-11-22 there seem to be problems with encoderParallelism");
             if (_inQueue == null)
             {
-                throw new System.Exception("{Name()}: inQueue is null");
+                throw new System.Exception($"{Name()}: inQueue is null");
             }
             inQueue = _inQueue;
             outputs = _outputs;

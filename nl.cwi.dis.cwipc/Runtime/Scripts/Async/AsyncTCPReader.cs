@@ -180,8 +180,6 @@ namespace Cwipc
                         NativeMemoryChunk mc = new NativeMemoryChunk(dataSize);
                         mc.metadata.timestamp = timestamp;
                         System.Runtime.InteropServices.Marshal.Copy(data, 0, mc.pointer, dataSize);
-                        var buf = new byte[mc.length];
-                        System.Runtime.InteropServices.Marshal.Copy(mc.pointer, buf, 0, mc.length);
                         bool ok = receiverInfo.outQueue.Enqueue(mc);
 #if !VRT_WITHOUT_STATS
                         stats.statsUpdate(dataSize, receiveDuration, !ok);

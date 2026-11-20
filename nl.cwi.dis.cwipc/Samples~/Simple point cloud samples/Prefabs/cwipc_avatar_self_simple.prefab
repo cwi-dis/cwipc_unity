@@ -150,7 +150,7 @@ MonoBehaviour:
   Preparer_DefaultCellSize: 0
   Preparer_CellSizeFactor: 1.5
   Synthetic_NPoints: 8000
-  configFileName: cameraconfig.xml
+  configFileName: 
   voxelSize: 0
   directoryPath: ../prerecorded_pointclouds
   inputUrl: 
