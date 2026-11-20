@@ -2,6 +2,7 @@
 
 ## [unreleased]
 
+- No more decoder exception ("refCount=0") when a scene with a streamed point cloud is unloaded (#79)
 - URP is a first-class render pipeline, no longer experimental; BIRP is tested in CI for backward compatibility (#72)
 - VR samples: a scene switcher to go between the four VR sample scenes in the headset (#78)
 - VR samples: the ground is teleportable again with the XRI 3 Starter Assets rig (#75)

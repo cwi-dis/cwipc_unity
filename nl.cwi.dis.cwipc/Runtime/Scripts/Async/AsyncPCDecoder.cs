@@ -126,13 +126,18 @@ namespace Cwipc
                 // are more input packets available feed the decoder
                 // again.
                 cwipc.pointcloud pc = decoders[outDecoderIndex].get();
-                var pointSize = pc.cellsize();
                 Timedelta decodeDuration = (Timedelta)(System.DateTime.Now - mostRecentFeeds[outDecoderIndex]).TotalMilliseconds;
                 mostRecentFeeds[outDecoderIndex] = System.DateTime.MinValue;
                 outDecoderIndex = (outDecoderIndex + 1) % nParallel;
                 if (pc == null)
                 {
                     throw new System.Exception($"{Name()}: cwipc_decoder: available() true, but did not return a pointcloud");
+                }
+                if (outQueue.IsClosed())
+                {
+                    // Our consumer is being torn down (for example the scene is unloaded): drop quietly.
+                    pc.free();
+                    return;
                 }
                 if (debugColorize)
                 {
@@ -145,10 +150,15 @@ namespace Cwipc
                     pc.free();
                     pc = newpc;
                 }
+                // Everything we need from pc must be read before Enqueue(): Enqueue takes ownership, and
+                // pc may be freed by the time it returns (closed or full queue, or a quick consumer). #79
+                int pointCount = pc.count();
+                float pointSize = pc.cellsize();
                 Timedelta queuedDuration = outQueue.QueuedDuration();
                 bool dropped = !outQueue.Enqueue(pc);
+                pc = null;
 #if !VRT_WITHOUT_STATS
-                stats.statsUpdate(pc.count(), dropped, inQueue.QueuedDuration(), decodeDuration, queuedDuration, pointSize);
+                stats.statsUpdate(pointCount, dropped, inQueue.QueuedDuration(), decodeDuration, queuedDuration, pointSize);
 #endif
                 _FeedDecoder();
             }
