@@ -5,6 +5,7 @@
 - Statistics: every aggregating component writes a final record when it stops, and the default stats interval is final-only (`-1`). Breaking for `Statistics` subclasses: they implement `OutputAggregate()`, and the constructor no longer takes an interval (#89)
 - Stats records include `interval_s` and raw counts (`n_*`, `bytes`), leave out averages when there is nothing to average, and no longer depend on the locale (#89)
 - `PointCloudRenderer` also writes stats records when no new point clouds arrive (#89)
+- Camera readers log self-view drops as `fps_dropped_self`, like the prerecorded reader (was `selfdrop_fps`) (#97)
 
 ## [8.3.0] - 2026-11-20
 

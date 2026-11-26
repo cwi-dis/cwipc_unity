@@ -362,7 +362,7 @@ namespace Cwipc
                     Average("points_per_cloud", statsTotalPoints, statsTotalPointclouds, "F0"),
                     Average("avg_pointsize", statsTotalPointSize, statsTotalPointclouds, "G4"),
                     Rate("fps_dropped", statsDrops),
-                    Rate("selfdrop_fps", statsSelfDrops),
+                    Rate("fps_dropped_self", statsSelfDrops),
                     Average("encoder_queue_ms", statsQueuedDuration, statsTotalPointclouds, "F0"),
                     Average("downsample_ms", statsDownsampleDuration, statsTotalPointclouds),
                     Field("pc_timestamp", lastTimestamp),
