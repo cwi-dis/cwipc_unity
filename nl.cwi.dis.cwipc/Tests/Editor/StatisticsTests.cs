@@ -100,6 +100,8 @@ namespace Cwipc.Tests
                 System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("nl-NL");
                 Assert.AreEqual("avg_pointsize=0.25", CountingStats.TestAverage("avg_pointsize", 0.5, 2));
                 Assert.AreEqual("x=0.5", CountingStats.TestField("x", 0.5));
+                Assert.AreEqual("12.35", Statistics.Num(12.345678));
+                Assert.AreEqual("0.100", Statistics.Num(0.1, 3));
             }
             finally
             {

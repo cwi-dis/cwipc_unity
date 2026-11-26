@@ -90,7 +90,7 @@ namespace Cwipc
                 //
                 // Write an identifying line to both the statsfile (so we can split runs) and the console (so we can find the stats file)
                 //
-                string statsLine = $"stats: ts={System.DateTime.Now.TimeOfDay.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture)}, component=stats, starting=1, wallClock={ts}, statsFilename={statsFilename}";
+                string statsLine = $"stats: ts={Num(System.DateTime.Now.TimeOfDay.TotalSeconds, 3)}, component=stats, starting=1, wallClock={ts}, statsFilename={statsFilename}";
                 if (seq > 0)
                 {
                     // Records output before this Initialize() went to the Unity log, not to this file (#59).
@@ -227,7 +227,7 @@ namespace Cwipc
             {
                 if (f != null) parts.Add(f);
             }
-            parts.Add(Field("interval_s", recordInterval.ToString("F3", CultureInfo.InvariantCulture)));
+            parts.Add(Field("interval_s", Num(recordInterval, 3)));
             Output(string.Join(", ", parts));
         }
 
@@ -256,6 +256,16 @@ namespace Cwipc
         protected static string Field(string field, object value)
         {
             return string.Format(CultureInfo.InvariantCulture, "{0}={1}", field, value);
+        }
+
+        /// <summary>
+        /// A number with a fixed number of decimals, independent of the locale ("12.34", never "12,34",
+        /// which would break the name=value, name=value format). For one-shot records:
+        /// Statistics.Output(name, $"latency_ms={Statistics.Num(latency, 1)}").
+        /// </summary>
+        public static string Num(double value, int decimals = 2)
+        {
+            return value.ToString("F" + decimals, CultureInfo.InvariantCulture);
         }
 
         /// <summary>
