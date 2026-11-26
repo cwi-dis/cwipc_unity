@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+- Statistics: every aggregating component writes a final record when it stops, and the default stats interval is final-only (`-1`). Breaking for `Statistics` subclasses: they implement `OutputAggregate()`, and the constructor no longer takes an interval (#89)
+- Stats records include `interval_s` and raw counts (`n_*`, `bytes`), leave out averages when there is nothing to average, and no longer depend on the locale (#89)
+- `PointCloudRenderer` also writes stats records when no new point clouds arrive (#89)
+
 ## [8.3.0] - 2026-11-20
 
 - Supports cwipc 8.3.0; Android native libraries updated, and IL2CPP builds (Quest) work again (#64, #73)

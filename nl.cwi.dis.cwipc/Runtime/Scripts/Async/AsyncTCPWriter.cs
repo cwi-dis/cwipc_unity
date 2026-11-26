@@ -55,9 +55,6 @@ namespace Cwipc
                 myThread = new System.Threading.Thread(run);
                 myThread.Name = Name();
                 myThread.IsBackground = true; // #82, rule 5
-#if !VRT_WITHOUT_STATS
-                stats = new Stats(Name());
-#endif
                 Debug.Log($"{Name()}: serving on tcp://{description.host}:{description.port} 4cc={description.fourcc:X}");
                 IPAddress[] all = Dns.GetHostAddresses(description.host);
                 all = Array.FindAll(all, a => a.AddressFamily == AddressFamily.InterNetwork);
@@ -71,6 +68,10 @@ namespace Cwipc
                 listenSocket.Listen(4);
 #if CWIPC_WITH_LOGGING
                 Debug.Log($"{Name()}: Start server on ({localEndpoint})");
+#endif
+#if !VRT_WITHOUT_STATS
+                // Last: if Bind() throws there is no thread, so no Final() for these stats (#89).
+                stats = new Stats(Name());
 #endif
             }
 
@@ -195,6 +196,9 @@ namespace Cwipc
                     // However this thread ends (input queue closed, exception), its sockets go with
                     // it: a listening socket that outlives its thread keeps the port bound (#85).
                     Stop();
+#if !VRT_WITHOUT_STATS
+                    stats.Final();
+#endif
                 }
             }
 
@@ -209,18 +213,25 @@ namespace Cwipc
 
                 public void statsUpdate(int nBytes)
                 {
-
-                    statsTotalBytes += nBytes;
-                    statsTotalPackets++;
-                    statsAggregatePackets++;
-
-                    if (ShouldOutput())
+                    lock (statsLock)
                     {
-                        Output($"fps={statsTotalPackets / Interval():F2}, bytes_per_packet={(int)(statsTotalBytes / (statsTotalPackets == 0 ? 1 : statsTotalPackets))}, aggregate_packets={statsAggregatePackets}");
-                        Clear();
-                        statsTotalBytes = 0;
-                        statsTotalPackets = 0;
+                        statsTotalBytes += nBytes;
+                        statsTotalPackets++;
+                        statsAggregatePackets++;
+                        MaybeOutput();
                     }
+                }
+
+                protected override void OutputAggregate()
+                {
+                    OutputFields(
+                        Rate("fps", statsTotalPackets),
+                        Average("bytes_per_packet", statsTotalBytes, statsTotalPackets, "F0"),
+                        Field("aggregate_packets", statsAggregatePackets),
+                        Field("n_packets", statsTotalPackets),
+                        Field("bytes", statsTotalBytes));
+                    statsTotalBytes = 0;
+                    statsTotalPackets = 0;
                 }
             }
 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Globalization;
 
 namespace Cwipc
 {
@@ -7,33 +8,43 @@ namespace Cwipc
     /// <summary>
     /// Gathering statistics during a run to allow later analysis.
     /// All statistics records consist of lines starting with "stats:" followed by name=value pairs.
-    /// Each statistics record has some common fields: a field seqno= which gives the sequence number and a field ts= which
-    /// gives the number of seconds since midnight, on this machines clock. Most statistics records had
-    /// a component= field that gives the name of the object responsible for creating this statiscs record.
+    /// Each statistics record has some common fields: a field seq= which gives the sequence number and a field ts= which
+    /// gives the number of seconds since midnight, on this machines clock. Most statistics records have
+    /// a component= field that gives the name of the object responsible for creating this statistics record.
     ///
-    /// Statistics records can be output every moment a new value is available (usually every Update call)
-    /// or aggregated over some period of time (default: 10 seconds).
+    /// An aggregating component subclasses Statistics: it adds up values in its own statsUpdate() and
+    /// calls MaybeOutput(), and builds its record in OutputAggregate(). When the stats interval is over
+    /// it writes a periodic record; when it stops it calls Final(), which writes its final record with
+    /// what it added up since its last record (#89). The stats interval (see Initialize()) is
+    /// negative for final-only (the default: only final records), 0 for a record on every update, or
+    /// a number of seconds.
     ///
-    /// The Statistics class can be subclassed in an object implementation, and it is also possible to use
-    /// the 
+    /// One-shot records (mappings between things, events) use the static Output(name, s).
     ///
     /// Statistics records are sent to the Unity Log by default, or written to a separate statistics file.
     ///
     /// Repository <https://github.com/cwi-dis/VRTstatistics> has various tools to collect and agregate the statistics, plot
     /// them, etc.
     /// </summary>
-    public class Statistics
+    public abstract class Statistics
     {
         protected string name;
         private System.DateTime statsLastTime;
-        private static System.DateTime globalStatsLastTime;
         private static bool initialized = false;
-        private static double defaultStatsInterval = 10;
-        private double statsInterval = 10;
+        // Negative: final-only (#89).
+        private static double defaultStatsInterval = -1;
         private static System.IO.StreamWriter statsStream;
-        private bool usesDefaultInterval;
         private static bool muted = false;
         private static bool explicitlyInitialized = false;
+
+        /// <summary>
+        /// Lock for the aggregation counters of a subclass. statsUpdate() bodies take it, and so do
+        /// MaybeOutput() and Final(), because statsUpdate() may be called from other threads than the
+        /// one that calls Final() (#89).
+        /// </summary>
+        protected readonly object statsLock = new object();
+        private volatile bool finalDone = false;
+        private double recordInterval;
 
         /// <summary>
         /// Call this static method early during initialization to configure Statistics logger.
@@ -41,12 +52,13 @@ namespace Cwipc
         /// on first use. Calling it with arguments after records have been output is an error:
         /// those records went to the Unity log, not to the stats file (#59).
         /// </summary>
-        /// <param name="_defaultStatsInterval">Number of seconds over which statistics are aggregated</param>
+        /// <param name="_defaultStatsInterval">Stats interval in seconds: negative for final-only (only final
+        /// records, the default), 0 for a record on every update. null keeps the current value.</param>
         /// <param name="statsOutputFile">Output file name</param>
         /// <param name="append">If true append to the output file, otherwise overwrite</param>
-        public static void Initialize(double _defaultStatsInterval = -1, string statsOutputFile = null, bool append = false)
+        public static void Initialize(double? _defaultStatsInterval = null, string statsOutputFile = null, bool append = false)
         {
-            bool configuring = _defaultStatsInterval >= 0 || statsOutputFile != null;
+            bool configuring = _defaultStatsInterval.HasValue || statsOutputFile != null;
             if (initialized && configuring)
             {
                 if (seq > 0)
@@ -59,12 +71,11 @@ namespace Cwipc
                 }
             }
             if (configuring) explicitlyInitialized = true;
-            if (_defaultStatsInterval >= 0)
+            if (_defaultStatsInterval.HasValue)
             {
-                defaultStatsInterval = _defaultStatsInterval;
+                defaultStatsInterval = _defaultStatsInterval.Value;
             }
             DateTime now = DateTime.Now;
-            globalStatsLastTime = now;
             if (statsOutputFile == "-")
             {
                 muted = true;
@@ -79,7 +90,7 @@ namespace Cwipc
                 //
                 // Write an identifying line to both the statsfile (so we can split runs) and the console (so we can find the stats file)
                 //
-                string statsLine = $"stats: ts={System.DateTime.Now.TimeOfDay.TotalSeconds:F3}, component=stats, starting=1, wallClock={ts}, statsFilename={statsFilename}";
+                string statsLine = $"stats: ts={System.DateTime.Now.TimeOfDay.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture)}, component=stats, starting=1, wallClock={ts}, statsFilename={statsFilename}";
                 if (seq > 0)
                 {
                     // Records output before this Initialize() went to the Unity log, not to this file (#59).
@@ -112,58 +123,139 @@ namespace Cwipc
             if (statsStream != null) statsStream.Flush();
 
         }
-        private static void DeInit()
-        {
-            if (statsStream != null) statsStream.Flush();
-        }
 
         /// <summary>
-        /// Base class constructor, called by subclasses.
+        /// Base class constructor, called by subclasses. The interval of the first record starts now.
         /// </summary>
         /// <param name="_name">Name of the component to which this instance pertains</param>
-        /// <param name="interval">Number of seconds over which this instance aggregates</param>
-        protected Statistics(string _name, double interval = -1)
+        protected Statistics(string _name)
         {
             if (!initialized) Initialize();
             name = _name;
-            usesDefaultInterval = interval < 0;
-            statsInterval = usesDefaultInterval ? defaultStatsInterval : interval;
-            statsLastTime = globalStatsLastTime;
+            statsLastTime = System.DateTime.Now;
         }
 
         ~Statistics()
         {
-            DeInit();
+            // Only a check, at whatever moment the garbage collector gets here: no record, and
+            // nothing with the stats stream (#89).
+            try
+            {
+                if (!finalDone && !muted)
+                {
+                    Debug.LogWarning($"Statistics: {GetType().FullName} ({name}): Final() was never called");
+                }
+            }
+            catch (Exception)
+            {
+            }
         }
 
         /// <summary>
-        /// Clear the aggregation buffers after outputting a statistics record.
+        /// Build the record for what was added up since the last record, with OutputFields(), and
+        /// reset the counters. Called with statsLock held, for periodic records and for the final
+        /// record. A class with nothing to aggregate overrides this with an empty body.
         /// </summary>
-        protected void Clear()
+        protected abstract void OutputAggregate();
+
+        /// <summary>
+        /// Call at the end of statsUpdate(): writes a periodic record when the stats interval is over.
+        /// </summary>
+        protected void MaybeOutput()
         {
-            statsLastTime = System.DateTime.Now;
-            globalStatsLastTime = statsLastTime;
+            lock (statsLock)
+            {
+                if (finalDone) return;
+                if (ShouldOutput()) OutputRecord();
+            }
         }
 
         /// <summary>
-        /// Duration of seconds (actual) of the current interval.
+        /// Write the final record: what was added up since the last record. Call once, when the
+        /// component stops; later calls do nothing, and later statsUpdate() calls write no records.
         /// </summary>
-        /// <returns></returns>
+        public void Final()
+        {
+            lock (statsLock)
+            {
+                if (finalDone) return;
+                finalDone = true;
+                OutputRecord();
+            }
+        }
+
+        private void OutputRecord()
+        {
+            recordInterval = Interval();
+            OutputAggregate();
+            statsLastTime = System.DateTime.Now;
+        }
+
+        /// <summary>
+        /// Duration in seconds of the current interval, so far.
+        /// </summary>
         protected double Interval()
         {
             return (System.DateTime.Now - statsLastTime).TotalSeconds;
         }
 
         /// <summary>
-        /// Return true if our interval is over and the subclass should output a statistics record.
+        /// Inside OutputAggregate(): the duration in seconds of the interval of the record being built
+        /// (the same value as its interval_s).
         /// </summary>
-        /// <returns></returns>
-        protected bool ShouldOutput()
+        protected double RecordInterval => recordInterval;
+
+        /// <summary>
+        /// Return true if our interval is over and a periodic record should be written.
+        /// </summary>
+        private bool ShouldOutput()
         {
-            // An object that uses the default interval reads it here, not in its constructor, so it
-            // gets the configured interval even when it was created before Initialize() (#59).
-            double interval = usesDefaultInterval ? defaultStatsInterval : statsInterval;
-            return System.DateTime.Now > statsLastTime + System.TimeSpan.FromSeconds(interval);
+            double interval = defaultStatsInterval;
+            if (interval < 0) return false;
+            // Elapsed seconds rather than DateTime + TimeSpan: doesn't throw for huge intervals (#89).
+            return Interval() > interval;
+        }
+
+        /// <summary>
+        /// Write an aggregating record: the given fields (null ones are left out), plus interval_s.
+        /// Build the fields with Rate(), Average() and Field().
+        /// </summary>
+        protected void OutputFields(params string[] fields)
+        {
+            var parts = new System.Collections.Generic.List<string>();
+            foreach (var f in fields)
+            {
+                if (f != null) parts.Add(f);
+            }
+            parts.Add(Field("interval_s", recordInterval.ToString("F3", CultureInfo.InvariantCulture)));
+            Output(string.Join(", ", parts));
+        }
+
+        /// <summary>
+        /// A rate field (count per second over the interval of this record), or null when that interval
+        /// is 0, so the rate would be NaN or infinite (#89).
+        /// </summary>
+        protected string Rate(string field, double count, string format = "F2")
+        {
+            if (recordInterval <= 0) return null;
+            return $"{field}={(count / recordInterval).ToString(format, CultureInfo.InvariantCulture)}";
+        }
+
+        /// <summary>
+        /// An average field (sum / divisor), or null when the divisor is 0 (#89).
+        /// </summary>
+        protected static string Average(string field, double sum, double divisor, string format = "F2")
+        {
+            if (divisor == 0) return null;
+            return $"{field}={(sum / divisor).ToString(format, CultureInfo.InvariantCulture)}";
+        }
+
+        /// <summary>
+        /// A plain field. Numbers are formatted independent of the locale.
+        /// </summary>
+        protected static string Field(string field, object value)
+        {
+            return string.Format(CultureInfo.InvariantCulture, "{0}={1}", field, value);
         }
 
         /// <summary>

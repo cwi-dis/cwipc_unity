@@ -372,6 +372,9 @@ namespace Cwipc
             if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
             outQueue = null;
             if (out2Queue != null && !out2Queue.IsClosed()) out2Queue.Close();
+#if !VRT_WITHOUT_STATS
+            stats.Final();
+#endif
             base.AsyncOnStop();
         }
 
@@ -534,43 +537,57 @@ namespace Cwipc
             double statsQueuedDuration = 0;
             double statsDownsampleDuration = 0;
             int statsAggregatePackets = 0;
+            Timestamp lastTimestamp = 0;
+            string lastSubdir = null;
 
             public void statsUpdate(int pointCount, float pointSize, Timedelta downsampleDuration, bool dropped, bool droppedSelf, Timedelta queuedDuration, Timestamp timestamp, string subdir)
             {
-                
-                statsTotalPoints += pointCount;
-                statsTotalPointSize += pointSize;
-                statsTotalPointclouds++;
-                statsAggregatePackets++;
-                if (dropped) statsDrops++;
-                if (droppedSelf) statsSelfDrops++;
-                statsQueuedDuration += queuedDuration;
-                statsDownsampleDuration += downsampleDuration;
-
-                if (ShouldOutput())
+                lock (statsLock)
                 {
-                    string msg = $"fps={statsTotalPointclouds / Interval():F2}, points_per_cloud={(int)(statsTotalPoints /  statsTotalPointclouds)}, avg_pointsize={(statsTotalPointSize / statsTotalPointclouds):G4}, fps_dropped={statsDrops / Interval():F2}, fps_dropped_self={statsSelfDrops / Interval():F2}, encoder_queue_ms={(int)(statsQueuedDuration / statsTotalPointclouds)}, downsample_ms={statsDownsampleDuration / statsTotalPointclouds:F2}, pc_timestamp={timestamp}, aggregate_packets={statsAggregatePackets}";
-                    if (subdir != null && subdir != "")
-                    {
-                        msg += $", quality={subdir}";
-                    }
-                    Output(msg);
-                    if (statsDrops > 1 + 3 * Interval() && !warnedExcessiveDrops)
-                    {
-                        // Once per reader: the condition tends to last, and the advice doesn't change (#58).
-                        warnedExcessiveDrops = true;
-                        double ok_fps = (statsTotalPointclouds - statsDrops) / Interval();
-                        Debug.LogWarning($"{name}: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= {ok_fps:F2}  in config.json.");
-                    }
-                    Clear();
-                    statsTotalPoints = 0;
-                    statsTotalPointclouds = 0;
-                    statsTotalPointSize = 0;
-                    statsDrops = 0;
-                    statsSelfDrops = 0;
-                    statsQueuedDuration = 0;
-                    statsDownsampleDuration = 0;
+                    statsTotalPoints += pointCount;
+                    statsTotalPointSize += pointSize;
+                    statsTotalPointclouds++;
+                    statsAggregatePackets++;
+                    if (dropped) statsDrops++;
+                    if (droppedSelf) statsSelfDrops++;
+                    statsQueuedDuration += queuedDuration;
+                    statsDownsampleDuration += downsampleDuration;
+                    lastTimestamp = timestamp;
+                    lastSubdir = subdir;
+                    MaybeOutput();
                 }
+            }
+
+            protected override void OutputAggregate()
+            {
+                OutputFields(
+                    Rate("fps", statsTotalPointclouds),
+                    Average("points_per_cloud", statsTotalPoints, statsTotalPointclouds, "F0"),
+                    Average("avg_pointsize", statsTotalPointSize, statsTotalPointclouds, "G4"),
+                    Rate("fps_dropped", statsDrops),
+                    Rate("fps_dropped_self", statsSelfDrops),
+                    Average("encoder_queue_ms", statsQueuedDuration, statsTotalPointclouds, "F0"),
+                    Average("downsample_ms", statsDownsampleDuration, statsTotalPointclouds),
+                    Field("pc_timestamp", lastTimestamp),
+                    Field("aggregate_packets", statsAggregatePackets),
+                    string.IsNullOrEmpty(lastSubdir) ? null : Field("quality", lastSubdir),
+                    Field("n_pointclouds", statsTotalPointclouds),
+                    Field("n_dropped", statsDrops),
+                    Field("n_dropped_self", statsSelfDrops));
+                if (statsDrops > 1 + 3 * RecordInterval && !warnedExcessiveDrops)
+                {
+                    // Once per reader: the condition tends to last, and the advice doesn't change (#58).
+                    warnedExcessiveDrops = true;
+                    double ok_fps = (statsTotalPointclouds - statsDrops) / RecordInterval;
+                    Debug.LogWarning($"{name}: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= {ok_fps:F2}  in config.json.");
+                }
+                statsTotalPoints = 0;
+                statsTotalPointclouds = 0;
+                statsTotalPointSize = 0;
+                statsDrops = 0;
+                statsSelfDrops = 0;
+                statsQueuedDuration = 0;
+                statsDownsampleDuration = 0;
             }
         }
 

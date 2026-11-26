@@ -56,6 +56,71 @@ namespace Cwipc.Tests
                 StringAssert.Contains("records_before_initialize=", firstLine);
             }
         }
+
+        /// <summary>
+        /// A Statistics subclass that counts its records instead of writing them (#89).
+        /// </summary>
+        class CountingStats : Statistics
+        {
+            public int records = 0;
+            public CountingStats(string name) : base(name) { }
+            protected override void OutputAggregate() { records++; }
+            public void Update() { lock (statsLock) { MaybeOutput(); } }
+            public static string TestAverage(string field, double sum, double divisor, string format = "F2") => Average(field, sum, divisor, format);
+            public static string TestField(string field, object value) => Field(field, value);
+        }
+
+        [Test]
+        public void FinalWritesOneRecordOnce()
+        {
+            var stats = new CountingStats("StatisticsTests.FinalWritesOneRecordOnce");
+            stats.Final();
+            stats.Final();
+            Assert.AreEqual(1, stats.records);
+            // After Final() no periodic records either, whatever the stats interval.
+            stats.Update();
+            Assert.AreEqual(1, stats.records);
+        }
+
+        [Test]
+        public void AverageIsLeftOutWithoutDivisor()
+        {
+            Assert.IsNull(CountingStats.TestAverage("bytes_per_packet", 0, 0));
+            Assert.AreEqual("bytes_per_packet=1.50", CountingStats.TestAverage("bytes_per_packet", 3, 2));
+            Assert.AreEqual("bytes_per_packet=2", CountingStats.TestAverage("bytes_per_packet", 3, 2, "F0"));
+        }
+
+        [Test]
+        public void FieldsDontDependOnLocale()
+        {
+            var saved = System.Globalization.CultureInfo.CurrentCulture;
+            try
+            {
+                // Dutch uses a decimal comma, which would break the name=value, name=value format.
+                System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("nl-NL");
+                Assert.AreEqual("avg_pointsize=0.25", CountingStats.TestAverage("avg_pointsize", 0.5, 2));
+                Assert.AreEqual("x=0.5", CountingStats.TestField("x", 0.5));
+            }
+            finally
+            {
+                System.Globalization.CultureInfo.CurrentCulture = saved;
+            }
+        }
+
+        [Test]
+        public void FinalizerWarnsWhenFinalWasNotCalled()
+        {
+            CreateAndDropStats();
+            LogAssert.Expect(LogType.Warning, new Regex("CountingStats \\(StatisticsTests.Forgotten\\): Final\\(\\) was never called"));
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
+        // A separate method, so no local variable keeps the object alive.
+        static void CreateAndDropStats()
+        {
+            new CountingStats("StatisticsTests.Forgotten");
+        }
     }
 }
 #endif

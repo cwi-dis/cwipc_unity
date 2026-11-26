@@ -245,6 +245,9 @@ namespace Cwipc
         {
             if (pointBuffer != null) { pointBuffer.Release(); pointBuffer = null; }
             material = null;
+#if !VRT_WITHOUT_STATS
+            stats?.Final();
+#endif
         }
 
 
@@ -259,54 +262,74 @@ namespace Cwipc
             double statsTotalDisplayPointCount = 0;
             double statsTotalPointSize = 0;
             double statsTotalQueueDuration = 0;
+            int statsLatencyCount = 0;
             Timedelta statsMinLatency = 0;
             Timedelta statsMaxLatency = 0;
+            int lastFrameNumber = 0;
+            Timestamp lastTimestamp = 0;
 
             public void statsUpdate(int pointCount, float pointSize, Timestamp timestamp, Timedelta queueDuration, bool fresh)
             {
-    
-                statsTotalDisplayPointCount += pointCount;
-                statsTotalDisplayCount += 1;
-                if (!fresh)
+                lock (statsLock)
                 {
-                    // If this was just a re-display of a previously received pointcloud we don't need the rest of the data.
-                    return;
-                }
-                statsTotalPointcloudCount += 1;
-                statsTotalPointCount += pointCount;
-                statsTotalPointSize += pointSize;
-                statsTotalQueueDuration += queueDuration;
-
-                System.TimeSpan sinceEpoch = System.DateTime.UtcNow - new System.DateTime(1970, 1, 1);
-                if (timestamp > 0)
-                {
-                    Timedelta latency = (Timestamp)sinceEpoch.TotalMilliseconds - timestamp;
-                    if (latency > 1000000)
+                    statsTotalDisplayPointCount += pointCount;
+                    statsTotalDisplayCount += 1;
+                    lastFrameNumber = UnityEngine.Time.frameCount;
+                    lastTimestamp = timestamp;
+                    // A re-display of a previously received point cloud only counts as a display. The
+                    // record is still written, so the display rate shows when nothing new arrives (#89).
+                    if (fresh)
                     {
-                        Debug.LogWarning($"{name}: Preposterous latency {latency} ms. timestamp={timestamp}.");
-                    }
-                    else
-                    {
-                        if (latency < statsMinLatency || statsMinLatency == 0) statsMinLatency = latency;
-                        if (latency > statsMaxLatency) statsMaxLatency = latency;
-                    }
-                }
+                        statsTotalPointcloudCount += 1;
+                        statsTotalPointCount += pointCount;
+                        statsTotalPointSize += pointSize;
+                        statsTotalQueueDuration += queueDuration;
 
-                if (ShouldOutput())
-                {
-                    double factor = statsTotalPointcloudCount == 0 ? 1 : statsTotalPointcloudCount;
-                    double display_factor = statsTotalDisplayCount == 0 ? 1 : statsTotalDisplayCount;
-                    Output($"fps={statsTotalPointcloudCount / Interval():F2}, latency_ms={statsMinLatency}, latency_max_ms={statsMaxLatency}, fps_display={statsTotalDisplayCount / Interval():F2}, points_per_cloud={(int)(statsTotalPointCount / factor)}, points_per_display={(int)(statsTotalDisplayPointCount / display_factor)}, avg_pointsize={(statsTotalPointSize / factor):G4}, renderer_queue_ms={(int)(statsTotalQueueDuration / factor)}, framenumber={UnityEngine.Time.frameCount},  timestamp={timestamp}");
-                    Clear();
-                    statsTotalPointcloudCount = 0;
-                    statsTotalDisplayCount = 0;
-                    statsTotalDisplayPointCount = 0;
-                    statsTotalPointCount = 0;
-                    statsTotalPointSize = 0;
-                    statsTotalQueueDuration = 0;
-                    statsMinLatency = 0;
-                    statsMaxLatency = 0;
+                        System.TimeSpan sinceEpoch = System.DateTime.UtcNow - new System.DateTime(1970, 1, 1);
+                        if (timestamp > 0)
+                        {
+                            Timedelta latency = (Timestamp)sinceEpoch.TotalMilliseconds - timestamp;
+                            if (latency > 1000000)
+                            {
+                                Debug.LogWarning($"{name}: Preposterous latency {latency} ms. timestamp={timestamp}.");
+                            }
+                            else
+                            {
+                                if (latency < statsMinLatency || statsLatencyCount == 0) statsMinLatency = latency;
+                                if (latency > statsMaxLatency || statsLatencyCount == 0) statsMaxLatency = latency;
+                                statsLatencyCount++;
+                            }
+                        }
+                    }
+                    MaybeOutput();
                 }
+            }
+
+            protected override void OutputAggregate()
+            {
+                bool haveLatency = statsLatencyCount > 0;
+                OutputFields(
+                    Rate("fps", statsTotalPointcloudCount),
+                    haveLatency ? Field("latency_ms", statsMinLatency) : null,
+                    haveLatency ? Field("latency_max_ms", statsMaxLatency) : null,
+                    Rate("fps_display", statsTotalDisplayCount),
+                    Average("points_per_cloud", statsTotalPointCount, statsTotalPointcloudCount, "F0"),
+                    Average("points_per_display", statsTotalDisplayPointCount, statsTotalDisplayCount, "F0"),
+                    Average("avg_pointsize", statsTotalPointSize, statsTotalPointcloudCount, "G4"),
+                    Average("renderer_queue_ms", statsTotalQueueDuration, statsTotalPointcloudCount, "F0"),
+                    Field("framenumber", lastFrameNumber),
+                    Field("timestamp", lastTimestamp),
+                    Field("n_pointclouds", statsTotalPointcloudCount),
+                    Field("n_displays", statsTotalDisplayCount));
+                statsTotalPointcloudCount = 0;
+                statsTotalDisplayCount = 0;
+                statsTotalDisplayPointCount = 0;
+                statsTotalPointCount = 0;
+                statsTotalPointSize = 0;
+                statsTotalQueueDuration = 0;
+                statsLatencyCount = 0;
+                statsMinLatency = 0;
+                statsMaxLatency = 0;
             }
         }
 

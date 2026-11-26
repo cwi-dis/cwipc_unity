@@ -160,6 +160,10 @@ namespace Cwipc
             {
                 t.Close();
             }
+#if !VRT_WITHOUT_STATS
+            // After the pushers have stopped: they call statsUpdate (#89).
+            stats.Final();
+#endif
             // Clear our encoderGroup to signal the Update thread
             var tmp = encoderGroup;
             encoderGroup = null;
@@ -232,20 +236,31 @@ namespace Cwipc
             int statsAggregatePackets = 0;
 
             public void statsUpdate(bool dropped, Timedelta encodeDuration, Timedelta queuedDuration) {
-                statsTotalPointclouds++;
-                statsAggregatePackets++;
-                statsTotalEncodeDuration += encodeDuration;
-                statsTotalQueuedDuration += queuedDuration;
-                if (dropped) statsTotalDropped++;
-
-                if (ShouldOutput()) {
-                    Output($"fps={statsTotalPointclouds / Interval():F2}, fps_dropped={statsTotalDropped / Interval():F2}, encoder_ms={(statsTotalEncodeDuration / statsTotalPointclouds):F2}, transmitter_queue_ms={(int)(statsTotalQueuedDuration / statsTotalPointclouds)}, aggregate_packets={statsAggregatePackets}");
-                    Clear();
-                    statsTotalPointclouds = 0;
-                    statsTotalDropped = 0;
-                    statsTotalEncodeDuration = 0;
-                    statsTotalQueuedDuration = 0;
+                lock (statsLock)
+                {
+                    statsTotalPointclouds++;
+                    statsAggregatePackets++;
+                    statsTotalEncodeDuration += encodeDuration;
+                    statsTotalQueuedDuration += queuedDuration;
+                    if (dropped) statsTotalDropped++;
+                    MaybeOutput();
                 }
+            }
+
+            protected override void OutputAggregate()
+            {
+                OutputFields(
+                    Rate("fps", statsTotalPointclouds),
+                    Rate("fps_dropped", statsTotalDropped),
+                    Average("encoder_ms", statsTotalEncodeDuration, statsTotalPointclouds),
+                    Average("transmitter_queue_ms", statsTotalQueuedDuration, statsTotalPointclouds, "F0"),
+                    Field("aggregate_packets", statsAggregatePackets),
+                    Field("n_pointclouds", statsTotalPointclouds),
+                    Field("n_dropped", statsTotalDropped));
+                statsTotalPointclouds = 0;
+                statsTotalDropped = 0;
+                statsTotalEncodeDuration = 0;
+                statsTotalQueuedDuration = 0;
             }
         }
 

@@ -216,6 +216,9 @@ namespace Cwipc
                 {
                     // However this thread ends, its socket goes with it (#82, rule 4).
                     Stop();
+#if !VRT_WITHOUT_STATS
+                    stats.Final();
+#endif
                 }
 
             }
@@ -225,7 +228,6 @@ namespace Cwipc
             {
                 public Stats(string name) : base(name) { }
 
-                System.DateTime statsConnectionStartTime;
                 double statsTotalBytes;
                 double statsTotalDuration;
                 double statsTotalPackets;
@@ -234,20 +236,33 @@ namespace Cwipc
                 
                 public void statsUpdate(int nBytes, Timedelta duration, bool dropped)
                 {
-                    statsTotalBytes += nBytes;
-                    statsTotalDuration += duration;
-                    statsTotalPackets++;
-                    statsAggregatePackets++;
-                    if (dropped) statsDroppedPackets++;
-                    if (ShouldOutput())
+                    lock (statsLock)
                     {
-                        Output($"fps={statsTotalPackets / Interval():F2}, fps_dropped={statsDroppedPackets / Interval():F2}, receive_ms={(int)(statsTotalDuration/statsTotalPackets)}, receive_bandwidth={(int)(statsTotalBytes/Interval())}, bytes_per_packet={(int)(statsTotalBytes / statsTotalPackets)}, aggregate_packets={statsAggregatePackets}");
-                        Clear();
-                        statsTotalBytes = 0;
-                        statsTotalDuration = 0;
-                        statsTotalPackets = 0;
-                        statsDroppedPackets = 0;
+                        statsTotalBytes += nBytes;
+                        statsTotalDuration += duration;
+                        statsTotalPackets++;
+                        statsAggregatePackets++;
+                        if (dropped) statsDroppedPackets++;
+                        MaybeOutput();
                     }
+                }
+
+                protected override void OutputAggregate()
+                {
+                    OutputFields(
+                        Rate("fps", statsTotalPackets),
+                        Rate("fps_dropped", statsDroppedPackets),
+                        Average("receive_ms", statsTotalDuration, statsTotalPackets, "F0"),
+                        Rate("receive_bandwidth", statsTotalBytes, "F0"),
+                        Average("bytes_per_packet", statsTotalBytes, statsTotalPackets, "F0"),
+                        Field("aggregate_packets", statsAggregatePackets),
+                        Field("n_packets", statsTotalPackets),
+                        Field("n_dropped", statsDroppedPackets),
+                        Field("bytes", statsTotalBytes));
+                    statsTotalBytes = 0;
+                    statsTotalDuration = 0;
+                    statsTotalPackets = 0;
+                    statsDroppedPackets = 0;
                 }
             }
 

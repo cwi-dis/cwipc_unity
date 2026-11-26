@@ -81,6 +81,9 @@ namespace Cwipc
                 decoders = null;
                 if (outQueue != null && !outQueue.IsClosed()) outQueue.Close();
             }
+#if !VRT_WITHOUT_STATS
+            stats.Final();
+#endif
             base.AsyncOnStop();
         }
 
@@ -181,28 +184,39 @@ namespace Cwipc
 
             public void statsUpdate(int pointCount, bool dropped, Timedelta inQueueDuration, Timedelta decodeDuration, Timedelta queuedDuration, float pointSize)
             {
-                statsTotalPoints += pointCount;
-                statsTotalPointclouds++;
-                statsAggregatePackets++;
-                statsTotalInQueueDuration += inQueueDuration;
-                statsTotalDecodeDuration += decodeDuration;
-                statsTotalQueuedDuration += queuedDuration;
-                statsTotalPointSizes += pointSize;
-                if (dropped) statsTotalDropped++;
-
-                if (ShouldOutput())
+                lock (statsLock)
                 {
-                    double factor = (statsTotalPointclouds == 0 ? 1 : statsTotalPointclouds);
-                    Output($"fps={statsTotalPointclouds / Interval():F2}, fps_dropped={statsTotalDropped / Interval():F2}, points_per_cloud={(int)(statsTotalPoints / factor)}, decoder_queue_ms={(int)(statsTotalInQueueDuration / factor)}, decoder_ms={statsTotalDecodeDuration / factor:F2}, avg_pointsize={statsTotalPointSizes / factor:F3}, aggregate_packets={statsAggregatePackets}");
-                    Clear();
-                    statsTotalPoints = 0;
-                    statsTotalPointclouds = 0;
-                    statsTotalDropped = 0;
-                    statsTotalInQueueDuration = 0;
-                    statsTotalQueuedDuration = 0;
-                    statsTotalDecodeDuration = 0;
-                    statsTotalPointSizes = 0;
+                    statsTotalPoints += pointCount;
+                    statsTotalPointclouds++;
+                    statsAggregatePackets++;
+                    statsTotalInQueueDuration += inQueueDuration;
+                    statsTotalDecodeDuration += decodeDuration;
+                    statsTotalQueuedDuration += queuedDuration;
+                    statsTotalPointSizes += pointSize;
+                    if (dropped) statsTotalDropped++;
+                    MaybeOutput();
                 }
+            }
+
+            protected override void OutputAggregate()
+            {
+                OutputFields(
+                    Rate("fps", statsTotalPointclouds),
+                    Rate("fps_dropped", statsTotalDropped),
+                    Average("points_per_cloud", statsTotalPoints, statsTotalPointclouds, "F0"),
+                    Average("decoder_queue_ms", statsTotalInQueueDuration, statsTotalPointclouds, "F0"),
+                    Average("decoder_ms", statsTotalDecodeDuration, statsTotalPointclouds),
+                    Average("avg_pointsize", statsTotalPointSizes, statsTotalPointclouds, "F3"),
+                    Field("aggregate_packets", statsAggregatePackets),
+                    Field("n_pointclouds", statsTotalPointclouds),
+                    Field("n_dropped", statsTotalDropped));
+                statsTotalPoints = 0;
+                statsTotalPointclouds = 0;
+                statsTotalDropped = 0;
+                statsTotalInQueueDuration = 0;
+                statsTotalQueuedDuration = 0;
+                statsTotalDecodeDuration = 0;
+                statsTotalPointSizes = 0;
             }
         }
 

@@ -39,6 +39,9 @@ namespace Cwipc
         public override void AsyncOnStop()
         {
             if (byteArray.Length != 0) byteArray.Dispose();
+#if !VRT_WITHOUT_STATS
+            stats.Final();
+#endif
             base.AsyncOnStop();
         }
 
@@ -187,26 +190,35 @@ namespace Cwipc
 
             public void statsUpdate(int dropCount, bool noData)
             {
-
-                statsTotalUpdates += 1;
-                statsDrops += dropCount;
-                if (noData)
+                lock (statsLock)
                 {
-                    statsNoData++;
-                } else
-                {
-                    statsAggregatePackets++;
+                    statsTotalUpdates += 1;
+                    statsDrops += dropCount;
+                    if (noData)
+                    {
+                        statsNoData++;
+                    } else
+                    {
+                        statsAggregatePackets++;
+                    }
+                    statsAggregatePackets += dropCount;
+                    MaybeOutput();
                 }
-                statsAggregatePackets += dropCount;
+            }
 
-                if (ShouldOutput())
-                {
-                    Output($"fps={statsTotalUpdates / Interval():F2}, fps_dropped={statsDrops / Interval():F2}, fps_nodata={statsNoData / Interval():F2}, aggregate_packets={statsAggregatePackets}");
-                    Clear();
-                    statsTotalUpdates = 0;
-                    statsDrops = 0;
-                    statsNoData = 0;
-                }
+            protected override void OutputAggregate()
+            {
+                OutputFields(
+                    Rate("fps", statsTotalUpdates),
+                    Rate("fps_dropped", statsDrops),
+                    Rate("fps_nodata", statsNoData),
+                    Field("aggregate_packets", statsAggregatePackets),
+                    Field("n_updates", statsTotalUpdates),
+                    Field("n_dropped", statsDrops),
+                    Field("n_nodata", statsNoData));
+                statsTotalUpdates = 0;
+                statsDrops = 0;
+                statsNoData = 0;
             }
         }
 
