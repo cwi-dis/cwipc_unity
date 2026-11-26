@@ -7,6 +7,7 @@
 - `PointCloudRenderer` also writes stats records when no new point clouds arrive (#89)
 - Camera readers log self-view drops as `fps_dropped_self`, like the prerecorded reader (was `selfdrop_fps`) (#97)
 - Encoder stats records include the size of the encoded point clouds (`bytes_per_packet`, `bytes`), dropped ones included (#96)
+- A thread that doesn't stop in time also writes a stats record (`join_timeout=1`); `AsyncWorker.JoinHelperThread()` does the same for helper threads (#88)
 
 ## [8.3.0] - 2026-11-20
 

@@ -90,12 +90,28 @@ namespace Cwipc
             }
             Stop();
             if (debugThreading) Debug.Log($"{Name()}: joining thread");
-            if (!thread.Join(joinTimeout))
+            if (!JoinHelperThread(thread, joinTimeout, Name()))
             {
-                Debug.LogError($"{Name()}: thread did not stop in {joinTimeout} ms; leaving it running");
                 return;
             }
             if (debugThreading) Debug.Log($"{Name()}: thread stopped and joined");
+        }
+
+        /// <summary>
+        /// Wait at most timeoutMs for a thread to end. If it doesn't, log an error and write a stats
+        /// record (join_timeout=1), and leave it running (#82, rule 5). For worker threads (StopAndWait())
+        /// and for helper threads that a worker creates itself, so all join timeouts can be found in
+        /// stats logs with one record format (#88).
+        /// </summary>
+        /// <returns>true if the thread ended in time</returns>
+        public static bool JoinHelperThread(System.Threading.Thread t, int timeoutMs, string ownerName)
+        {
+            if (t.Join(timeoutMs)) return true;
+            Debug.LogError($"{t.Name}: thread did not stop in {timeoutMs} ms; leaving it running");
+#if !VRT_WITHOUT_STATS
+            Statistics.Output(ownerName, $"join_timeout=1, thread={t.Name}, waited_ms={timeoutMs}");
+#endif
+            return false;
         }
 
         /// <summary>

@@ -87,11 +87,12 @@ namespace Cwipc
             }
 
             /// <summary>
-            /// Wait at most timeoutMs for the thread to end; false if it didn't (#82, rule 4).
+            /// Wait at most timeoutMs for the thread to end; false if it didn't, after logging it and
+            /// writing a stats record (#82, rule 4; #88).
             /// </summary>
-            public bool Join(int timeoutMs)
+            public bool Join(int timeoutMs, string ownerName)
             {
-                return myThread.Join(timeoutMs);
+                return AsyncWorker.JoinHelperThread(myThread, timeoutMs, ownerName);
             }
 
             protected int _ReceiveAll(Socket sock, byte[] buffer)
@@ -368,12 +369,9 @@ namespace Cwipc
             {
                 t.Stop();
             }
-            foreach(var t in threads)
+            foreach (var t in threads)
             {
-                if (!t.Join(joinTimeout))
-                {
-                    Debug.LogError($"{t.Name()}: thread did not stop in {joinTimeout} ms; leaving it running");
-                }
+                t.Join(joinTimeout, Name());
             }
             base.AsyncOnStop();
         }
