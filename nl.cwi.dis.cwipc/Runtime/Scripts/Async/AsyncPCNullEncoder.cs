@@ -90,9 +90,11 @@ namespace Cwipc
                 }
                 QueueThreadSafe queue = outputs[i].outQueue;
                 Timedelta queuedDuration = queue.QueuedDuration();
+                // Before Enqueue(): after it the queue or its consumer may have freed the buffer.
+                int nBytes = mc.length;
                 bool dropped = !queue.Enqueue(mc);
 #if !VRT_WITHOUT_STATS
-                stats.statsUpdate(dropped, encodeDuration, queuedDuration);
+                stats.statsUpdate(dropped, nBytes, encodeDuration, queuedDuration);
 #endif
             }
             pc.free();
@@ -107,9 +109,10 @@ namespace Cwipc
             double statsTotalDropped = 0;
             double statsTotalEncodeDuration = 0;
             double statsTotalQueuedDuration = 0;
+            double statsTotalBytes = 0;
             int statsAggregatePackets = 0;
 
-            public void statsUpdate(bool dropped, Timedelta encodeDuration, Timedelta queuedDuration)
+            public void statsUpdate(bool dropped, int nBytes, Timedelta encodeDuration, Timedelta queuedDuration)
             {
                 lock (statsLock)
                 {
@@ -117,6 +120,8 @@ namespace Cwipc
                     statsAggregatePackets++;
                     statsTotalEncodeDuration += encodeDuration;
                     statsTotalQueuedDuration += queuedDuration;
+                    // Dropped ones included: their bytes appear in no writer record (#96).
+                    statsTotalBytes += nBytes;
                     if (dropped) statsTotalDropped++;
                     MaybeOutput();
                 }
@@ -129,13 +134,16 @@ namespace Cwipc
                     Rate("fps_dropped", statsTotalDropped),
                     Average("encoder_ms", statsTotalEncodeDuration, statsTotalPointclouds),
                     Average("transmitter_queue_ms", statsTotalQueuedDuration, statsTotalPointclouds, "F0"),
+                    Average("bytes_per_packet", statsTotalBytes, statsTotalPointclouds, "F0"),
                     Field("aggregate_packets", statsAggregatePackets),
                     Field("n_pointclouds", statsTotalPointclouds),
-                    Field("n_dropped", statsTotalDropped));
+                    Field("n_dropped", statsTotalDropped),
+                    Field("bytes", statsTotalBytes));
                 statsTotalPointclouds = 0;
                 statsTotalDropped = 0;
                 statsTotalEncodeDuration = 0;
                 statsTotalQueuedDuration = 0;
+                statsTotalBytes = 0;
             }
         }
 
