@@ -279,7 +279,9 @@ namespace Cwipc
             /// <summary>The frame arrived too late to be used (recorded by the consumer).</summary>
             Late,
             /// <summary>The frame was too large to send.</summary>
-            Size
+            Size,
+            /// <summary>Sending the frame failed (the transport refused it).</summary>
+            Send
         }
 
         /// <summary>

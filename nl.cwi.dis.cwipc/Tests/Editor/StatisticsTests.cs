@@ -97,6 +97,7 @@ namespace Cwipc.Tests
             Assert.AreEqual("drop=1, reason=full", Statistics.DropFields(Statistics.DropReason.Full));
             Assert.AreEqual("drop=1, reason=late", Statistics.DropFields(Statistics.DropReason.Late));
             Assert.AreEqual("drop=1, reason=size, stream=self", Statistics.DropFields(Statistics.DropReason.Size, "self"));
+            Assert.AreEqual("drop=1, reason=send", Statistics.DropFields(Statistics.DropReason.Send));
             Assert.AreEqual("drop=1, reason=full, stream=2", Statistics.DropFields(Statistics.DropReason.Full, 2.ToString()));
         }
 
