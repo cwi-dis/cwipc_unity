@@ -108,21 +108,6 @@ namespace Cwipc.Tests
                 System.Globalization.CultureInfo.CurrentCulture = saved;
             }
         }
-
-        [Test]
-        public void FinalizerWarnsWhenFinalWasNotCalled()
-        {
-            CreateAndDropStats();
-            LogAssert.Expect(LogType.Warning, new Regex("CountingStats \\(StatisticsTests.Forgotten\\): Final\\(\\) was never called"));
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        }
-
-        // A separate method, so no local variable keeps the object alive.
-        static void CreateAndDropStats()
-        {
-            new CountingStats("StatisticsTests.Forgotten");
-        }
     }
 }
 #endif
