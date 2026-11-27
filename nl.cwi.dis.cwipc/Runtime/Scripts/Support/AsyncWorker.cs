@@ -102,10 +102,14 @@ namespace Cwipc
         /// record (join_timeout=1), and leave it running (#82, rule 5). For worker threads (StopAndWait())
         /// and for helper threads that a worker creates itself, so all join timeouts can be found in
         /// stats logs with one record format (#88).
+        /// A thread that is null or was never started counts as stopped: that only happens after a
+        /// setup that failed halfway, which has already thrown its own exception, and throwing again
+        /// here would bury that cause and leave the rest of the cleanup undone (#82, rule 6).
         /// </summary>
         /// <returns>true if the thread ended in time</returns>
         public static bool JoinHelperThread(System.Threading.Thread t, int timeoutMs, string ownerName)
         {
+            if (t == null || (t.ThreadState & System.Threading.ThreadState.Unstarted) != 0) return true;
             if (t.Join(timeoutMs)) return true;
             Debug.LogError($"{t.Name}: thread did not stop in {timeoutMs} ms; leaving it running");
 #if !VRT_WITHOUT_STATS

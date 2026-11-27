@@ -112,5 +112,17 @@ namespace Cwipc.Tests
                 worker.release.Set(); // let the thread end
             }
         }
+
+        /// <summary>
+        /// Cleanup after a setup that failed halfway: a helper thread that is null or was never started
+        /// counts as stopped, instead of throwing (#88).
+        /// </summary>
+        [Test]
+        public void JoinHelperThreadAcceptsNullAndUnstartedThreads()
+        {
+            Assert.IsTrue(AsyncWorker.JoinHelperThread(null, 100, "AsyncWorkerTests"));
+            var unstarted = new Thread(() => { });
+            Assert.IsTrue(AsyncWorker.JoinHelperThread(unstarted, 100, "AsyncWorkerTests"));
+        }
     }
 }
