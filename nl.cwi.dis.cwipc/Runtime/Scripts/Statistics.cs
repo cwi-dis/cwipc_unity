@@ -269,6 +269,50 @@ namespace Cwipc
         }
 
         /// <summary>
+        /// Why a frame was dropped (cwi-dis/VR2Gather#457). A drop is a frame lost without anyone choosing to
+        /// lose it; deliberate skips (n_skipped) and frames nobody needs (n_unused) are not drops.
+        /// </summary>
+        public enum DropReason
+        {
+            /// <summary>An output queue was full (recorded by the producer).</summary>
+            Full,
+            /// <summary>The frame arrived too late to be used (recorded by the consumer).</summary>
+            Late,
+            /// <summary>The frame was too large to send.</summary>
+            Size
+        }
+
+        /// <summary>
+        /// The fields of a drop record: "drop=1, reason=full" plus ", stream=..." when given.
+        /// </summary>
+        public static string DropFields(DropReason reason, string stream = null)
+        {
+            string fields = $"drop=1, reason={reason.ToString().ToLowerInvariant()}";
+            if (stream != null) fields += $", stream={stream}";
+            return fields;
+        }
+
+        /// <summary>
+        /// Write a record for one dropped frame, whatever the stats interval (cwi-dis/VR2Gather#457).
+        /// stream: for components with several output queues, the index of the queue, or "self" for the
+        /// self-view queue of a point cloud reader. The time of the drop is the record's own ts.
+        /// Drops while the component is stopping (its output queue closed during teardown) are not drops:
+        /// don't call this for them.
+        /// </summary>
+        public static void OutputDrop(string name, DropReason reason, string stream = null)
+        {
+            Output(name, DropFields(reason, stream));
+        }
+
+        /// <summary>
+        /// Write a drop record for this Statistics object's component.
+        /// </summary>
+        protected void OutputDrop(DropReason reason, string stream = null)
+        {
+            OutputDrop(name, reason, stream);
+        }
+
+        /// <summary>
         /// Output a single record for the Statistics object.
         /// The parameter should only contain comma-separated name=value pairs, the common fields are automatically added.
         /// </summary>
