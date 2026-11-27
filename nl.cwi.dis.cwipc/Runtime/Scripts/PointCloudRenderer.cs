@@ -258,7 +258,10 @@ namespace Cwipc
             double statsTotalDisplayPointCount = 0;
             double statsTotalPointSize = 0;
             double statsTotalQueueDuration = 0;
-            int statsLatencyCount = 0;
+            // latency_ms: lowest arrival age (fresh point clouds only). latency_max_ms: highest display age
+            // (every display, re-displays included), so it includes the time a point cloud stays on screen (#57).
+            int statsArrivalLatencyCount = 0;
+            int statsDisplayLatencyCount = 0;
             Timedelta statsMinLatency = 0;
             Timedelta statsMaxLatency = 0;
             int lastFrameNumber = 0;
@@ -280,21 +283,24 @@ namespace Cwipc
                         statsTotalPointCount += pointCount;
                         statsTotalPointSize += pointSize;
                         statsTotalQueueDuration += queueDuration;
-
+                    }
+                    if (timestamp > 0)
+                    {
                         System.TimeSpan sinceEpoch = System.DateTime.UtcNow - new System.DateTime(1970, 1, 1);
-                        if (timestamp > 0)
+                        Timedelta age = (Timestamp)sinceEpoch.TotalMilliseconds - timestamp;
+                        if (age > 1000000)
                         {
-                            Timedelta latency = (Timestamp)sinceEpoch.TotalMilliseconds - timestamp;
-                            if (latency > 1000000)
+                            if (fresh) Debug.LogWarning($"{name}: Preposterous latency {age} ms. timestamp={timestamp}.");
+                        }
+                        else
+                        {
+                            if (fresh)
                             {
-                                Debug.LogWarning($"{name}: Preposterous latency {latency} ms. timestamp={timestamp}.");
+                                if (age < statsMinLatency || statsArrivalLatencyCount == 0) statsMinLatency = age;
+                                statsArrivalLatencyCount++;
                             }
-                            else
-                            {
-                                if (latency < statsMinLatency || statsLatencyCount == 0) statsMinLatency = latency;
-                                if (latency > statsMaxLatency || statsLatencyCount == 0) statsMaxLatency = latency;
-                                statsLatencyCount++;
-                            }
+                            if (age > statsMaxLatency || statsDisplayLatencyCount == 0) statsMaxLatency = age;
+                            statsDisplayLatencyCount++;
                         }
                     }
                     MaybeOutput();
@@ -303,11 +309,10 @@ namespace Cwipc
 
             protected override void OutputAggregate()
             {
-                bool haveLatency = statsLatencyCount > 0;
                 OutputFields(
                     Rate("fps", statsTotalPointcloudCount),
-                    haveLatency ? Field("latency_ms", statsMinLatency) : null,
-                    haveLatency ? Field("latency_max_ms", statsMaxLatency) : null,
+                    statsArrivalLatencyCount > 0 ? Field("latency_ms", statsMinLatency) : null,
+                    statsDisplayLatencyCount > 0 ? Field("latency_max_ms", statsMaxLatency) : null,
                     Rate("fps_display", statsTotalDisplayCount),
                     Average("points_per_cloud", statsTotalPointCount, statsTotalPointcloudCount, "F0"),
                     Average("points_per_display", statsTotalDisplayPointCount, statsTotalDisplayCount, "F0"),
@@ -323,7 +328,8 @@ namespace Cwipc
                 statsTotalPointCount = 0;
                 statsTotalPointSize = 0;
                 statsTotalQueueDuration = 0;
-                statsLatencyCount = 0;
+                statsArrivalLatencyCount = 0;
+                statsDisplayLatencyCount = 0;
                 statsMinLatency = 0;
                 statsMaxLatency = 0;
             }
