@@ -69,7 +69,8 @@ namespace Cwipc
             Timedelta queuedDuration = outQueue.QueuedDuration();
             bool dropped = !outQueue.Enqueue(pc);
 #if !VRT_WITHOUT_STATS
-            stats.statsUpdate(pointCount, dropped, inQueue.QueuedDuration(), decodeDuration, queuedDuration);
+            // A failed Enqueue() while stopping is teardown (Stop() closes the queue), not a drop (cwi-dis/VR2Gather#457).
+            stats.statsUpdate(pointCount, dropped && isRunning, inQueue.QueuedDuration(), decodeDuration, queuedDuration);
 #endif
         }
 
@@ -96,7 +97,11 @@ namespace Cwipc
                     statsTotalInQueueDuration += inQueueDuration;
                     statsTotalDecodeDuration += decodeDuration;
                     statsTotalQueuedDuration += queuedDuration;
-                    if (dropped) statsTotalDropped++;
+                    if (dropped)
+                    {
+                        statsTotalDropped++;
+                        OutputDrop(DropReason.Full);
+                    }
                     MaybeOutput();
                 }
             }

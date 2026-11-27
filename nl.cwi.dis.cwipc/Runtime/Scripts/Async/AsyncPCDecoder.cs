@@ -162,7 +162,8 @@ namespace Cwipc
                 bool dropped = !outQueue.Enqueue(pc);
                 pc = null;
 #if !VRT_WITHOUT_STATS
-                stats.statsUpdate(pointCount, dropped, inQueue.QueuedDuration(), decodeDuration, queuedDuration, pointSize);
+                // A failed Enqueue() while stopping is teardown (Stop() closes the queue), not a drop (cwi-dis/VR2Gather#457).
+                stats.statsUpdate(pointCount, dropped && isRunning, inQueue.QueuedDuration(), decodeDuration, queuedDuration, pointSize);
 #endif
                 _FeedDecoder();
             }
@@ -193,7 +194,11 @@ namespace Cwipc
                     statsTotalDecodeDuration += decodeDuration;
                     statsTotalQueuedDuration += queuedDuration;
                     statsTotalPointSizes += pointSize;
-                    if (dropped) statsTotalDropped++;
+                    if (dropped)
+                    {
+                        statsTotalDropped++;
+                        OutputDrop(DropReason.Full);
+                    }
                     MaybeOutput();
                 }
             }

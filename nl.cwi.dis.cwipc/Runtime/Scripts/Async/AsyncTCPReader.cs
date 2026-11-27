@@ -191,7 +191,8 @@ namespace Cwipc
                         System.Runtime.InteropServices.Marshal.Copy(data, 0, mc.pointer, dataSize);
                         bool ok = receiverInfo.outQueue.Enqueue(mc);
 #if !VRT_WITHOUT_STATS
-                        stats.statsUpdate(dataSize, receiveDuration, !ok);
+                        // A failed Enqueue() while stopping is teardown (Stop() closes the queue), not a drop (cwi-dis/VR2Gather#457).
+                        stats.statsUpdate(dataSize, receiveDuration, !ok && parent.isRunning);
 #endif
                         // Close the socket if the portOffset (the quality index) has been changed in the mean time
                         if (socket != null && receiverInfo.portOffset != portOffset)
@@ -243,7 +244,11 @@ namespace Cwipc
                         statsTotalDuration += duration;
                         statsTotalPackets++;
                         statsAggregatePackets++;
-                        if (dropped) statsDroppedPackets++;
+                        if (dropped)
+                        {
+                            statsDroppedPackets++;
+                            OutputDrop(DropReason.Full);
+                        }
                         MaybeOutput();
                     }
                 }

@@ -53,7 +53,7 @@ namespace Cwipc
         {
            lock (this)
             {
-                int dropCount = 0;
+                int skipCount = 0; // older frames skipped to catch up: not drops (cwi-dis/VR2Gather#457)
                 Timestamp bestTimestamp = 0;
                 if (synchronizer != null)
                 {
@@ -91,7 +91,7 @@ namespace Cwipc
                     // queue may have been closed since the peek (#82, rule 2).
                     cwipc.pointcloud next = (cwipc.pointcloud)InQueue.TryDequeue(0);
                     if (next == null) break;
-                    dropCount++;
+                    skipCount++;
                     pc.free();
                     pc = next;
                 }
@@ -121,7 +121,7 @@ namespace Cwipc
                     isReady = true;
                 }
 #if !VRT_WITHOUT_STATS
-                stats.statsUpdate(dropCount, false);
+                stats.statsUpdate(skipCount, false);
 #endif
             }
             return true;
@@ -142,6 +142,9 @@ namespace Cwipc
                     var frameToDrop = InQueue.TryDequeue(0);
                     if (true) Debug.LogWarning($"{Name()}: Drop frame {earliestTimestamp} <= previous {_currentTimestamp}, {_currentTimestamp- earliestTimestamp}ms too late");
                     frameToDrop.free();
+#if !VRT_WITHOUT_STATS
+                    stats.statsDropLate();
+#endif
                     earliestTimestamp = InQueue._PeekTimestamp(_currentTimestamp);
                 }
                 Timestamp latestTimestamp = InQueue.LatestTimestamp();
@@ -184,16 +187,17 @@ namespace Cwipc
             public Stats(string name) : base(name) { }
 
             double statsTotalUpdates;
+            double statsSkips;
             double statsDrops;
             double statsNoData;
             int statsAggregatePackets;
 
-            public void statsUpdate(int dropCount, bool noData)
+            public void statsUpdate(int skipCount, bool noData)
             {
                 lock (statsLock)
                 {
                     statsTotalUpdates += 1;
-                    statsDrops += dropCount;
+                    statsSkips += skipCount;
                     if (noData)
                     {
                         statsNoData++;
@@ -201,8 +205,20 @@ namespace Cwipc
                     {
                         statsAggregatePackets++;
                     }
-                    statsAggregatePackets += dropCount;
+                    statsAggregatePackets += skipCount;
                     MaybeOutput();
+                }
+            }
+
+            /// <summary>
+            /// A frame thrown away because it is older than the one being shown: a drop (cwi-dis/VR2Gather#457).
+            /// </summary>
+            public void statsDropLate()
+            {
+                lock (statsLock)
+                {
+                    statsDrops++;
+                    OutputDrop(DropReason.Late);
                 }
             }
 
@@ -211,12 +227,15 @@ namespace Cwipc
                 OutputFields(
                     Rate("fps", statsTotalUpdates),
                     Rate("fps_dropped", statsDrops),
+                    Rate("fps_skipped", statsSkips),
                     Rate("fps_nodata", statsNoData),
                     Field("aggregate_packets", statsAggregatePackets),
                     Field("n_updates", statsTotalUpdates),
                     Field("n_dropped", statsDrops),
+                    Field("n_skipped", statsSkips),
                     Field("n_nodata", statsNoData));
                 statsTotalUpdates = 0;
+                statsSkips = 0;
                 statsDrops = 0;
                 statsNoData = 0;
             }

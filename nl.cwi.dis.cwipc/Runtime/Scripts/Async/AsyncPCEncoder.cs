@@ -78,7 +78,8 @@ namespace Cwipc
                     int nBytes = curBuffer.length;
                     bool dropped = !outQueue.Enqueue(curBuffer);
 #if !VRT_WITHOUT_STATS
-                    parent.stats.statsUpdate(dropped, nBytes, curEncodeDuration, queuedDuration);
+                    // A failed Enqueue() while stopping is teardown (Stop() closes the queue), not a drop (cwi-dis/VR2Gather#457).
+                    parent.stats.statsUpdate(dropped && parent.isRunning, stream_number, nBytes, curEncodeDuration, queuedDuration);
 #endif
                     curBuffer = null;
                 }
@@ -238,7 +239,7 @@ namespace Cwipc
             double statsTotalBytes = 0;
             int statsAggregatePackets = 0;
 
-            public void statsUpdate(bool dropped, int nBytes, Timedelta encodeDuration, Timedelta queuedDuration) {
+            public void statsUpdate(bool dropped, int stream, int nBytes, Timedelta encodeDuration, Timedelta queuedDuration) {
                 lock (statsLock)
                 {
                     statsTotalPointclouds++;
@@ -247,7 +248,11 @@ namespace Cwipc
                     statsTotalQueuedDuration += queuedDuration;
                     // Dropped ones included: their bytes appear in no writer record (#96).
                     statsTotalBytes += nBytes;
-                    if (dropped) statsTotalDropped++;
+                    if (dropped)
+                    {
+                        statsTotalDropped++;
+                        OutputDrop(DropReason.Full, stream.ToString());
+                    }
                     MaybeOutput();
                 }
             }

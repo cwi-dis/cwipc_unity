@@ -220,7 +220,8 @@ namespace Cwipc
                 }
             }
 #if !VRT_WITHOUT_STATS
-            stats.statsUpdate(pc.count(), pc.cellsize(), downsampleDuration, didDrop, didDropSelf, encoderQueuedDuration, pc.timestamp());
+            // While stopping (Stop() closes the queues) a failed Enqueue() is not a drop, and a missing queue not unused (cwi-dis/VR2Gather#457).
+            stats.statsUpdate(pc.count(), pc.cellsize(), downsampleDuration, didDrop && isRunning, didDropSelf && isRunning, out2Queue == null && isRunning, outQueue == null && isRunning, encoderQueuedDuration, pc.timestamp());
 #endif
             lock(this)
             {
@@ -333,12 +334,14 @@ namespace Cwipc
             double statsTotalPointSize = 0;
             double statsDrops = 0;
             double statsSelfDrops = 0;
+            double statsUnused = 0;
+            double statsUnusedSelf = 0;
             double statsQueuedDuration = 0;
             double statsDownsampleDuration = 0;
             int statsAggregatePackets = 0;
             Timestamp lastTimestamp = 0;
 
-            public void statsUpdate(int pointCount, float pointSize, Timedelta downsampleDuration, bool dropped, bool droppedSelf, Timedelta queuedDuration, Timestamp timestamp)
+            public void statsUpdate(int pointCount, float pointSize, Timedelta downsampleDuration, bool dropped, bool droppedSelf, bool unused, bool unusedSelf, Timedelta queuedDuration, Timestamp timestamp)
             {
                 lock (statsLock)
                 {
@@ -346,8 +349,19 @@ namespace Cwipc
                     statsTotalPointSize += pointSize;
                     statsTotalPointclouds++;
                     statsAggregatePackets++;
-                    if (dropped) statsDrops++;
-                    if (droppedSelf) statsSelfDrops++;
+                    if (dropped)
+                    {
+                        statsDrops++;
+                        OutputDrop(DropReason.Full);
+                    }
+                    if (droppedSelf)
+                    {
+                        statsSelfDrops++;
+                        OutputDrop(DropReason.Full, "self");
+                    }
+                    // No output queue: nobody listens, not a drop (cwi-dis/VR2Gather#457).
+                    if (unused) statsUnused++;
+                    if (unusedSelf) statsUnusedSelf++;
                     statsQueuedDuration += queuedDuration;
                     statsDownsampleDuration += downsampleDuration;
                     lastTimestamp = timestamp;
@@ -369,7 +383,9 @@ namespace Cwipc
                     Field("aggregate_packets", statsAggregatePackets),
                     Field("n_pointclouds", statsTotalPointclouds),
                     Field("n_dropped", statsDrops),
-                    Field("n_dropped_self", statsSelfDrops));
+                    Field("n_dropped_self", statsSelfDrops),
+                    Field("n_unused", statsUnused),
+                    Field("n_unused_self", statsUnusedSelf));
                 if (statsDrops > 1 + 3 * RecordInterval && !warnedExcessiveDrops)
                 {
                     // Once per reader: the condition tends to last, and the advice doesn't change (#58).
@@ -382,6 +398,8 @@ namespace Cwipc
                 statsTotalPointSize = 0;
                 statsDrops = 0;
                 statsSelfDrops = 0;
+                statsUnused = 0;
+                statsUnusedSelf = 0;
                 statsQueuedDuration = 0;
                 statsDownsampleDuration = 0;
             }
